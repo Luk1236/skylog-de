@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#00387B"/>
+  <!-- Drone body -->
+  <rect x="212" y="212" width="88" height="88" rx="16" fill="white" opacity="0.95"/>
+  <!-- Drone arms -->
+  <rect x="100" y="236" width="112" height="40" rx="10" fill="white" opacity="0.8"/>
+  <rect x="300" y="236" width="112" height="40" rx="10" fill="white" opacity="0.8"/>
+  <rect x="236" y="100" width="40" height="112" rx="10" fill="white" opacity="0.8"/>
+  <rect x="236" y="300" width="40" height="112" rx="10" fill="white" opacity="0.8"/>
+  <!-- Motors -->
+  <circle cx="112" cy="112" r="36" fill="white" opacity="0.9"/>
+  <circle cx="400" cy="112" r="36" fill="white" opacity="0.9"/>
+  <circle cx="112" cy="400" r="36" fill="white" opacity="0.9"/>
+  <circle cx="400" cy="400" r="36" fill="white" opacity="0.9"/>
+  <!-- Motor centers -->
+  <circle cx="112" cy="112" r="16" fill="#00387B"/>
+  <circle cx="400" cy="112" r="16" fill="#00387B"/>
+  <circle cx="112" cy="400" r="16" fill="#00387B"/>
+  <circle cx="400" cy="400" r="16" fill="#00387B"/>
+  <!-- Center dot -->
+  <circle cx="256" cy="256" r="14" fill="#00387B"/>
+</svg>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Datenschutzerklärung – SkyLog DE</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; color: #1e293b; line-height: 1.7; }
+    h1 { color: #00387B; border-bottom: 2px solid #e2e8f0; padding-bottom: .5rem; }
+    h2 { color: #00387B; margin-top: 2rem; }
+    a { color: #00387B; }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: .85rem; color: #94a3b8; }
+  </style>
+</head>
+<body>
+  <h1>Datenschutzerklärung</h1>
+  <p><strong>SkyLog DE – Drohnen Flugbuch</strong><br/>Stand: Juni 2025</p>
+
+  <h2>1. Verantwortlicher</h2>
+  <p>Diese App wird als Einzelprojekt betrieben. Anfragen richten Sie bitte per E-Mail an die in den App-Store-Metadaten hinterlegte Kontaktadresse.</p>
+
+  <h2>2. Welche Daten werden verarbeitet?</h2>
+  <p>SkyLog DE speichert <strong>alle Daten ausschließlich lokal auf Ihrem Gerät</strong> (IndexedDB im Browser / PWA-Storage). Es werden <strong>keine personenbezogenen Daten auf externe Server übertragen</strong>, gespeichert oder an Dritte weitergegeben.</p>
+  <p>Lokal gespeicherte Daten umfassen:</p>
+  <ul>
+    <li>Pilotenprofil (Name, LBA e-ID, Lizenzinformationen)</li>
+    <li>Drohnen- und Akkuinformationen</li>
+    <li>Flugprotokolle (Ort, Datum, Dauer, Wetter, Notizen)</li>
+    <li>Hochgeladene Dokumente und Fotos</li>
+  </ul>
+
+  <h2>3. Externe Dienste</h2>
+  <p>Die App ruft folgende externe Dienste ab – dabei werden <strong>keine personenbezogenen Daten übertragen</strong>, lediglich technische Parameter (GPS-Koordinaten für Wetterdaten):</p>
+  <ul>
+    <li><strong>Open-Meteo API</strong> (open-meteo.com) – Wetterdaten und Vorhersage anhand von GPS-Koordinaten. Datenschutz: <a href="https://open-meteo.com/en/terms" target="_blank">open-meteo.com/en/terms</a></li>
+    <li><strong>FAA NOTAM API</strong> (api.faa.gov) – NOTAM-Daten (optional, nur wenn API-Key hinterlegt). Datenschutz: <a href="https://www.faa.gov/privacy" target="_blank">faa.gov/privacy</a></li>
+    <li><strong>QR Server API</strong> (api.qrserver.com) – QR-Code-Generierung für die LBA e-ID (nur die eingegebene e-ID wird übertragen). Datenschutz: <a href="https://goqr.me/de/api/" target="_blank">goqr.me</a></li>
+    <li><strong>OpenStreetMap / Leaflet</strong> – Kartenmaterial. Datenschutz: <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank">osmfoundation.org</a></li>
+    <li><strong>DIPUL WMS</strong> (Luftfahrt-Informationsdienst Deutschland) – Luftraumdarstellung auf der Karte</li>
+  </ul>
+
+  <h2>4. GPS / Standortdaten</h2>
+  <p>Die App fragt Standortdaten (GPS) ab, um die Karte zu zentrieren und Wetterdaten für Ihren Standort zu laden. Diese Daten werden <strong>nicht gespeichert oder übertragen</strong>, außer als Teil des Flugprotokolls, das lokal auf Ihrem Gerät verbleibt.</p>
+
+  <h2>5. Ihre Rechte</h2>
+  <p>Da alle Daten lokal auf Ihrem Gerät gespeichert werden, können Sie diese jederzeit selbst löschen – über die Browser-Einstellungen (Websitedaten löschen) oder die integrierte Backup/Restore-Funktion der App. Es gibt keine zentrale Datenbank, bei der Löschanfragen gestellt werden müssten.</p>
+
+  <h2>6. Änderungen dieser Erklärung</h2>
+  <p>Diese Datenschutzerklärung kann bei Funktionserweiterungen der App aktualisiert werden. Die jeweils aktuelle Version ist in der App verlinkt.</p>
+
+  <footer>SkyLog DE · Datenschutzerklärung · Stand Juni 2025</footer>
+</body>
+</html>

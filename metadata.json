@@ -1,0 +1,6 @@
+{
+  "name": "SkyLog DE",
+  "description": "Professioneller Drohnen-Flugplaner mit dipul Geodaten, digitalem Logbuch und Drohnen-Garage.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["Map Visualization", "Data Persistence", "Aviation Regulations", "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
