@@ -6,7 +6,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
+  const isGhPages = process.env.GITHUB_ACTIONS === 'true';
   return {
+    base: isGhPages ? '/skylog-de/' : '/',
     plugins: [
       react(),
       tailwindcss(),
