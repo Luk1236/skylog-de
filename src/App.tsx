@@ -46,7 +46,11 @@ import {
   BarChart3,
   Calendar,
   Printer,
-  Cpu
+  Cpu,
+  Upload,
+  DatabaseBackup,
+  Bell,
+  ListChecks
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -63,6 +67,8 @@ import { cn } from './lib/utils';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile, type UASClass, type MaintenanceRecord, type Pilot, type SparePart } from './services/db';
 import { fetchWeather, fetchForecast, type WeatherData, type ForecastHour } from './services/weather';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from './services/notam';
+import { exportBackup, importBackup } from './services/backup';
+import { getReminders } from './services/reminders';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import L from 'leaflet';
@@ -1711,6 +1717,39 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     }
   };
 
+  const handleExportBackup = async () => {
+    try {
+      await exportBackup();
+    } catch (err) {
+      console.error(err);
+      alert('Export fehlgeschlagen.');
+    }
+  };
+
+  const handleImportBackup = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!confirm('Sicherung laden? Vorhandene Einträge mit gleicher ID werden überschrieben, der Rest bleibt erhalten.')) {
+      e.target.value = '';
+      return;
+    }
+    try {
+      const r = await importBackup(file);
+      alert(
+        `Sicherung geladen ✓\n\n` +
+        `${r.drones} Drohnen\n${r.batteries} Akkus\n${r.flights} Flüge\n` +
+        `${r.pilots} Piloten\n${r.maintenance} Wartungen\n${r.documents} Dokumente\n` +
+        `${r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei'}`
+      );
+      onUpdate();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || 'Import fehlgeschlagen.');
+    } finally {
+      e.target.value = '';
+    }
+  };
+
   return (
     <div className="max-w-md mx-auto pb-20">
       <div className="mb-8">
@@ -1913,7 +1952,30 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
         )}
       </div>
 
-      <div className="mt-10 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
+      {/* Datensicherung */}
+      <div className="mt-10">
+        <div className="flex items-center gap-2 mb-3">
+          <DatabaseBackup className="w-4 h-4 text-brand-blue" />
+          <h3 className="font-bold text-slate-900 text-sm">Datensicherung</h3>
+        </div>
+        <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
+          Sichere alle deine Drohnen, Akkus, Flüge, Piloten und Dokumente in eine Datei — und lade sie bei Handywechsel oder Datenverlust wieder ein.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportBackup}
+            className="flex-1 flex items-center justify-center gap-2 bg-brand-blue text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-blue/20 text-xs active:scale-95 transition-all"
+          >
+            <Download className="w-4 h-4" /> Sicherung exportieren
+          </button>
+          <label className="flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-xs cursor-pointer active:scale-95 transition-all">
+            <Upload className="w-4 h-4" /> Laden
+            <input type="file" className="hidden" accept="application/json,.json" onChange={handleImportBackup} />
+          </label>
+        </div>
+      </div>
+
+      <div className="mt-6 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
         <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
         <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
           Ihre Daten werden sicher und lokal in Ihrem Browser gespeichert. SkyLog DE sendet keine Informationen an Cloud-Server.
@@ -1946,6 +2008,58 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
           </a>
         </div>
       </div>
+    </div>
+  );
+}
+
+const PREFLIGHT_ITEMS = [
+  'Akkus voll geladen & Zustand geprüft',
+  'Propeller fest & unbeschädigt',
+  'Firmware & App aktuell',
+  'Wetter im Limit (Wind, Sicht, kein Regen)',
+  'Flugzone geprüft (dipul / NOTAM)',
+  'e-ID an der Drohne angebracht',
+  'Speicherkarte & Speicherplatz ok',
+  'Umgebung frei von Menschen & Hindernissen',
+];
+
+function PreFlightChecklist() {
+  const [checked, setChecked] = useState<boolean[]>(() => PREFLIGHT_ITEMS.map(() => false));
+  const done = checked.filter(Boolean).length;
+  const allDone = done === PREFLIGHT_ITEMS.length;
+  const toggle = (i: number) => setChecked(prev => prev.map((v, idx) => (idx === i ? !v : v)));
+
+  return (
+    <div className="bg-white p-5 rounded-[32px] border border-slate-200 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <ListChecks className="w-4 h-4 text-brand-blue" />
+          <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Pre-Flight Check</h3>
+        </div>
+        <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500")}>
+          {done}/{PREFLIGHT_ITEMS.length}
+        </span>
+      </div>
+      <div className="space-y-1">
+        {PREFLIGHT_ITEMS.map((item, i) => (
+          <button
+            key={i}
+            onClick={() => toggle(i)}
+            className="w-full flex items-center gap-3 py-2 text-left active:scale-[0.99] transition-transform"
+          >
+            {checked[i]
+              ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+              : <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />}
+            <span className={cn("text-xs font-medium", checked[i] ? "text-slate-400 line-through" : "text-slate-700")}>{item}</span>
+          </button>
+        ))}
+      </div>
+      {allDone && (
+        <div className="mt-3 flex items-center gap-2 p-2.5 bg-emerald-50 rounded-xl">
+          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+          <p className="text-[10px] font-bold text-emerald-700">Alles geprüft — startklar!</p>
+        </div>
+      )}
     </div>
   );
 }
@@ -2230,6 +2344,26 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
           </button>
         </div>
       </div>
+
+      {/* Erinnerungen */}
+      {getReminders(profile, drones, batteries).length > 0 && (
+        <div className="mb-6 space-y-2">
+          {getReminders(profile, drones, batteries).map((r, i) => (
+            <div
+              key={i}
+              className={cn(
+                "flex items-start gap-3 p-3 rounded-2xl border",
+                r.level === 'alert' ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"
+              )}
+            >
+              <Bell className={cn("w-4 h-4 shrink-0 mt-0.5", r.level === 'alert' ? "text-brand-red" : "text-amber-500")} />
+              <p className={cn("text-[11px] font-medium leading-relaxed", r.level === 'alert' ? "text-red-700" : "text-amber-700")}>
+                {r.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Stats Dashboard */}
       <div className="space-y-4 mb-8">
@@ -2574,6 +2708,7 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
   const [notamFir, setNotamFir] = useState('');
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [safetyError, setSafetyError] = useState<string | null>(null);
   const [safetyAnalysis, setSafetyAnalysis] = useState<{
     obstacles: { type: string, severity: 'Low' | 'Medium' | 'High', description: string, action: string }[],
     overall_safety_score: number,
@@ -2583,12 +2718,13 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
   const runSafetyAnalysis = async () => {
     if (!currentLocation[0] || !currentLocation[1]) return;
     setIsAnalyzing(true);
+    setSafetyError(null);
     try {
       const response = await fetch('/api/safety-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          latitude: currentLocation[0], 
+        body: JSON.stringify({
+          latitude: currentLocation[0],
           longitude: currentLocation[1],
           locationName: locationName
         }),
@@ -2596,9 +2732,14 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
       if (response.ok) {
         const data = await response.json();
         setSafetyAnalysis(data);
+      } else if (response.status === 404) {
+        setSafetyError('Die KI-Analyse ist in dieser Version nicht verfügbar (kein Server). Nutze die Online-Version von SkyLog DE.');
+      } else {
+        setSafetyError('Die KI-Analyse hat gerade nicht geklappt. Bitte später erneut versuchen.');
       }
     } catch (e) {
       console.error("Safety analysis failed:", e);
+      setSafetyError('Keine Verbindung zur KI. Prüfe deine Internetverbindung und versuche es erneut.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -2877,13 +3018,22 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                     </div>
                   </div>
 
-                  {!safetyAnalysis && !isAnalyzing && (
+                  <PreFlightChecklist />
+
+                  {!safetyAnalysis && !isAnalyzing && !safetyError && (
                     <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
                       <BrainCircuit className="w-5 h-5 text-brand-blue shrink-0" />
                       <div>
                         <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">KI-Empfehlung</p>
                         <p className="text-[10px] text-slate-500 font-medium">Lasse den Ort auf versteckte Hindernisse analysieren, bevor du startest.</p>
                       </div>
+                    </div>
+                  )}
+
+                  {safetyError && !isAnalyzing && (
+                    <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                      <p className="text-[10px] text-amber-700 font-medium leading-relaxed">{safetyError}</p>
                     </div>
                   )}
 

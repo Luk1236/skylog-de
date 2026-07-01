@@ -160,6 +160,10 @@ export const dbService = {
     const all = await db.getAll(MAINTENANCE_STORE);
     return all.filter(r => r.droneId === droneId);
   },
+  async getAllMaintenance(): Promise<MaintenanceRecord[]> {
+    const db = await getDB();
+    return db.getAll(MAINTENANCE_STORE);
+  },
   async saveMaintenance(record: MaintenanceRecord): Promise<void> {
     const db = await getDB();
     await db.put(MAINTENANCE_STORE, record);
@@ -255,5 +259,30 @@ export const dbService = {
   async deleteDocument(id: string): Promise<void> {
     const db = await getDB();
     await db.delete(DOCUMENTS_STORE, id);
+  },
+
+  // Backup: merge a full data set back into the DB (put by id, no side effects).
+  async importAllData(payload: {
+    drones: Drone[];
+    flights: Flight[];
+    batteries: Battery[];
+    maintenance: MaintenanceRecord[];
+    pilots: Pilot[];
+    profile: UserProfile | null;
+    documents: AppDocument[];
+  }): Promise<void> {
+    const db = await getDB();
+    const tx = db.transaction(
+      [DRONES_STORE, FLIGHTS_STORE, BATTERIES_STORE, MAINTENANCE_STORE, PILOTS_STORE, PROFILE_STORE, DOCUMENTS_STORE],
+      'readwrite'
+    );
+    for (const d of payload.drones) tx.objectStore(DRONES_STORE).put(d);
+    for (const f of payload.flights) tx.objectStore(FLIGHTS_STORE).put(f);
+    for (const b of payload.batteries) tx.objectStore(BATTERIES_STORE).put(b);
+    for (const m of payload.maintenance) tx.objectStore(MAINTENANCE_STORE).put(m);
+    for (const p of payload.pilots) tx.objectStore(PILOTS_STORE).put(p);
+    for (const doc of payload.documents) tx.objectStore(DOCUMENTS_STORE).put(doc);
+    if (payload.profile) tx.objectStore(PROFILE_STORE).put(payload.profile);
+    await tx.done;
   }
 };
