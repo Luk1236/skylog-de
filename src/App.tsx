@@ -215,7 +215,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-brand-blue gap-4">
+      <div className="flex flex-col items-center justify-center app-shell bg-brand-blue gap-4">
         <div className="bg-white/20 p-5 rounded-3xl">
           <Plane className="w-14 h-14 text-white animate-pulse" />
         </div>
@@ -226,7 +226,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 font-sans">
+    <div className="flex flex-col app-shell overflow-hidden bg-slate-50 font-sans">
       {/* Offline Banner */}
       {!isOnline && (
         <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
@@ -262,7 +262,7 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className="bg-brand-blue text-white px-4 py-3 flex items-center justify-between shadow-md z-10">
+      <header className="bg-brand-blue text-white px-4 pb-3 pt-safe flex items-center justify-between shadow-md z-10">
         <div className="flex items-center gap-2">
           <div className="bg-white/20 p-2 rounded-lg">
             <Plane className="w-6 h-6 text-white" />
@@ -437,7 +437,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bg-white border-t border-slate-200 px-2 py-2 flex items-center justify-between pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar">
+      <nav className="bg-white border-t border-slate-200 px-2 pt-2 flex items-center justify-between pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar">
         <NavButton 
           active={activeView === 'map'} 
           onClick={() => setActiveView('map')}
