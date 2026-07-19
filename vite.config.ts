@@ -1,11 +1,10 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
+export default defineConfig(() => {
   const isGhPages = process.env.GITHUB_ACTIONS === 'true';
   return {
     base: isGhPages ? '/skylog-de/' : '/',
@@ -33,9 +32,9 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
+    // Kein `define` für GEMINI_API_KEY: das würde den Schlüssel in den
+    // Browser-Bundle einbacken. Er wird ausschließlich serverseitig benutzt
+    // (server.ts bzw. api/safety-check.ts) und darf den Server nie verlassen.
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

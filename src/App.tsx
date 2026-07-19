@@ -65,12 +65,11 @@ import {
 } from 'recharts';
 import { cn } from './lib/utils';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile, type UASClass, type MaintenanceRecord, type Pilot, type SparePart } from './services/db';
-import { fetchWeather, fetchForecast, type WeatherData, type ForecastHour } from './services/weather';
+import { fetchWeather, fetchForecast, minutesUntilSunset, type WeatherData, type ForecastHour } from './services/weather';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from './services/notam';
-import { exportBackup, importBackup } from './services/backup';
+import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { FlightImportDialog } from './components/FlightImportDialog';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -1662,8 +1661,11 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     }
   };
 
-  const exportPilotBadge = () => {
+  const exportPilotBadge = async () => {
     if (!profile) return;
+    // jsPDF wiegt zusammen mit html2canvas rund 400 kB und wird nur hier
+    // gebraucht — deshalb erst beim Klick laden, nicht beim App-Start.
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [148, 105] });
     doc.setFillColor(0, 56, 123);
     doc.rect(0, 0, 148, 30, 'F');
@@ -2067,6 +2069,7 @@ function PreFlightChecklist() {
 function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLocation }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, onUpdate: () => void, currentLocation: [number, number] }) {
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [newFlight, setNewFlight] = useState<Partial<Flight>>({});
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const touchStartX = { current: 0 };
@@ -2075,6 +2078,13 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
   const validFlights = flights
     .filter(f => f.date <= todayStr)
     .sort((a,b) => b.createdAt - a.createdAt);
+
+  // Einmal berechnen statt zweimal pro Render (Bedingung + Liste).
+  // getLastBackupAt() liest localStorage, ist also nicht gratis.
+  const reminders = useMemo(
+    () => getReminders(profile, drones, batteries, getLastBackupAt()),
+    [profile, drones, batteries, flights]
+  );
 
   const handleManualAdd = async () => {
     if (!newFlight.droneId || !newFlight.date) return;
@@ -2171,7 +2181,12 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
     link.click();
   };
   
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    // Siehe exportPilotBadge: PDF-Bibliotheken erst bei Bedarf nachladen.
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF();
     
     // Header
@@ -2331,6 +2346,13 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
              <input type="file" accept=".json" className="hidden" onChange={importFromJSON} />
           </label>
           <button
+             onClick={() => setShowImport(true)}
+             className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
+             title="Flüge aus Flugaufzeichnung importieren (CSV)"
+          >
+             <Upload className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => setShowAssistant(true)}
             className="bg-brand-green text-white p-2.5 rounded-2xl shadow-lg shadow-brand-green/20 transition-transform active:scale-95 flex items-center gap-2"
           >
@@ -2346,9 +2368,9 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
       </div>
 
       {/* Erinnerungen */}
-      {getReminders(profile, drones, batteries).length > 0 && (
+      {reminders.length > 0 && (
         <div className="mb-6 space-y-2">
-          {getReminders(profile, drones, batteries).map((r, i) => (
+          {reminders.map((r, i) => (
             <div
               key={i}
               className={cn(
@@ -2565,6 +2587,21 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
         )}
       </AnimatePresence>
 
+      {showImport && (
+        <FlightImportDialog
+          drohnen={drones}
+          vorhandeneFluege={flights}
+          onClose={() => setShowImport(false)}
+          onImported={(anzahl) => {
+            setShowImport(false);
+            onUpdate();
+            alert(anzahl === 0
+              ? 'Es wurde kein Flug importiert.'
+              : `${anzahl} Flug/Flüge ins Logbuch übernommen.`);
+          }}
+        />
+      )}
+
       {showAssistant && (
         <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto">
           <FlightAssistant 
@@ -2691,7 +2728,8 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
   const [step, setStep] = useState<'setup' | 'checklist' | 'timer' | 'summary'>('setup');
   const [locationName, setLocationName] = useState('Standort wird ermittelt...');
   const [purpose, setPurpose] = useState<Flight['purpose']>('Hobby');
-  const [weatherData, setWeatherData] = useState({ temp: 20, windSpeed: 5, visibility: 'Gut', kIndex: 1, condition: 'Clear' });
+  const [weatherData, setWeatherData] = useState({ temp: 20, windSpeed: 5, windSpeed120: 0, windGusts: 0, visibility: 'Gut', kIndex: 1, condition: 'Clear' });
+  const [sunset, setSunset] = useState<string | null>(null);
   const [batteryStart, setBatteryStart] = useState(100);
   const [batteryEnd, setBatteryEnd] = useState(20);
   const [incidents, setIncidents] = useState('');
@@ -2749,13 +2787,16 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
     try {
       const w = await fetchWeather(currentLocation[0], currentLocation[1]);
       if (w) {
-        setWeatherData({
-          ...weatherData,
+        setWeatherData(prev => ({
+          ...prev,
           temp: Math.round(w.temp),
           windSpeed: Math.round(w.windSpeed),
+          windSpeed120: Math.round(w.windSpeed120),
+          windGusts: Math.round(w.windGusts),
           condition: w.condition,
           visibility: w.visibility,
-        });
+        }));
+        setSunset(w.sunset);
       }
       setLocationName(`${currentLocation[0].toFixed(4)}, ${currentLocation[1].toFixed(4)}`);
     } catch (e) {}
@@ -2769,7 +2810,7 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
       const cid = profile?.notamClientId;
       const csec = profile?.notamClientSecret;
       if (cid && csec) {
-        setNotamFir(getGermanFir(currentLocation[0]));
+        setNotamFir(getGermanFir(currentLocation[0], currentLocation[1]));
         setNotamLoading(true);
         fetchNotams(currentLocation[0], currentLocation[1], cid, csec)
           .then(setNotams)
@@ -3105,31 +3146,83 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                     </div>
                   </div>
 
-                  {/* Drohnen-spezifische Windgrenze */}
+                  {/* Drohnen-spezifische Windgrenze.
+                      Geprüft wird nicht nur der Bodenwind: auf Flughöhe (120 m) weht es
+                      meist stärker, und Böen sind für die Drohne kritischer als der
+                      Mittelwind. Es zählt der ungünstigste der drei Werte. */}
                   {selectedDrone && (() => {
                     const limit = selectedDrone.maxWindSpeed ?? 28;
-                    const over = weatherData.windSpeed > limit;
-                    return over ? (
+                    const kandidaten = [
+                      { wert: weatherData.windSpeed, quelle: 'am Boden' },
+                      { wert: weatherData.windSpeed120, quelle: 'auf 120 m Flughöhe' },
+                      { wert: weatherData.windGusts, quelle: 'in Böen' },
+                    ].filter(k => k.wert > 0);
+
+                    const schlimmster = kandidaten.reduce(
+                      (max, k) => (k.wert > max.wert ? k : max),
+                      { wert: 0, quelle: '' }
+                    );
+                    if (schlimmster.wert <= limit) return null;
+
+                    return (
                       <div className="flex items-center gap-3 p-4 bg-brand-red/5 border border-brand-red/20 rounded-2xl">
                         <Wind className="w-5 h-5 text-brand-red shrink-0" />
                         <div>
                           <p className="text-xs font-black text-brand-red">Wind über Limit für {selectedDrone.model}!</p>
-                          <p className="text-[10px] text-slate-500">Aktuell {weatherData.windSpeed} km/h · Max {limit} km/h laut Spezifikation</p>
+                          <p className="text-[10px] text-slate-500">
+                            {schlimmster.wert} km/h {schlimmster.quelle} · Max {limit} km/h laut Spezifikation
+                          </p>
+                          {weatherData.windSpeed120 > weatherData.windSpeed && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Am Boden nur {weatherData.windSpeed} km/h — oben ist es deutlich windiger.
+                            </p>
+                          )}
                         </div>
                       </div>
-                    ) : null;
+                    );
+                  })()}
+
+                  {/* Sonnenuntergang: ab da braucht die Drohne Kennzeichnung/Blinklicht. */}
+                  {(() => {
+                    const minuten = minutesUntilSunset(sunset);
+                    if (minuten === null || minuten > 90) return null;
+                    return (
+                      <div className="flex items-center gap-3 p-4 bg-brand-yellow/5 border border-brand-yellow/30 rounded-2xl">
+                        <Clock className="w-5 h-5 text-brand-yellow shrink-0" />
+                        <div>
+                          <p className="text-xs font-black text-slate-800">
+                            Sonnenuntergang in {minuten < 60 ? `${minuten} Min` : `${Math.floor(minuten / 60)} Std ${minuten % 60} Min`}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            Danach ist Nachtflug — die Drohne braucht ein blinkendes grünes Positionslicht.
+                          </p>
+                        </div>
+                      </div>
+                    );
                   })()}
 
                   {/* 6h Wettervorhersage */}
                   {forecast.length > 0 && (
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-3 text-center tracking-widest">6h Vorhersage</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 text-center tracking-widest">6h Vorhersage</p>
+                      <p className="text-[9px] text-slate-400 mb-3 text-center">Wind am Boden · ↑ auf 120 m · ⇡ Böen</p>
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {forecast.map((h, i) => (
-                          <div key={i} className="flex flex-col items-center gap-1 min-w-[52px] bg-white rounded-xl p-2 border border-slate-100 shrink-0">
+                          <div key={i} className="flex flex-col items-center gap-1 min-w-[64px] bg-white rounded-xl p-2 border border-slate-100 shrink-0">
                             <span className="text-[9px] font-black text-brand-blue">{h.time}</span>
                             <span className="text-xs font-bold text-slate-800">{h.temp}°</span>
+                            {/* Bodenwind / Wind auf Flughöhe — der obere Wert ist der relevante. */}
                             <span className={cn("text-[9px] font-bold", h.windSpeed > 15 ? "text-brand-red" : "text-slate-500")}>{h.windSpeed}km/h</span>
+                            {h.windSpeed120 > 0 && (
+                              <span className={cn("text-[9px] font-bold", h.windSpeed120 > 20 ? "text-brand-red" : "text-slate-400")}>
+                                ↑{h.windSpeed120}
+                              </span>
+                            )}
+                            {h.windGusts > 0 && (
+                              <span className={cn("text-[8px] font-bold", h.windGusts > 25 ? "text-brand-red" : "text-slate-400")}>
+                                ⇡{h.windGusts}
+                              </span>
+                            )}
                             <span className="text-[8px] text-slate-400 leading-tight text-center">{h.condition}</span>
                           </div>
                         ))}

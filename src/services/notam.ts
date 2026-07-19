@@ -7,20 +7,31 @@ export interface Notam {
   type: string;
 }
 
-// Determine which German FIR covers the given lat/lon
-export function getGermanFir(lat: number): 'EDWW' | 'EDGG' | 'EDMM' {
-  if (lat >= 52.0) return 'EDWW';  // Bremen FIR – northern Germany
-  if (lat <= 49.5) return 'EDMM';  // Munich FIR – southern Germany
-  return 'EDGG';                    // Langen FIR – central/western Germany
+// Ordnet einen Ort einer der drei deutschen FIRs zu.
+//
+// ACHTUNG: bewusst eine Näherung. Die echten FIR-Grenzen sind Polygone und
+// folgen keiner Breiten-/Längengrad-Linie. Für eine verbindliche Auskunft
+// braucht es die amtlichen Grenzverläufe (DFS/AIP) statt dieser Heuristik.
+//
+// Gegenüber der reinen Breitengrad-Prüfung wird hier zusätzlich der
+// Längengrad ausgewertet: im mittleren Streifen liegt der Osten (Sachsen,
+// Ost-Thüringen) in München, nicht in Langen — Dresden etwa wurde vorher
+// fälschlich Langen zugeordnet.
+export function getGermanFir(lat: number, lon: number): 'EDWW' | 'EDGG' | 'EDMM' {
+  if (lat >= 52.0) return 'EDWW';  // Bremen FIR – Norddeutschland
+  if (lat <= 49.5) return 'EDMM';  // München FIR – Süddeutschland
+
+  // Mittlerer Streifen: Ost/West am Längengrad trennen.
+  return lon >= 11.5 ? 'EDMM' : 'EDGG';
 }
 
 export async function fetchNotams(
   lat: number,
-  _lon: number,
+  lon: number,
   clientId: string,
   clientSecret: string
 ): Promise<Notam[]> {
-  const fir = getGermanFir(lat);
+  const fir = getGermanFir(lat, lon);
   try {
     const res = await fetch(
       `https://api.faa.gov/notamapi/v1/notams?icaoLocation=${fir}&pageSize=10&sortBy=effectiveStartDate&sortOrder=Desc`,

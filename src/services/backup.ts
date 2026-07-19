@@ -34,6 +34,27 @@ export interface ImportResult {
   profile: boolean;
 }
 
+// Wann zuletzt exportiert wurde. Bewusst in localStorage und NICHT in der
+// Sicherungsdatei: der Zeitstempel beschreibt dieses Gerät, nicht die Daten.
+// Läge er in der Datei, würde ein eingespieltes altes Backup die Erinnerung
+// zurückdrehen und man hielte sich fälschlich für gesichert.
+const LAST_BACKUP_KEY = 'skylog_last_backup_at';
+
+// Formatversion der Sicherungsdatei. Hochzählen, sobald sich die Struktur
+// so ändert, dass ältere App-Versionen sie nicht mehr korrekt lesen können.
+export const BACKUP_VERSION = 1;
+
+export function getLastBackupAt(): number | null {
+  const raw = localStorage.getItem(LAST_BACKUP_KEY);
+  if (!raw) return null;
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function markBackupDone(): void {
+  localStorage.setItem(LAST_BACKUP_KEY, String(Date.now()));
+}
+
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -74,7 +95,7 @@ export async function exportBackup(): Promise<void> {
 
   const data: BackupData = {
     app: 'SkyLog DE',
-    version: 1,
+    version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     drones,
     flights,
@@ -94,6 +115,8 @@ export async function exportBackup(): Promise<void> {
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+
+  markBackupDone();
 }
 
 // Reads a backup file and merges its contents back into the DB (put by id).
@@ -107,6 +130,16 @@ export async function importBackup(file: File): Promise<ImportResult> {
 
   if (data.app !== 'SkyLog DE' || !Array.isArray(data.drones)) {
     throw new Error('Das ist keine SkyLog-DE-Sicherungsdatei.');
+  }
+
+  // Die Datei nennt ihre Formatversion. Ist sie neuer als das, was diese
+  // App-Version versteht, brechen wir lieber ab, statt Felder stillschweigend
+  // zu verschlucken.
+  if (typeof data.version === 'number' && data.version > BACKUP_VERSION) {
+    throw new Error(
+      `Diese Sicherung stammt aus einer neueren SkyLog-Version (Format ${data.version}, ` +
+      `diese App kann ${BACKUP_VERSION}). Bitte die App aktualisieren.`
+    );
   }
 
   const documents: AppDocument[] = (data.documents ?? []).map((d) => ({
