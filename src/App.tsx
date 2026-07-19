@@ -1719,6 +1719,8 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     }
   };
 
+  const [backupDatei, setBackupDatei] = useState<File | null>(null);
+
   const handleExportBackup = async () => {
     try {
       await exportBackup();
@@ -1728,15 +1730,30 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     }
   };
 
-  const handleImportBackup = async (e: ChangeEvent<HTMLInputElement>) => {
+  // Die Datei wird nur gemerkt; welcher Modus gilt, entscheidet der Nutzer
+  // danach im Auswahldialog. Ohne diese Trennung waere "Ersetzen" ein
+  // Nebeneffekt eines simplen Dateidialogs - dafuer ist es zu endgueltig.
+  const handleImportBackup = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!confirm('Sicherung laden? Vorhandene Einträge mit gleicher ID werden überschrieben, der Rest bleibt erhalten.')) {
-      e.target.value = '';
-      return;
-    }
+    setBackupDatei(file);
+    e.target.value = '';
+  };
+
+  const fuehreImportAus = async (modus: 'merge' | 'replace') => {
+    const file = backupDatei;
+    if (!file) return;
+    const warnung = [
+      'Wirklich ersetzen?',
+      '',
+      'Alle aktuell gespeicherten Drohnen, Akkus, Fluege, Piloten, Wartungen',
+      'und Dokumente werden geloescht und durch den Inhalt der Datei ersetzt.',
+      'Alles seit dieser Sicherung Erfasste geht verloren.',
+    ].join(String.fromCharCode(10));
+    if (modus === 'replace' && !confirm(warnung)) return;
+    setBackupDatei(null);
     try {
-      const r = await importBackup(file);
+      const r = await importBackup(file, modus);
       alert(
         `Sicherung geladen ✓\n\n` +
         `${r.drones} Drohnen\n${r.batteries} Akkus\n${r.flights} Flüge\n` +
@@ -1747,8 +1764,6 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     } catch (err: any) {
       console.error(err);
       alert(err?.message || 'Import fehlgeschlagen.');
-    } finally {
-      e.target.value = '';
     }
   };
 
@@ -1975,7 +1990,50 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
             <input type="file" className="hidden" accept="application/json,.json" onChange={handleImportBackup} />
           </label>
         </div>
+        <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
+          Aus Sicherheitsgruenden enthaelt die Datei keine NOTAM-Zugangsdaten.
+          Die musst du nach einer Wiederherstellung einmal neu eintragen.
+        </p>
       </div>
+
+      {/* Auswahl: Zusammenfuehren oder Ersetzen */}
+      {backupDatei && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6">
+            <h3 className="font-black text-slate-900 mb-1">Sicherung laden</h3>
+            <p className="text-[10px] text-slate-400 mb-5 truncate">{backupDatei.name}</p>
+
+            <button
+              onClick={() => fuehreImportAus('merge')}
+              className="w-full text-left p-4 mb-3 bg-slate-50 border border-slate-200 rounded-2xl active:scale-[0.98] transition-transform"
+            >
+              <p className="text-xs font-black text-slate-900">Zusammenfuehren</p>
+              <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+                Eintraege aus der Datei kommen hinzu. Gleiche IDs werden ueberschrieben,
+                alles andere bleibt erhalten. Nichts wird geloescht.
+              </p>
+            </button>
+
+            <button
+              onClick={() => fuehreImportAus('replace')}
+              className="w-full text-left p-4 mb-4 bg-brand-red/5 border border-brand-red/20 rounded-2xl active:scale-[0.98] transition-transform"
+            >
+              <p className="text-xs font-black text-brand-red">Ersetzen</p>
+              <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+                Der Datenbestand entspricht danach exakt der Datei. Alles seit dieser
+                Sicherung Erfasste geht verloren.
+              </p>
+            </button>
+
+            <button
+              onClick={() => setBackupDatei(null)}
+              className="w-full py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-2xl"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mt-6 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
         <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />

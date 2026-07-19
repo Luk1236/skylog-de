@@ -55,6 +55,17 @@ function markBackupDone(): void {
   localStorage.setItem(LAST_BACKUP_KEY, String(Date.now()));
 }
 
+/** Entfernt Zugangsdaten aus dem Profil, bevor es in die Sicherungsdatei
+ *  geschrieben wird. Die FAA-NOTAM-Credentials sind Geheimnisse: wer eine
+ *  Sicherung weitergibt oder in eine Cloud legt, wuerde sie sonst mitgeben.
+ *  Preis dafuer: nach einer Wiederherstellung muessen sie neu eingetragen
+ *  werden. Das ist der guenstigere Tausch. */
+export function ohneZugangsdaten(profile: UserProfile | null): UserProfile | null {
+  if (!profile) return null;
+  const { notamClientId, notamClientSecret, ...rest } = profile;
+  return rest as UserProfile;
+}
+
 function blobToBase64(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -102,7 +113,7 @@ export async function exportBackup(): Promise<void> {
     batteries,
     maintenance,
     pilots,
-    profile: profile ?? null,
+    profile: ohneZugangsdaten(profile ?? null),
     documents: serialisedDocs,
   };
 
@@ -120,7 +131,10 @@ export async function exportBackup(): Promise<void> {
 }
 
 // Reads a backup file and merges its contents back into the DB (put by id).
-export async function importBackup(file: File): Promise<ImportResult> {
+export async function importBackup(
+  file: File,
+  modus: 'merge' | 'replace' = 'merge'
+): Promise<ImportResult> {
   let data: BackupData;
   try {
     data = JSON.parse(await file.text());
@@ -158,7 +172,7 @@ export async function importBackup(file: File): Promise<ImportResult> {
     pilots: data.pilots ?? [],
     profile: data.profile ?? null,
     documents,
-  });
+  }, modus);
 
   return {
     drones: data.drones?.length ?? 0,

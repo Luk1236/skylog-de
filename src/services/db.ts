@@ -261,7 +261,17 @@ export const dbService = {
     await db.delete(DOCUMENTS_STORE, id);
   },
 
-  // Backup: merge a full data set back into the DB (put by id, no side effects).
+  // Backup: einen kompletten Datensatz zurueckschreiben.
+  //
+  // 'merge'   - vorhandene Eintraege bleiben, gleiche ids werden ueberschrieben.
+  // 'replace' - die Speicher werden zuerst geleert, danach eingespielt. Das ist
+  //             die echte Wiederherstellung: der Zustand entspricht hinterher
+  //             exakt der Sicherungsdatei. Alles seither Erfasste geht verloren,
+  //             deshalb darf das nur nach ausdruecklicher Rueckfrage passieren.
+  //
+  // Beides laeuft in EINER Transaktion: bricht etwas ab, wird auch das Leeren
+  // zurueckgerollt - es gibt keinen Zustand mit geleerter, aber nicht wieder
+  // befuellter Datenbank.
   async importAllData(payload: {
     drones: Drone[];
     flights: Flight[];
@@ -270,12 +280,17 @@ export const dbService = {
     pilots: Pilot[];
     profile: UserProfile | null;
     documents: AppDocument[];
-  }): Promise<void> {
+  }, modus: 'merge' | 'replace' = 'merge'): Promise<void> {
     const db = await getDB();
     const tx = db.transaction(
       [DRONES_STORE, FLIGHTS_STORE, BATTERIES_STORE, MAINTENANCE_STORE, PILOTS_STORE, PROFILE_STORE, DOCUMENTS_STORE],
       'readwrite'
     );
+    if (modus === 'replace') {
+      for (const store of [DRONES_STORE, FLIGHTS_STORE, BATTERIES_STORE, MAINTENANCE_STORE, PILOTS_STORE, PROFILE_STORE, DOCUMENTS_STORE]) {
+        tx.objectStore(store).clear();
+      }
+    }
     for (const d of payload.drones) tx.objectStore(DRONES_STORE).put(d);
     for (const f of payload.flights) tx.objectStore(FLIGHTS_STORE).put(f);
     for (const b of payload.batteries) tx.objectStore(BATTERIES_STORE).put(b);

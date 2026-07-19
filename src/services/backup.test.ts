@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { importBackup, BACKUP_VERSION } from './backup';
+import { importBackup, BACKUP_VERSION, ohneZugangsdaten } from './backup';
+import type { UserProfile } from './db';
 
 // importBackup prüft die Datei, bevor es die Datenbank anfasst. Diese
 // Schutzwälle lassen sich deshalb ohne IndexedDB testen — sie werfen, bevor
@@ -30,5 +31,37 @@ describe('importBackup — Schutzwälle', () => {
       drones: [],
     });
     await expect(importBackup(datei(zuNeu))).rejects.toThrow(/neueren SkyLog-Version/);
+  });
+});
+
+describe('ohneZugangsdaten', () => {
+  const profil = {
+    id: 'main_profile',
+    name: 'Testpilot',
+    eid: 'DEU-eID-test',
+    licenseType: 'A2',
+    insuranceNumber: 'V-123',
+    notamClientId: 'geheime-id',
+    notamClientSecret: 'geheimes-secret',
+  } as UserProfile;
+
+  it('entfernt die NOTAM-Zugangsdaten', () => {
+    const sauber = ohneZugangsdaten(profil)!;
+    expect(sauber.notamClientId).toBeUndefined();
+    expect(sauber.notamClientSecret).toBeUndefined();
+    // Nichts davon darf in irgendeiner Form uebrig bleiben
+    expect(JSON.stringify(sauber)).not.toMatch(/geheim/);
+  });
+
+  it('laesst alle uebrigen Felder unangetastet', () => {
+    const sauber = ohneZugangsdaten(profil)!;
+    expect(sauber.name).toBe('Testpilot');
+    expect(sauber.eid).toBe('DEU-eID-test');
+    expect(sauber.insuranceNumber).toBe('V-123');
+    expect(sauber.licenseType).toBe('A2');
+  });
+
+  it('kommt mit null zurecht', () => {
+    expect(ohneZugangsdaten(null)).toBeNull();
   });
 });
