@@ -5,7 +5,14 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
-  const isGhPages = process.env.GITHUB_ACTIONS === 'true';
+  // Die Basis-URL haengt vom Ziel ab, NICHT davon ob wir in CI laufen:
+  //   'pages'  -> GitHub Pages liegt unter /skylog-de/
+  //   sonst    -> Wurzel. Das gilt fuer lokale Builds UND fuer die Android-App:
+  //               in der APK werden die Dateien aus dem Wurzelverzeichnis des
+  //               WebViews geladen. Mit '/skylog-de/' bliebe die App weiss.
+  // Frueher stand hier GITHUB_ACTIONS === 'true' - das haette den APK-Bau in
+  // GitHub Actions faelschlich als Pages-Build behandelt.
+  const isGhPages = process.env.DEPLOY_TARGET === 'pages';
   return {
     base: isGhPages ? '/skylog-de/' : '/',
     plugins: [
