@@ -1,12 +1,18 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, '.', '');
-  const isGhPages = process.env.GITHUB_ACTIONS === 'true';
+export default defineConfig(() => {
+  // Die Basis-URL haengt vom Ziel ab, NICHT davon ob wir in CI laufen:
+  //   'pages'  -> GitHub Pages liegt unter /skylog-de/
+  //   sonst    -> Wurzel. Das gilt fuer lokale Builds UND fuer die Android-App:
+  //               in der APK werden die Dateien aus dem Wurzelverzeichnis des
+  //               WebViews geladen. Mit '/skylog-de/' bliebe die App weiss.
+  // Frueher stand hier GITHUB_ACTIONS === 'true' - das haette den APK-Bau in
+  // GitHub Actions faelschlich als Pages-Build behandelt.
+  const isGhPages = process.env.DEPLOY_TARGET === 'pages';
   return {
     base: isGhPages ? '/skylog-de/' : '/',
     plugins: [
@@ -33,9 +39,9 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
-    define: {
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-    },
+    // Kein `define` für GEMINI_API_KEY: das würde den Schlüssel in den
+    // Browser-Bundle einbacken. Er wird ausschließlich serverseitig benutzt
+    // (server.ts bzw. api/safety-check.ts) und darf den Server nie verlassen.
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),

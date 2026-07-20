@@ -31,4 +31,28 @@
   display: none;
 }
 
+.no-scrollbar {
+  -ms-overflow-style: none;   /* IE / Edge */
+  scrollbar-width: none;      /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;              /* Chrome / Safari */
+}
+
+/* App-Rahmen: volle Höhe, aber auf Handys die SICHTBARE Höhe (dvh statt vh),
+   damit unten nichts hinter der Browser-Leiste verschwindet. */
+.app-shell {
+  height: 100vh;   /* Fallback für ältere Browser */
+  height: 100dvh;  /* dynamische Viewport-Höhe (Handy-Leiste wird korrekt eingerechnet) */
+}
+
+/* Safe-Area-Abstände für Notch (oben) und Home-Balken (unten).
+   Grundabstand (wie vorher py-3 / py-2) plus der jeweilige Geräte-Inset. */
+.pt-safe {
+  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+}
+.pb-safe {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 @import "leaflet/dist/leaflet.css";

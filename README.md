@@ -15,6 +15,20 @@ View your app in AI Studio: https://ai.studio/apps/89b41fe0-37c9-40a0-89d5-a4282
 
 1. Install dependencies:
    `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+2. Set the `GEMINI_API_KEY` in `.env` (or `.env.local`) to your Gemini API key
 3. Run the app:
    `npm run dev`
+
+## Deploy
+
+Die App hat zwei Teile: das statische Frontend **und** eine kleine Server-Funktion für den KI-Sicherheitscheck (`/api/safety-check`). Wähle je nachdem, ob du die KI online brauchst:
+
+### Option A — Vercel (empfohlen, KI funktioniert)
+1. Repo auf [vercel.com](https://vercel.com) importieren.
+2. Environment Variable `GEMINI_API_KEY` in den Vercel-Projekteinstellungen setzen.
+3. Deploy. Vercel baut das Frontend (`vite build`) und stellt `api/safety-check.ts` automatisch als Serverless-Funktion bereit (siehe `vercel.json`).
+
+### Option B — GitHub Pages (nur statisch, **ohne** KI)
+Der Workflow unter `.github/workflows/deploy.yml` veröffentlicht nur das statische Frontend. Karte, Logbuch, Garage, Wetter usw. funktionieren — der **KI-Sicherheitscheck nicht** (dafür fehlt der Server). Die App zeigt in dem Fall einen freundlichen Hinweis statt eines Fehlers.
+
+> **Wichtig:** Der `GEMINI_API_KEY` bleibt immer server-seitig und wird nie an den Browser ausgeliefert.

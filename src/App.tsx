@@ -46,7 +46,11 @@ import {
   BarChart3,
   Calendar,
   Printer,
-  Cpu
+  Cpu,
+  Upload,
+  DatabaseBackup,
+  Bell,
+  ListChecks
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -61,10 +65,11 @@ import {
 } from 'recharts';
 import { cn } from './lib/utils';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile, type UASClass, type MaintenanceRecord, type Pilot, type SparePart } from './services/db';
-import { fetchWeather, fetchForecast, type WeatherData, type ForecastHour } from './services/weather';
+import { fetchWeather, fetchForecast, minutesUntilSunset, type WeatherData, type ForecastHour } from './services/weather';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from './services/notam';
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
+import { getReminders } from './services/reminders';
+import { FlightImportDialog } from './components/FlightImportDialog';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -209,7 +214,7 @@ export default function App() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-brand-blue gap-4">
+      <div className="flex flex-col items-center justify-center app-shell bg-brand-blue gap-4">
         <div className="bg-white/20 p-5 rounded-3xl">
           <Plane className="w-14 h-14 text-white animate-pulse" />
         </div>
@@ -220,7 +225,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-slate-50 font-sans">
+    <div className="flex flex-col app-shell overflow-hidden bg-slate-50 font-sans">
       {/* Offline Banner */}
       {!isOnline && (
         <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
@@ -256,7 +261,7 @@ export default function App() {
       )}
 
       {/* Header */}
-      <header className="bg-brand-blue text-white px-4 py-3 flex items-center justify-between shadow-md z-10">
+      <header className="bg-brand-blue text-white px-4 pb-3 pt-safe flex items-center justify-between shadow-md z-10">
         <div className="flex items-center gap-2">
           <div className="bg-white/20 p-2 rounded-lg">
             <Plane className="w-6 h-6 text-white" />
@@ -431,7 +436,7 @@ export default function App() {
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="bg-white border-t border-slate-200 px-2 py-2 flex items-center justify-between pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar">
+      <nav className="bg-white border-t border-slate-200 px-2 pt-2 flex items-center justify-between pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar">
         <NavButton 
           active={activeView === 'map'} 
           onClick={() => setActiveView('map')}
@@ -1656,8 +1661,11 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     }
   };
 
-  const exportPilotBadge = () => {
+  const exportPilotBadge = async () => {
     if (!profile) return;
+    // jsPDF wiegt zusammen mit html2canvas rund 400 kB und wird nur hier
+    // gebraucht — deshalb erst beim Klick laden, nicht beim App-Start.
+    const { jsPDF } = await import('jspdf');
     const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [148, 105] });
     doc.setFillColor(0, 56, 123);
     doc.rect(0, 0, 148, 30, 'F');
@@ -1708,6 +1716,54 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     if (confirm('Dokument wirklich löschen?')) {
       await dbService.deleteDocument(id);
       onUpdate();
+    }
+  };
+
+  const [backupDatei, setBackupDatei] = useState<File | null>(null);
+
+  const handleExportBackup = async () => {
+    try {
+      await exportBackup();
+    } catch (err) {
+      console.error(err);
+      alert('Export fehlgeschlagen.');
+    }
+  };
+
+  // Die Datei wird nur gemerkt; welcher Modus gilt, entscheidet der Nutzer
+  // danach im Auswahldialog. Ohne diese Trennung waere "Ersetzen" ein
+  // Nebeneffekt eines simplen Dateidialogs - dafuer ist es zu endgueltig.
+  const handleImportBackup = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setBackupDatei(file);
+    e.target.value = '';
+  };
+
+  const fuehreImportAus = async (modus: 'merge' | 'replace') => {
+    const file = backupDatei;
+    if (!file) return;
+    const warnung = [
+      'Wirklich ersetzen?',
+      '',
+      'Alle aktuell gespeicherten Drohnen, Akkus, Fluege, Piloten, Wartungen',
+      'und Dokumente werden geloescht und durch den Inhalt der Datei ersetzt.',
+      'Alles seit dieser Sicherung Erfasste geht verloren.',
+    ].join(String.fromCharCode(10));
+    if (modus === 'replace' && !confirm(warnung)) return;
+    setBackupDatei(null);
+    try {
+      const r = await importBackup(file, modus);
+      alert(
+        `Sicherung geladen ✓\n\n` +
+        `${r.drones} Drohnen\n${r.batteries} Akkus\n${r.flights} Flüge\n` +
+        `${r.pilots} Piloten\n${r.maintenance} Wartungen\n${r.documents} Dokumente\n` +
+        `${r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei'}`
+      );
+      onUpdate();
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || 'Import fehlgeschlagen.');
     }
   };
 
@@ -1913,7 +1969,73 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
         )}
       </div>
 
-      <div className="mt-10 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
+      {/* Datensicherung */}
+      <div className="mt-10">
+        <div className="flex items-center gap-2 mb-3">
+          <DatabaseBackup className="w-4 h-4 text-brand-blue" />
+          <h3 className="font-bold text-slate-900 text-sm">Datensicherung</h3>
+        </div>
+        <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
+          Sichere alle deine Drohnen, Akkus, Flüge, Piloten und Dokumente in eine Datei — und lade sie bei Handywechsel oder Datenverlust wieder ein.
+        </p>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExportBackup}
+            className="flex-1 flex items-center justify-center gap-2 bg-brand-blue text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-blue/20 text-xs active:scale-95 transition-all"
+          >
+            <Download className="w-4 h-4" /> Sicherung exportieren
+          </button>
+          <label className="flex-1 flex items-center justify-center gap-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-xs cursor-pointer active:scale-95 transition-all">
+            <Upload className="w-4 h-4" /> Laden
+            <input type="file" className="hidden" accept="application/json,.json" onChange={handleImportBackup} />
+          </label>
+        </div>
+        <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
+          Aus Sicherheitsgruenden enthaelt die Datei keine NOTAM-Zugangsdaten.
+          Die musst du nach einer Wiederherstellung einmal neu eintragen.
+        </p>
+      </div>
+
+      {/* Auswahl: Zusammenfuehren oder Ersetzen */}
+      {backupDatei && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6">
+            <h3 className="font-black text-slate-900 mb-1">Sicherung laden</h3>
+            <p className="text-[10px] text-slate-400 mb-5 truncate">{backupDatei.name}</p>
+
+            <button
+              onClick={() => fuehreImportAus('merge')}
+              className="w-full text-left p-4 mb-3 bg-slate-50 border border-slate-200 rounded-2xl active:scale-[0.98] transition-transform"
+            >
+              <p className="text-xs font-black text-slate-900">Zusammenfuehren</p>
+              <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+                Eintraege aus der Datei kommen hinzu. Gleiche IDs werden ueberschrieben,
+                alles andere bleibt erhalten. Nichts wird geloescht.
+              </p>
+            </button>
+
+            <button
+              onClick={() => fuehreImportAus('replace')}
+              className="w-full text-left p-4 mb-4 bg-brand-red/5 border border-brand-red/20 rounded-2xl active:scale-[0.98] transition-transform"
+            >
+              <p className="text-xs font-black text-brand-red">Ersetzen</p>
+              <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+                Der Datenbestand entspricht danach exakt der Datei. Alles seit dieser
+                Sicherung Erfasste geht verloren.
+              </p>
+            </button>
+
+            <button
+              onClick={() => setBackupDatei(null)}
+              className="w-full py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-2xl"
+            >
+              Abbrechen
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-6 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
         <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
         <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
           Ihre Daten werden sicher und lokal in Ihrem Browser gespeichert. SkyLog DE sendet keine Informationen an Cloud-Server.
@@ -1950,9 +2072,62 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
   );
 }
 
+const PREFLIGHT_ITEMS = [
+  'Akkus voll geladen & Zustand geprüft',
+  'Propeller fest & unbeschädigt',
+  'Firmware & App aktuell',
+  'Wetter im Limit (Wind, Sicht, kein Regen)',
+  'Flugzone geprüft (dipul / NOTAM)',
+  'e-ID an der Drohne angebracht',
+  'Speicherkarte & Speicherplatz ok',
+  'Umgebung frei von Menschen & Hindernissen',
+];
+
+function PreFlightChecklist() {
+  const [checked, setChecked] = useState<boolean[]>(() => PREFLIGHT_ITEMS.map(() => false));
+  const done = checked.filter(Boolean).length;
+  const allDone = done === PREFLIGHT_ITEMS.length;
+  const toggle = (i: number) => setChecked(prev => prev.map((v, idx) => (idx === i ? !v : v)));
+
+  return (
+    <div className="bg-white p-5 rounded-[32px] border border-slate-200 shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <ListChecks className="w-4 h-4 text-brand-blue" />
+          <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Pre-Flight Check</h3>
+        </div>
+        <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500")}>
+          {done}/{PREFLIGHT_ITEMS.length}
+        </span>
+      </div>
+      <div className="space-y-1">
+        {PREFLIGHT_ITEMS.map((item, i) => (
+          <button
+            key={i}
+            onClick={() => toggle(i)}
+            className="w-full flex items-center gap-3 py-2 text-left active:scale-[0.99] transition-transform"
+          >
+            {checked[i]
+              ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+              : <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />}
+            <span className={cn("text-xs font-medium", checked[i] ? "text-slate-400 line-through" : "text-slate-700")}>{item}</span>
+          </button>
+        ))}
+      </div>
+      {allDone && (
+        <div className="mt-3 flex items-center gap-2 p-2.5 bg-emerald-50 rounded-xl">
+          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+          <p className="text-[10px] font-bold text-emerald-700">Alles geprüft — startklar!</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLocation }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, onUpdate: () => void, currentLocation: [number, number] }) {
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [newFlight, setNewFlight] = useState<Partial<Flight>>({});
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const touchStartX = { current: 0 };
@@ -1961,6 +2136,13 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
   const validFlights = flights
     .filter(f => f.date <= todayStr)
     .sort((a,b) => b.createdAt - a.createdAt);
+
+  // Einmal berechnen statt zweimal pro Render (Bedingung + Liste).
+  // getLastBackupAt() liest localStorage, ist also nicht gratis.
+  const reminders = useMemo(
+    () => getReminders(profile, drones, batteries, getLastBackupAt()),
+    [profile, drones, batteries, flights]
+  );
 
   const handleManualAdd = async () => {
     if (!newFlight.droneId || !newFlight.date) return;
@@ -2057,7 +2239,12 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
     link.click();
   };
   
-  const exportToPDF = () => {
+  const exportToPDF = async () => {
+    // Siehe exportPilotBadge: PDF-Bibliotheken erst bei Bedarf nachladen.
+    const [{ jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF();
     
     // Header
@@ -2217,6 +2404,13 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
              <input type="file" accept=".json" className="hidden" onChange={importFromJSON} />
           </label>
           <button
+             onClick={() => setShowImport(true)}
+             className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
+             title="Flüge aus Flugaufzeichnung importieren (CSV)"
+          >
+             <Upload className="w-5 h-5" />
+          </button>
+          <button
             onClick={() => setShowAssistant(true)}
             className="bg-brand-green text-white p-2.5 rounded-2xl shadow-lg shadow-brand-green/20 transition-transform active:scale-95 flex items-center gap-2"
           >
@@ -2230,6 +2424,26 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
           </button>
         </div>
       </div>
+
+      {/* Erinnerungen */}
+      {reminders.length > 0 && (
+        <div className="mb-6 space-y-2">
+          {reminders.map((r, i) => (
+            <div
+              key={i}
+              className={cn(
+                "flex items-start gap-3 p-3 rounded-2xl border",
+                r.level === 'alert' ? "bg-red-50 border-red-100" : "bg-amber-50 border-amber-100"
+              )}
+            >
+              <Bell className={cn("w-4 h-4 shrink-0 mt-0.5", r.level === 'alert' ? "text-brand-red" : "text-amber-500")} />
+              <p className={cn("text-[11px] font-medium leading-relaxed", r.level === 'alert' ? "text-red-700" : "text-amber-700")}>
+                {r.text}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Stats Dashboard */}
       <div className="space-y-4 mb-8">
@@ -2431,6 +2645,21 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
         )}
       </AnimatePresence>
 
+      {showImport && (
+        <FlightImportDialog
+          drohnen={drones}
+          vorhandeneFluege={flights}
+          onClose={() => setShowImport(false)}
+          onImported={(anzahl) => {
+            setShowImport(false);
+            onUpdate();
+            alert(anzahl === 0
+              ? 'Es wurde kein Flug importiert.'
+              : `${anzahl} Flug/Flüge ins Logbuch übernommen.`);
+          }}
+        />
+      )}
+
       {showAssistant && (
         <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto">
           <FlightAssistant 
@@ -2557,7 +2786,8 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
   const [step, setStep] = useState<'setup' | 'checklist' | 'timer' | 'summary'>('setup');
   const [locationName, setLocationName] = useState('Standort wird ermittelt...');
   const [purpose, setPurpose] = useState<Flight['purpose']>('Hobby');
-  const [weatherData, setWeatherData] = useState({ temp: 20, windSpeed: 5, visibility: 'Gut', kIndex: 1, condition: 'Clear' });
+  const [weatherData, setWeatherData] = useState({ temp: 20, windSpeed: 5, windSpeed120: 0, windGusts: 0, visibility: 'Gut', kIndex: 1, condition: 'Clear' });
+  const [sunset, setSunset] = useState<string | null>(null);
   const [batteryStart, setBatteryStart] = useState(100);
   const [batteryEnd, setBatteryEnd] = useState(20);
   const [incidents, setIncidents] = useState('');
@@ -2574,6 +2804,7 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
   const [notamFir, setNotamFir] = useState('');
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [safetyError, setSafetyError] = useState<string | null>(null);
   const [safetyAnalysis, setSafetyAnalysis] = useState<{
     obstacles: { type: string, severity: 'Low' | 'Medium' | 'High', description: string, action: string }[],
     overall_safety_score: number,
@@ -2583,12 +2814,13 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
   const runSafetyAnalysis = async () => {
     if (!currentLocation[0] || !currentLocation[1]) return;
     setIsAnalyzing(true);
+    setSafetyError(null);
     try {
       const response = await fetch('/api/safety-check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          latitude: currentLocation[0], 
+        body: JSON.stringify({
+          latitude: currentLocation[0],
           longitude: currentLocation[1],
           locationName: locationName
         }),
@@ -2596,9 +2828,14 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
       if (response.ok) {
         const data = await response.json();
         setSafetyAnalysis(data);
+      } else if (response.status === 404) {
+        setSafetyError('Die KI-Analyse ist in dieser Version nicht verfügbar (kein Server). Nutze die Online-Version von SkyLog DE.');
+      } else {
+        setSafetyError('Die KI-Analyse hat gerade nicht geklappt. Bitte später erneut versuchen.');
       }
     } catch (e) {
       console.error("Safety analysis failed:", e);
+      setSafetyError('Keine Verbindung zur KI. Prüfe deine Internetverbindung und versuche es erneut.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -2608,13 +2845,16 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
     try {
       const w = await fetchWeather(currentLocation[0], currentLocation[1]);
       if (w) {
-        setWeatherData({
-          ...weatherData,
+        setWeatherData(prev => ({
+          ...prev,
           temp: Math.round(w.temp),
           windSpeed: Math.round(w.windSpeed),
+          windSpeed120: Math.round(w.windSpeed120),
+          windGusts: Math.round(w.windGusts),
           condition: w.condition,
           visibility: w.visibility,
-        });
+        }));
+        setSunset(w.sunset);
       }
       setLocationName(`${currentLocation[0].toFixed(4)}, ${currentLocation[1].toFixed(4)}`);
     } catch (e) {}
@@ -2628,7 +2868,7 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
       const cid = profile?.notamClientId;
       const csec = profile?.notamClientSecret;
       if (cid && csec) {
-        setNotamFir(getGermanFir(currentLocation[0]));
+        setNotamFir(getGermanFir(currentLocation[0], currentLocation[1]));
         setNotamLoading(true);
         fetchNotams(currentLocation[0], currentLocation[1], cid, csec)
           .then(setNotams)
@@ -2877,13 +3117,22 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                     </div>
                   </div>
 
-                  {!safetyAnalysis && !isAnalyzing && (
+                  <PreFlightChecklist />
+
+                  {!safetyAnalysis && !isAnalyzing && !safetyError && (
                     <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
                       <BrainCircuit className="w-5 h-5 text-brand-blue shrink-0" />
                       <div>
                         <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">KI-Empfehlung</p>
                         <p className="text-[10px] text-slate-500 font-medium">Lasse den Ort auf versteckte Hindernisse analysieren, bevor du startest.</p>
                       </div>
+                    </div>
+                  )}
+
+                  {safetyError && !isAnalyzing && (
+                    <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                      <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
+                      <p className="text-[10px] text-amber-700 font-medium leading-relaxed">{safetyError}</p>
                     </div>
                   )}
 
@@ -2955,31 +3204,83 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                     </div>
                   </div>
 
-                  {/* Drohnen-spezifische Windgrenze */}
+                  {/* Drohnen-spezifische Windgrenze.
+                      Geprüft wird nicht nur der Bodenwind: auf Flughöhe (120 m) weht es
+                      meist stärker, und Böen sind für die Drohne kritischer als der
+                      Mittelwind. Es zählt der ungünstigste der drei Werte. */}
                   {selectedDrone && (() => {
                     const limit = selectedDrone.maxWindSpeed ?? 28;
-                    const over = weatherData.windSpeed > limit;
-                    return over ? (
+                    const kandidaten = [
+                      { wert: weatherData.windSpeed, quelle: 'am Boden' },
+                      { wert: weatherData.windSpeed120, quelle: 'auf 120 m Flughöhe' },
+                      { wert: weatherData.windGusts, quelle: 'in Böen' },
+                    ].filter(k => k.wert > 0);
+
+                    const schlimmster = kandidaten.reduce(
+                      (max, k) => (k.wert > max.wert ? k : max),
+                      { wert: 0, quelle: '' }
+                    );
+                    if (schlimmster.wert <= limit) return null;
+
+                    return (
                       <div className="flex items-center gap-3 p-4 bg-brand-red/5 border border-brand-red/20 rounded-2xl">
                         <Wind className="w-5 h-5 text-brand-red shrink-0" />
                         <div>
                           <p className="text-xs font-black text-brand-red">Wind über Limit für {selectedDrone.model}!</p>
-                          <p className="text-[10px] text-slate-500">Aktuell {weatherData.windSpeed} km/h · Max {limit} km/h laut Spezifikation</p>
+                          <p className="text-[10px] text-slate-500">
+                            {schlimmster.wert} km/h {schlimmster.quelle} · Max {limit} km/h laut Spezifikation
+                          </p>
+                          {weatherData.windSpeed120 > weatherData.windSpeed && (
+                            <p className="text-[10px] text-slate-400 mt-0.5">
+                              Am Boden nur {weatherData.windSpeed} km/h — oben ist es deutlich windiger.
+                            </p>
+                          )}
                         </div>
                       </div>
-                    ) : null;
+                    );
+                  })()}
+
+                  {/* Sonnenuntergang: ab da braucht die Drohne Kennzeichnung/Blinklicht. */}
+                  {(() => {
+                    const minuten = minutesUntilSunset(sunset);
+                    if (minuten === null || minuten > 90) return null;
+                    return (
+                      <div className="flex items-center gap-3 p-4 bg-brand-yellow/5 border border-brand-yellow/30 rounded-2xl">
+                        <Clock className="w-5 h-5 text-brand-yellow shrink-0" />
+                        <div>
+                          <p className="text-xs font-black text-slate-800">
+                            Sonnenuntergang in {minuten < 60 ? `${minuten} Min` : `${Math.floor(minuten / 60)} Std ${minuten % 60} Min`}
+                          </p>
+                          <p className="text-[10px] text-slate-500">
+                            Danach ist Nachtflug — die Drohne braucht ein blinkendes grünes Positionslicht.
+                          </p>
+                        </div>
+                      </div>
+                    );
                   })()}
 
                   {/* 6h Wettervorhersage */}
                   {forecast.length > 0 && (
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-3 text-center tracking-widest">6h Vorhersage</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 text-center tracking-widest">6h Vorhersage</p>
+                      <p className="text-[9px] text-slate-400 mb-3 text-center">Wind am Boden · ↑ auf 120 m · ⇡ Böen</p>
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {forecast.map((h, i) => (
-                          <div key={i} className="flex flex-col items-center gap-1 min-w-[52px] bg-white rounded-xl p-2 border border-slate-100 shrink-0">
+                          <div key={i} className="flex flex-col items-center gap-1 min-w-[64px] bg-white rounded-xl p-2 border border-slate-100 shrink-0">
                             <span className="text-[9px] font-black text-brand-blue">{h.time}</span>
                             <span className="text-xs font-bold text-slate-800">{h.temp}°</span>
+                            {/* Bodenwind / Wind auf Flughöhe — der obere Wert ist der relevante. */}
                             <span className={cn("text-[9px] font-bold", h.windSpeed > 15 ? "text-brand-red" : "text-slate-500")}>{h.windSpeed}km/h</span>
+                            {h.windSpeed120 > 0 && (
+                              <span className={cn("text-[9px] font-bold", h.windSpeed120 > 20 ? "text-brand-red" : "text-slate-400")}>
+                                ↑{h.windSpeed120}
+                              </span>
+                            )}
+                            {h.windGusts > 0 && (
+                              <span className={cn("text-[8px] font-bold", h.windGusts > 25 ? "text-brand-red" : "text-slate-400")}>
+                                ⇡{h.windGusts}
+                              </span>
+                            )}
                             <span className="text-[8px] text-slate-400 leading-tight text-center">{h.condition}</span>
                           </div>
                         ))}
