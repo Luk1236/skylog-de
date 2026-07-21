@@ -51,7 +51,8 @@ import {
   DatabaseBackup,
   Bell,
   ListChecks,
-  QrCode
+  QrCode,
+  Route
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -73,6 +74,7 @@ import { getReminders } from './services/reminders';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
+import { FlightTrackDialog } from './components/FlightTrackDialog';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -2195,6 +2197,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
   const [showImport, setShowImport] = useState(false);
   const [newFlight, setNewFlight] = useState<Partial<Flight>>({});
   const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [trackFlight, setTrackFlight] = useState<Flight | null>(null);
   const touchStartX = { current: 0 };
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -2816,7 +2819,19 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
                     )}
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-300" />
+                {/* Track ansehen / hinzufügen. Gefüllt, wenn eine Aufzeichnung da ist. */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setTrackFlight(flight); }}
+                  aria-label="Flug-Track"
+                  className={cn(
+                    'p-2 rounded-xl transition-colors shrink-0',
+                    flight.track && flight.track.length > 0
+                      ? 'bg-brand-blue/10 text-brand-blue'
+                      : 'text-slate-300 hover:bg-slate-100'
+                  )}
+                >
+                  <Route className="w-5 h-5" />
+                </button>
               </div>
               </div>
             </div>
@@ -2833,6 +2848,14 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
           </div>
         )}
       </div>
+
+      {trackFlight && (
+        <FlightTrackDialog
+          flight={trackFlight}
+          onClose={() => setTrackFlight(null)}
+          onUpdate={onUpdate}
+        />
+      )}
     </div>
   );
 }

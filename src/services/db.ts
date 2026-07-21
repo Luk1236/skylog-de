@@ -45,6 +45,18 @@ export interface FlightLeg {
   duration: number; // seconds
 }
 
+// Ein Punkt der Flugaufzeichnung. Zeit als Sekunden ab Start, damit die
+// Diagramme unabhängig vom absoluten Zeitstempel sind. Alle Felder außer t
+// sind optional — nicht jeder Export liefert Höhe/Speed/Akku.
+export interface TrackPoint {
+  t: number;         // Sekunden seit Start
+  lat: number;
+  lon: number;
+  alt?: number;      // Meter über Startpunkt
+  speed?: number;    // km/h
+  battery?: number;  // Prozent
+}
+
 export interface Flight {
   id: string;
   droneId: string;
@@ -57,6 +69,7 @@ export interface Flight {
   endTime: string;
   duration: number; // total minutes
   legs?: FlightLeg[];
+  track?: TrackPoint[];  // optionale Flugaufzeichnung (GPS/Höhe/Speed/Akku über Zeit)
   location: string;
   locationName: string;
   coordinates: [number, number];
