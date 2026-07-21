@@ -75,6 +75,7 @@ import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
 import { FlightTrackDialog } from './components/FlightTrackDialog';
+import { StatisticsDialog } from './components/StatisticsDialog';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -2198,6 +2199,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
   const [newFlight, setNewFlight] = useState<Partial<Flight>>({});
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const [trackFlight, setTrackFlight] = useState<Flight | null>(null);
+  const [showStats, setShowStats] = useState(false);
   const touchStartX = { current: 0 };
 
   const todayStr = new Date().toISOString().split('T')[0];
@@ -2477,6 +2479,13 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
              title="Flüge aus Flugaufzeichnung importieren (CSV)"
           >
              <Upload className="w-5 h-5" />
+          </button>
+          <button
+             onClick={() => setShowStats(true)}
+             className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
+             title="Statistik"
+          >
+             <TrendingUp className="w-5 h-5" />
           </button>
           <button
             onClick={() => setShowAssistant(true)}
@@ -2855,6 +2864,10 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
           onClose={() => setTrackFlight(null)}
           onUpdate={onUpdate}
         />
+      )}
+
+      {showStats && (
+        <StatisticsDialog flights={validFlights} drones={drones} onClose={() => setShowStats(false)} />
       )}
     </div>
   );
