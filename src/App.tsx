@@ -74,6 +74,7 @@ import { getReminders } from './services/reminders';
 import { wartungStatus, garantieStatus, gesamtKosten } from './services/maintenance';
 import { effektiveGesundheit } from './services/batteryHealth';
 import { BatteryDetailDialog } from './components/BatteryDetailDialog';
+import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
@@ -1596,6 +1597,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
 
 function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void }) {
   const [showVorfall, setShowVorfall] = useState(false);
+  const [showRisiko, setShowRisiko] = useState(false);
   const emergencySteps = [
     { title: "Sicherheit zuerst", desc: "Motoren sofort stoppen (falls sicher möglich). Gefahrenbereich absichern." },
     { title: "Erste Hilfe", desc: "Bei Personenschaden sofort 112 rufen. Erste Hilfe leisten." },
@@ -1628,6 +1630,20 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
           Tipp: Betreiber-ID im Profil und mindestens eine Drohne hinterlegen, damit der Check vollständig ist.
         </p>
       )}
+
+      {/* Risiko-Check: welche Betriebskategorie gilt für den geplanten Flug? */}
+      <button
+        onClick={() => setShowRisiko(true)}
+        className="w-full mb-8 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+      >
+        <div className="p-2 bg-brand-blue/5 rounded-xl shrink-0">
+          <Scale className="w-6 h-6 text-brand-blue" />
+        </div>
+        <div>
+          <h3 className="font-bold text-sm text-slate-900">Risiko-Check (Betriebskategorie)</h3>
+          <p className="text-[11px] text-slate-500 leading-relaxed">Open A1/A2/A3 oder Specific? Nach EU 2019/947 einordnen.</p>
+        </div>
+      </button>
 
       <div className="bg-brand-red text-white p-6 rounded-3xl shadow-xl shadow-brand-red/20 mb-8">
         <div className="flex items-center gap-3 mb-4">
@@ -1708,6 +1724,10 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
           drohnen={drones}
           onClose={() => setShowVorfall(false)}
         />
+      )}
+
+      {showRisiko && (
+        <RiskAssessmentDialog drohnen={drones} onClose={() => setShowRisiko(false)} />
       )}
     </div>
   );
