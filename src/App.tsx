@@ -72,6 +72,7 @@ import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
+import { IncidentReportDialog } from './components/IncidentReportDialog';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -294,14 +295,17 @@ export default function App() {
       </header>
 
       {/* Main Content */}
+      {/* Kein mode="wait": bei einer Tab-Leiste soll der Wechsel sofort
+          passieren, nicht erst nach der Ausblend-Animation der alten View.
+          Mit mode="wait" blieb der Wechsel hängen, wenn die Exit-Animation
+          der (schweren) Karten-View nicht sauber abschloss. */}
       <main className="flex-1 relative overflow-hidden">
-        <AnimatePresence mode="wait">
+        <AnimatePresence>
           {activeView === 'map' && (
             <motion.div 
               key="map"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
               className="absolute inset-0"
             >
               <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} />
@@ -353,7 +357,6 @@ export default function App() {
               key="garage"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <GarageView drones={drones} flights={flights} batteries={batteries} onUpdate={loadData} />
@@ -365,7 +368,6 @@ export default function App() {
               key="logbook"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <LogbookView flights={flights} drones={drones} batteries={batteries} profile={profile} onUpdate={loadData} currentLocation={location} />
@@ -377,7 +379,6 @@ export default function App() {
               key="profile"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <ProfileView profile={profile} documents={documents} onUpdate={loadData} />
@@ -389,7 +390,6 @@ export default function App() {
               key="knowledge"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <KnowledgeView />
@@ -401,7 +401,6 @@ export default function App() {
               key="roadmap"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <RoadmapView />
@@ -413,7 +412,6 @@ export default function App() {
               key="safety"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <SafetyView profile={profile} drones={drones} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} />
@@ -425,7 +423,6 @@ export default function App() {
               key="inventory"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <InventoryView />
@@ -437,7 +434,6 @@ export default function App() {
               key="pilots"
               initial={{ x: 50, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
               <PilotsView />
@@ -478,14 +474,20 @@ export default function App() {
           icon={User}
           label="Piloten"
         />
-        <NavButton 
-          active={activeView === 'knowledge'} 
+        <NavButton
+          active={activeView === 'knowledge'}
           onClick={() => setActiveView('knowledge')}
           icon={Library}
           label="LBA Info"
         />
-        <NavButton 
-          active={activeView === 'profile'} 
+        <NavButton
+          active={activeView === 'safety'}
+          onClick={() => setActiveView('safety')}
+          icon={ShieldAlert}
+          label="Safety"
+        />
+        <NavButton
+          active={activeView === 'profile'}
           onClick={() => setActiveView('profile')}
           icon={Settings}
           label="Profil"
@@ -1486,6 +1488,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
 }
 
 function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void }) {
+  const [showVorfall, setShowVorfall] = useState(false);
   const emergencySteps = [
     { title: "Sicherheit zuerst", desc: "Motoren sofort stoppen (falls sicher möglich). Gefahrenbereich absichern." },
     { title: "Erste Hilfe", desc: "Bei Personenschaden sofort 112 rufen. Erste Hilfe leisten." },
@@ -1542,9 +1545,25 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
       </div>
 
       <div className="space-y-4">
-        <a 
-          href="https://www.lba.de/DE/Betrieb/Drohnen/Meldung_Ereignisse/Meldung_Ereignisse_node.html" 
-          target="_blank" 
+        {/* Vorfall-Bericht erstellen: füllt aus Profil/Drohne einen kopierbaren
+            LBA-Meldetext, den der Pilot ins Portal einfügt. */}
+        <button
+          onClick={() => setShowVorfall(true)}
+          className="block w-full text-left bg-white p-5 rounded-3xl border border-slate-200 shadow-sm group active:scale-[0.98] transition-all"
+        >
+          <div className="flex items-center justify-between mb-2">
+            <div className="p-2 bg-brand-red/5 rounded-xl">
+              <ClipboardCheck className="w-5 h-5 text-brand-red" />
+            </div>
+            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
+          </div>
+          <h4 className="font-bold text-slate-900 mb-1">Vorfall-Bericht erstellen</h4>
+          <p className="text-[10px] text-slate-500 leading-relaxed">Ereignis dokumentieren und als fertigen Meldetext für das LBA kopieren.</p>
+        </button>
+
+        <a
+          href="https://www.lba.de/DE/Betrieb/Drohnen/Meldung_Ereignisse/Meldung_Ereignisse_node.html"
+          target="_blank"
           rel="noopener noreferrer"
           className="block w-full bg-white p-5 rounded-3xl border border-slate-200 shadow-sm group active:scale-[0.98] transition-all"
         >
@@ -1575,6 +1594,14 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
           </div>
         </div>
       </div>
+
+      {showVorfall && (
+        <IncidentReportDialog
+          profile={profile}
+          drohnen={drones}
+          onClose={() => setShowVorfall(false)}
+        />
+      )}
     </div>
   );
 }
