@@ -50,7 +50,8 @@ import {
   Upload,
   DatabaseBackup,
   Bell,
-  ListChecks
+  ListChecks,
+  QrCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -70,6 +71,7 @@ import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam 
 import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
 import { FlightImportDialog } from './components/FlightImportDialog';
+import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -138,6 +140,7 @@ export default function App() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
@@ -276,6 +279,14 @@ export default function App() {
             <ShieldCheck className="w-3 h-3 text-green-400" />
             <span>LBA Konform</span>
           </div>
+          {/* Behörden-Check: immer erreichbar, für eine Kontrolle unterwegs. */}
+          <button
+            onClick={() => setShowBehoerdenCheck(true)}
+            aria-label="Behörden-Check anzeigen"
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+            <QrCode className="w-5 h-5" />
+          </button>
           <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <Settings className="w-5 h-5" />
           </button>
@@ -405,7 +416,7 @@ export default function App() {
               exit={{ x: -50, opacity: 0 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
-              <SafetyView />
+              <SafetyView profile={profile} drones={drones} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} />
             </motion.div>
           )}
 
@@ -480,6 +491,14 @@ export default function App() {
           label="Profil"
         />
       </nav>
+
+      {showBehoerdenCheck && (
+        <BehoerdenCheckDialog
+          profile={profile}
+          drohnen={drones}
+          onClose={() => setShowBehoerdenCheck(false)}
+        />
+      )}
     </div>
   );
 }
@@ -1466,7 +1485,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   );
 }
 
-function SafetyView() {
+function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void }) {
   const emergencySteps = [
     { title: "Sicherheit zuerst", desc: "Motoren sofort stoppen (falls sicher möglich). Gefahrenbereich absichern." },
     { title: "Erste Hilfe", desc: "Bei Personenschaden sofort 112 rufen. Erste Hilfe leisten." },
@@ -1480,6 +1499,25 @@ function SafetyView() {
         <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">Safety Hub</h2>
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Notfall-Leitfaden & LBA Meldung</p>
       </div>
+
+      {/* Behörden-Check: schneller Zugriff für eine Kontrolle unterwegs. */}
+      <button
+        onClick={onBehoerdenCheck}
+        className="w-full mb-8 bg-brand-blue text-white p-5 rounded-3xl shadow-xl shadow-brand-blue/20 flex items-center gap-4 active:scale-[0.98] transition-transform text-left"
+      >
+        <div className="p-2 bg-white/20 rounded-xl shrink-0">
+          <ShieldCheck className="w-6 h-6 text-white" />
+        </div>
+        <div>
+          <h3 className="font-bold text-sm">Behörden-Check</h3>
+          <p className="text-[11px] text-white/70 leading-relaxed">Betreiber-ID, Nachweise & QR-Code zum Vorzeigen bei einer Kontrolle.</p>
+        </div>
+      </button>
+      {(!profile?.eid || drones.length === 0) && (
+        <p className="-mt-6 mb-8 text-[10px] text-slate-400 px-1">
+          Tipp: Betreiber-ID im Profil und mindestens eine Drohne hinterlegen, damit der Check vollständig ist.
+        </p>
+      )}
 
       <div className="bg-brand-red text-white p-6 rounded-3xl shadow-xl shadow-brand-red/20 mb-8">
         <div className="flex items-center gap-3 mb-4">
