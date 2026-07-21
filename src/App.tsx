@@ -71,6 +71,7 @@ import { fetchWeather, fetchForecast, minutesUntilSunset, type WeatherData, type
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from './services/notam';
 import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
+import { wartungStatus, garantieStatus, gesamtKosten } from './services/maintenance';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
@@ -671,15 +672,18 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   
   // Stats and Suggestions
   const [droneStats, setDroneStats] = useState<Record<string, { hours: number, flights: number, lastMaint: Record<string, number>, lastMaintHours: Record<string, number>, flightsSinceMaint: Record<string, number> }>>({});
+  const [alleWartungen, setAlleWartungen] = useState<MaintenanceRecord[]>([]);
 
   useEffect(() => {
     const loadStats = async () => {
       const allFlights = await dbService.getFlights();
       const stats: Record<string, { hours: number, flights: number, lastMaint: Record<string, number>, lastMaintHours: Record<string, number>, flightsSinceMaint: Record<string, number> }> = {};
+      const gesammelt: MaintenanceRecord[] = [];
 
       for (const drone of drones) {
         const dFlights = allFlights.filter(f => f.droneId === drone.id);
         const dMaint = await dbService.getMaintenance(drone.id);
+        gesammelt.push(...dMaint);
 
         const lastMaint: Record<string, number> = {};
         const lastMaintHours: Record<string, number> = {};
@@ -705,6 +709,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
         };
       }
       setDroneStats(stats);
+      setAlleWartungen(gesammelt);
     };
     loadStats();
   }, [drones, flights]); // Add flights to deps to update stats when a flight is added
@@ -797,6 +802,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
       type: newMaint.type as any,
       description: newMaint.description,
       hoursAtMaintenance: stats?.hours || 0,
+      cost: newMaint.cost,
       createdAt: Date.now()
     };
     await dbService.saveMaintenance(record);
@@ -823,6 +829,10 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
           insuranceNumber: newDrone.insuranceNumber || '',
           maxWindSpeed: newDrone.maxWindSpeed,
           photoUrl: newDrone.photoUrl,
+          purchaseDate: newDrone.purchaseDate,
+          warrantyUntil: newDrone.warrantyUntil,
+          maintenanceIntervalDays: newDrone.maintenanceIntervalDays,
+          maintenanceIntervalHours: newDrone.maintenanceIntervalHours,
         });
       }
     } else {
@@ -837,6 +847,10 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
         insuranceNumber: newDrone.insuranceNumber || '',
         maxWindSpeed: newDrone.maxWindSpeed,
         photoUrl: newDrone.photoUrl,
+        purchaseDate: newDrone.purchaseDate,
+        warrantyUntil: newDrone.warrantyUntil,
+        maintenanceIntervalDays: newDrone.maintenanceIntervalDays,
+        maintenanceIntervalHours: newDrone.maintenanceIntervalHours,
         createdAt: Date.now()
       });
     }
@@ -858,6 +872,10 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
       insuranceNumber: drone.insuranceNumber,
       maxWindSpeed: drone.maxWindSpeed,
       photoUrl: drone.photoUrl,
+      purchaseDate: drone.purchaseDate,
+      warrantyUntil: drone.warrantyUntil,
+      maintenanceIntervalDays: drone.maintenanceIntervalDays,
+      maintenanceIntervalHours: drone.maintenanceIntervalHours,
     });
     setEditingDroneId(drone.id);
     setShowAdd(true);
@@ -1019,6 +1037,34 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
                   onChange={e => setNewDrone({...newDrone, maxWindSpeed: e.target.value ? Number(e.target.value) : undefined})}
                 />
               </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Garantie bis</label>
+                  <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
+                    value={newDrone.warrantyUntil?.slice(0,10) || ''}
+                    onChange={e => setNewDrone({...newDrone, warrantyUntil: e.target.value || undefined})} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Kaufdatum</label>
+                  <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
+                    value={newDrone.purchaseDate?.slice(0,10) || ''}
+                    onChange={e => setNewDrone({...newDrone, purchaseDate: e.target.value || undefined})} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Wartung alle (Tage)</label>
+                  <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" placeholder="z.B. 180"
+                    value={newDrone.maintenanceIntervalDays || ''}
+                    onChange={e => setNewDrone({...newDrone, maintenanceIntervalDays: e.target.value ? Number(e.target.value) : undefined})} />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Wartung alle (Std.)</label>
+                  <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" placeholder="z.B. 50"
+                    value={newDrone.maintenanceIntervalHours || ''}
+                    onChange={e => setNewDrone({...newDrone, maintenanceIntervalHours: e.target.value ? Number(e.target.value) : undefined})} />
+                </div>
+              </div>
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Drohnen-Foto (optional)</label>
                 {newDrone.photoUrl ? (
@@ -1058,6 +1104,9 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
           const totalMinutes = droneFlights.reduce((acc, f) => acc + (f.duration || 0), 0);
           const hours = Math.floor(totalMinutes / 60);
           const mins = totalMinutes % 60;
+          const wStatus = wartungStatus(drone, droneFlights, alleWartungen);
+          const gStatus = garantieStatus(drone);
+          const wartungsKosten = gesamtKosten(alleWartungen, drone.id);
 
           return (
             <div key={drone.id} className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group">
@@ -1088,7 +1137,39 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
                       &bull; {droneFlights.length} Flüge
                     </p>
                   </div>
-                  
+
+                  {/* Wartung / Garantie / Kosten */}
+                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                    {wStatus.level !== 'ok' && (
+                      <span className={cn(
+                        'text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1',
+                        wStatus.level === 'alert' ? 'bg-brand-red/10 text-brand-red' : 'bg-amber-50 text-amber-600'
+                      )} title={wStatus.gruende.join(' ')}>
+                        <Wrench className="w-2.5 h-2.5" /> Wartung {wStatus.level === 'alert' ? 'fällig' : 'bald'}
+                      </span>
+                    )}
+                    {gStatus.status === 'aktiv' && (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-green/10 text-brand-green">
+                        Garantie {gStatus.tage}d
+                      </span>
+                    )}
+                    {gStatus.status === 'bald' && (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">
+                        Garantie endet in {gStatus.tage}d
+                      </span>
+                    )}
+                    {gStatus.status === 'abgelaufen' && (
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">
+                        Garantie abgelaufen
+                      </span>
+                    )}
+                    {wartungsKosten > 0 && (
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
+                        &bull; {wartungsKosten.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} € Wartung
+                      </span>
+                    )}
+                  </div>
+
                   <div className="mt-2 flex items-center gap-2">
                     <button 
                       onClick={async () => {
@@ -1275,16 +1356,26 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
                     </div>
                     <div>
                       <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Beschreibung</label>
-                      <input 
-                        type="text" 
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs" 
+                      <input
+                        type="text"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
                         placeholder="Z.B. Propeller-Set A getauscht"
                         value={newMaint.description || ''}
                         onChange={e => setNewMaint({...newMaint, description: e.target.value})}
                       />
                     </div>
+                    <div>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Kosten (€, optional)</label>
+                      <input
+                        type="number"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
+                        placeholder="z.B. 49.90"
+                        value={newMaint.cost ?? ''}
+                        onChange={e => setNewMaint({...newMaint, cost: e.target.value ? Number(e.target.value) : undefined})}
+                      />
+                    </div>
                   </div>
-                  <button 
+                  <button
                     onClick={handleAddMaint}
                     className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95 transition-all"
                   >

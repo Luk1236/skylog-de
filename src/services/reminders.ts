@@ -1,4 +1,5 @@
 import type { Drone, Battery, UserProfile } from './db';
+import { garantieStatus } from './maintenance';
 
 export type ReminderLevel = 'warn' | 'alert';
 
@@ -53,6 +54,20 @@ export function getReminders(
   // 4) Versicherung fehlt
   if (profile && !profile.insuranceNumber) {
     reminders.push({ level: 'warn', text: 'Keine Versicherungsnummer hinterlegt. Für Drohnen in DE ist eine Haftpflicht Pflicht.' });
+  }
+
+  // 4b) Garantie läuft ab / ist abgelaufen
+  for (const d of drones) {
+    const g = garantieStatus(d, now);
+    const label = d.name || d.model;
+    if (g.status === 'bald') {
+      reminders.push({ level: 'warn', text: `${label}: Garantie läuft in ${g.tage} Tagen ab — offene Reparaturen jetzt einreichen.` });
+    } else if (g.status === 'abgelaufen') {
+      // Nur innerhalb der ersten 30 Tage nach Ablauf melden, danach ist es alt.
+      if (g.tage !== null && g.tage >= -30) {
+        reminders.push({ level: 'warn', text: `${label}: Garantie ist abgelaufen (seit ${Math.abs(g.tage)} Tagen).` });
+      }
+    }
   }
 
   // 5) Datensicherung überfällig.

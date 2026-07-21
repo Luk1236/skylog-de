@@ -15,6 +15,11 @@ export interface Drone {
   lastMotorClean?: number;
   maxWindSpeed?: number;
   photoUrl?: string;
+  // Wartung & Garantie
+  purchaseDate?: string;              // ISO — Basis für Garantie & erstes Intervall
+  warrantyUntil?: string;             // ISO — Garantie läuft bis
+  maintenanceIntervalDays?: number;   // Wartung fällig nach so vielen Tagen
+  maintenanceIntervalHours?: number;  // …oder nach so vielen Flugstunden
   createdAt: number;
 }
 
@@ -108,6 +113,7 @@ export interface MaintenanceRecord {
   type: 'Propeller' | 'Firmware' | 'Motor' | 'Sensor' | 'General';
   description: string;
   hoursAtMaintenance?: number;
+  cost?: number;         // Kosten der Wartung in Euro
   createdAt: number;
 }
 
