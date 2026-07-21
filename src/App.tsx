@@ -72,6 +72,8 @@ import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam 
 import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
 import { wartungStatus, garantieStatus, gesamtKosten } from './services/maintenance';
+import { effektiveGesundheit } from './services/batteryHealth';
+import { BatteryDetailDialog } from './components/BatteryDetailDialog';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
@@ -669,7 +671,8 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   const [newDrone, setNewDrone] = useState<Partial<Drone>>({});
   const [showAddBattery, setShowAddBattery] = useState(false);
   const [newBattery, setNewBattery] = useState<Partial<Battery>>({});
-  
+  const [detailBattery, setDetailBattery] = useState<Battery | null>(null);
+
   // Stats and Suggestions
   const [droneStats, setDroneStats] = useState<Record<string, { hours: number, flights: number, lastMaint: Record<string, number>, lastMaintHours: Record<string, number>, flightsSinceMaint: Record<string, number> }>>({});
   const [alleWartungen, setAlleWartungen] = useState<MaintenanceRecord[]>([]);
@@ -1517,11 +1520,13 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
       <div className="grid grid-cols-2 gap-3">
         {batteries.map(battery => {
           const cycles = battery.cycles || 0;
-          // LiPo batteries degrade ~0.15% per cycle, floor at 60% (replace threshold)
-          const health = Math.max(60, Math.round(100 - cycles * 0.15));
-          
+          // Erfasster SOH, sonst aus Zyklen geschätzt (0,15 %/Zyklus, Boden 60 %).
+          const health = effektiveGesundheit(battery);
+
           return (
-            <div key={battery.id} className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm relative group overflow-hidden">
+            <div key={battery.id}
+              onClick={() => setDetailBattery(battery)}
+              className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm relative group overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
               {/* Proportional Health Bar */}
               <div 
                 className={cn(
@@ -1566,8 +1571,8 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
                     <p className="text-[10px] font-bold text-slate-400 uppercase">SOH</p>
                   </div>
                 </div>
-                <button 
-                  onClick={() => handleDeleteBattery(battery.id)}
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleDeleteBattery(battery.id); }}
                   className="p-1.5 text-slate-200 hover:text-brand-red active:scale-90 opacity-0 group-hover:opacity-100 transition-all mb-1"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -1577,6 +1582,14 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
           );
         })}
       </div>
+
+      {detailBattery && (
+        <BatteryDetailDialog
+          battery={detailBattery}
+          onClose={() => setDetailBattery(null)}
+          onUpdate={onUpdate}
+        />
+      )}
     </div>
   );
 }

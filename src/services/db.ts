@@ -23,12 +23,20 @@ export interface Drone {
   createdAt: number;
 }
 
+export interface BatteryReading {
+  date: string;      // ISO YYYY-MM-DD
+  cycles: number;
+  health?: number;   // SOH in %
+}
+
 export interface Battery {
   id: string;
   droneId?: string;
   number: string;
   cycles: number;
   health?: number;
+  maxCycles?: number;            // Hersteller-Zyklenlebensdauer (Standard 200)
+  history?: BatteryReading[];    // Messreihe über die Zeit für Trend/Prognose
   createdAt: number;
 }
 
