@@ -75,6 +75,8 @@ import { wartungStatus, garantieStatus, gesamtKosten } from './services/maintena
 import { effektiveGesundheit } from './services/batteryHealth';
 import { BatteryDetailDialog } from './components/BatteryDetailDialog';
 import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
+import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
+import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
@@ -2264,45 +2266,42 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
   );
 }
 
-const PREFLIGHT_ITEMS = [
-  'Akkus voll geladen & Zustand geprüft',
-  'Propeller fest & unbeschädigt',
-  'Firmware & App aktuell',
-  'Wetter im Limit (Wind, Sicht, kein Regen)',
-  'Flugzone geprüft (dipul / NOTAM)',
-  'e-ID an der Drohne angebracht',
-  'Speicherkarte & Speicherplatz ok',
-  'Umgebung frei von Menschen & Hindernissen',
-];
+function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: { art?: ChecklistArt, titel?: string }) {
+  const [items, setItems] = useState<ChecklistPunkt[]>(() => ladeChecklist(art));
+  const [checked, setChecked] = useState<Record<string, boolean>>({});
+  const [editor, setEditor] = useState(false);
 
-function PreFlightChecklist() {
-  const [checked, setChecked] = useState<boolean[]>(() => PREFLIGHT_ITEMS.map(() => false));
-  const done = checked.filter(Boolean).length;
-  const allDone = done === PREFLIGHT_ITEMS.length;
-  const toggle = (i: number) => setChecked(prev => prev.map((v, idx) => (idx === i ? !v : v)));
+  const done = items.filter(i => checked[i.id]).length;
+  const allDone = items.length > 0 && done === items.length;
+  const toggle = (id: string) => setChecked(prev => ({ ...prev, [id]: !prev[id] }));
 
   return (
     <div className="bg-white p-5 rounded-[32px] border border-slate-200 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ListChecks className="w-4 h-4 text-brand-blue" />
-          <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Pre-Flight Check</h3>
+          <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{titel}</h3>
         </div>
-        <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500")}>
-          {done}/{PREFLIGHT_ITEMS.length}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500")}>
+            {done}/{items.length}
+          </span>
+          <button onClick={() => setEditor(true)} aria-label="Checkliste bearbeiten" className="p-1 text-slate-300 hover:text-brand-blue">
+            <Settings2 className="w-4 h-4" />
+          </button>
+        </div>
       </div>
       <div className="space-y-1">
-        {PREFLIGHT_ITEMS.map((item, i) => (
+        {items.map(item => (
           <button
-            key={i}
-            onClick={() => toggle(i)}
+            key={item.id}
+            onClick={() => toggle(item.id)}
             className="w-full flex items-center gap-3 py-2 text-left active:scale-[0.99] transition-transform"
           >
-            {checked[i]
+            {checked[item.id]
               ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
               : <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />}
-            <span className={cn("text-xs font-medium", checked[i] ? "text-slate-400 line-through" : "text-slate-700")}>{item}</span>
+            <span className={cn("text-xs font-medium", checked[item.id] ? "text-slate-400 line-through" : "text-slate-700")}>{item.text}</span>
           </button>
         ))}
       </div>
@@ -2311,6 +2310,14 @@ function PreFlightChecklist() {
           <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
           <p className="text-[10px] font-bold text-emerald-700">Alles geprüft — startklar!</p>
         </div>
+      )}
+
+      {editor && (
+        <ChecklistEditorDialog
+          art={art}
+          titel={titel}
+          onClose={() => { setEditor(false); setItems(ladeChecklist(art)); }}
+        />
       )}
     </div>
   );
@@ -3820,6 +3827,8 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                     <p className="text-sm font-black text-slate-900">{batteryStart - batteryEnd}%</p>
                   </div>
                 </div>
+
+                <PreFlightChecklist art="postflight" titel="Nach-Flug-Check" />
 
                 <div>
                   <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Akku Ende %</label>
