@@ -7,6 +7,45 @@
   --color-brand-green: #059669;
 }
 
+/* Dark Mode.
+   Tailwind v4 gibt Farbutilities als var(--color-*) aus (z.B.
+   .bg-white{background-color:var(--color-white)}). Deshalb reicht es, die
+   Palette in einem Dark-Scope umzudefinieren — die gesamte App kippt, ohne
+   dass eine einzige Klasse geändert werden muss.
+
+   Die Slate-Skala wird invertiert: helle Töne (Seitenhintergrund, Karten)
+   werden dunkel, dunkle Töne (Text) werden hell. Die Marken- und Signalfarben
+   (blau/rot/grün/gelb) bleiben; nur ihre sehr hellen -50-Tönungen (Badges,
+   Alert-Flächen) werden abgedunkelt, damit sie nicht als grelle Flecken
+   stehen bleiben. */
+:root[data-theme="dark"] {
+  --color-white: #1e293b;      /* Karten */
+  --color-black: #f8fafc;
+
+  --color-slate-50:  #0f172a;  /* Seitenhintergrund */
+  --color-slate-100: #1e293b;
+  --color-slate-200: #334155;  /* Ränder */
+  --color-slate-300: #475569;
+  --color-slate-400: #94a3b8;  /* gedämpfter Text bleibt lesbar */
+  --color-slate-500: #cbd5e1;
+  --color-slate-600: #e2e8f0;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #f1f5f9;
+  --color-slate-900: #f8fafc;  /* Primärtext */
+  --color-slate-950: #ffffff;
+
+  /* helle Tönungen der Signalfarben abdunkeln */
+  --color-blue-50:    #172554;
+  --color-blue-100:   #1e3a8a;
+  --color-red-50:     #450a0a;
+  --color-red-100:    #7f1d1d;
+  --color-amber-50:   #451a03;
+  --color-amber-100:  #78350f;
+  --color-emerald-50: #022c22;
+  --color-emerald-100:#064e3b;
+  --color-green-50:   #052e16;
+}
+
 /* Leaflet Container Fixes */
 .leaflet-container {
   width: 100%;

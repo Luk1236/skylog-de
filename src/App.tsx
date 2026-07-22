@@ -52,6 +52,8 @@ import {
   Bell,
   ListChecks,
   QrCode,
+  Moon,
+  Sun,
   Route
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -77,6 +79,7 @@ import { BatteryDetailDialog } from './components/BatteryDetailDialog';
 import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
+import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
@@ -151,6 +154,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => ladeTheme());
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
@@ -289,6 +293,14 @@ export default function App() {
             <ShieldCheck className="w-3 h-3 text-green-400" />
             <span>LBA Konform</span>
           </div>
+          {/* Hell/Dunkel umschalten */}
+          <button
+            onClick={() => setTheme(toggleTheme(theme))}
+            aria-label={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+          >
+            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </button>
           {/* Behörden-Check: immer erreichbar, für eine Kontrolle unterwegs. */}
           <button
             onClick={() => setShowBehoerdenCheck(true)}
