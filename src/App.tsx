@@ -81,6 +81,7 @@ import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
+import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
 import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
@@ -161,6 +162,14 @@ export default function App() {
   const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
   const [showPlaner, setShowPlaner] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => ladeTheme());
+  const [sprache, setSprache] = useState<Sprache>(() => ladeSprache());
+  // Kurzform fuer die Uebersetzung in dieser Komponente.
+  const t = (key: string) => uebersetze(key, sprache);
+  const spracheWechseln = () => {
+    const neu = andereSprache(sprache);
+    setzeSprache(neu);
+    setSprache(neu);
+  };
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
@@ -291,18 +300,26 @@ export default function App() {
           </div>
           <div>
             <h1 className="font-bold text-lg leading-none tracking-tight">SkyLog DE</h1>
-            <p className="text-[10px] text-blue-200 uppercase tracking-widest font-medium">LBA Info & Flight Log</p>
+            <p className="text-[10px] text-blue-200 uppercase tracking-widest font-medium">{t('app.untertitel')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/5">
             <ShieldCheck className="w-3 h-3 text-green-400" />
-            <span>LBA Konform</span>
+            <span>{t('app.konform')}</span>
           </div>
+          {/* Sprache umschalten */}
+          <button
+            onClick={spracheWechseln}
+            aria-label={t('a11y.sprache')}
+            className="p-2 hover:bg-white/10 rounded-full transition-colors text-[11px] font-black tracking-wider"
+          >
+            {sprache.toUpperCase()}
+          </button>
           {/* Hell/Dunkel umschalten */}
           <button
             onClick={() => setTheme(toggleTheme(theme))}
-            aria-label={theme === 'dark' ? 'Helles Design' : 'Dunkles Design'}
+            aria-label={theme === 'dark' ? t('a11y.themaHell') : t('a11y.themaDunkel')}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
             {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -310,7 +327,7 @@ export default function App() {
           {/* Behörden-Check: immer erreichbar, für eine Kontrolle unterwegs. */}
           <button
             onClick={() => setShowBehoerdenCheck(true)}
-            aria-label="Behörden-Check anzeigen"
+            aria-label={t('a11y.behoerdenCheck')}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
             <QrCode className="w-5 h-5" />
@@ -475,49 +492,49 @@ export default function App() {
           active={activeView === 'map'} 
           onClick={() => setActiveView('map')}
           icon={MapIcon}
-          label="Karte"
+          label={t('nav.karte')}
         />
         <NavButton 
           active={activeView === 'garage'} 
           onClick={() => setActiveView('garage')}
           icon={Plane}
-          label="Garage"
+          label={t('nav.garage')}
         />
         <NavButton 
           active={activeView === 'logbook'} 
           onClick={() => setActiveView('logbook')}
           icon={Book}
-          label="Logbuch"
+          label={t('nav.logbuch')}
         />
         <NavButton 
           active={activeView === 'inventory'} 
           onClick={() => setActiveView('inventory')}
           icon={Printer}
-          label="Inventar"
+          label={t('nav.inventar')}
         />
         <NavButton 
           active={activeView === 'pilots'} 
           onClick={() => setActiveView('pilots')}
           icon={User}
-          label="Piloten"
+          label={t('nav.piloten')}
         />
         <NavButton
           active={activeView === 'knowledge'}
           onClick={() => setActiveView('knowledge')}
           icon={Library}
-          label="LBA Info"
+          label={t('nav.lbaInfo')}
         />
         <NavButton
           active={activeView === 'safety'}
           onClick={() => setActiveView('safety')}
           icon={ShieldAlert}
-          label="Safety"
+          label={t('nav.safety')}
         />
         <NavButton
           active={activeView === 'profile'}
           onClick={() => setActiveView('profile')}
           icon={Settings}
-          label="Profil"
+          label={t('nav.profil')}
         />
       </nav>
 
