@@ -581,10 +581,32 @@ function DroneMap({ location, onLocate, isLocating, weather, flights }: { locati
           url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
         />
         
-        {/* DIPUL Geo-Zones WMS */}
+        {/* DIPUL Geo-Zonen (DFS/dipul).
+            Zwei Fallstricke, beide am 2026-07-23 gegen den Live-Dienst geprüft:
+            1) Der Pfad heißt /geoservices/ — das frühere /geoserver/ liefert
+               seit einer Umstellung 404 (HTML-Startseite).
+            2) Einen Sammel-Layer "dipul:geozonen" gibt es nicht mehr; der
+               Dienst gibt die Zonen einzeln aus. Beides zusammen führte dazu,
+               dass das Overlay still leer blieb.
+            WMS akzeptiert eine kommagetrennte Layerliste. */}
         <WMSTileLayer
-          url="https://uas-betrieb.de/geoserver/dipul/wms"
-          layers="dipul:geozonen"
+          url="https://uas-betrieb.de/geoservices/dipul/wms"
+          layers={[
+            'dipul:flugbeschraenkungsgebiete',
+            'dipul:kontrollzonen',
+            'dipul:flughaefen',
+            'dipul:flugplaetze',
+            'dipul:naturschutzgebiete',
+            'dipul:nationalparks',
+            'dipul:militaerische_anlagen',
+            'dipul:krankenhaeuser',
+            'dipul:industrieanlagen',
+            'dipul:kraftwerke',
+            'dipul:justizvollzugsanstalten',
+            'dipul:freibaeder',
+            'dipul:bahnanlagen',
+            'dipul:stromleitungen',
+          ].join(',')}
           format="image/png"
           transparent={true}
           version="1.3.0"
