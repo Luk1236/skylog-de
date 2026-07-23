@@ -55,7 +55,10 @@ import {
   Moon,
   Image as ImageIcon,
   Sun,
-  Route
+  Route,
+  LayoutGrid,
+  Languages,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -161,6 +164,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
+  const [showMehr, setShowMehr] = useState(false);
   const [showPlaner, setShowPlaner] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => ladeTheme());
   const [sprache, setSprache] = useState<Sprache>(() => ladeSprache());
@@ -310,32 +314,15 @@ export default function App() {
             <ShieldCheck className="w-3 h-3 text-green-400" />
             <span>{t('app.konform')}</span>
           </div>
-          {/* Sprache umschalten */}
-          <button
-            onClick={spracheWechseln}
-            aria-label={t('a11y.sprache')}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors text-[11px] font-black tracking-wider"
-          >
-            {sprache.toUpperCase()}
-          </button>
-          {/* Hell/Dunkel umschalten */}
-          <button
-            onClick={() => setTheme(toggleTheme(theme))}
-            aria-label={theme === 'dark' ? t('a11y.themaHell') : t('a11y.themaDunkel')}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
-          >
-            {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-          {/* Behörden-Check: immer erreichbar, für eine Kontrolle unterwegs. */}
+          {/* Behörden-Check: einziger Kopf-Knopf, für eine Kontrolle unterwegs
+              schnell erreichbar. Sprache, Design und die selteneren Ansichten
+              liegen unten unter „Mehr". */}
           <button
             onClick={() => setShowBehoerdenCheck(true)}
             aria-label={t('a11y.behoerdenCheck')}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
             <QrCode className="w-5 h-5" />
-          </button>
-          <button className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <Settings className="w-5 h-5" />
           </button>
         </div>
       </header>
@@ -488,43 +475,28 @@ export default function App() {
         </AnimatePresence>
       </main>
 
-      {/* Bottom Navigation */}
-      <nav className="bg-white border-t border-slate-200 px-2 pt-2 flex items-center justify-between pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] overflow-x-auto no-scrollbar">
-        <NavButton 
-          active={activeView === 'map'} 
+      {/* Bottom Navigation: fünf feste Punkte, kein Seiten-Scrollen mehr.
+          Die selteneren Ansichten liegen hinter „Mehr". Der Punkt ist aktiv,
+          sobald eine der dort einsortierten Ansichten offen ist — so weiß man,
+          wo man gerade steckt. */}
+      <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+        <NavButton
+          active={activeView === 'map'}
           onClick={() => setActiveView('map')}
           icon={MapIcon}
           label={t('nav.karte')}
         />
-        <NavButton 
-          active={activeView === 'garage'} 
-          onClick={() => setActiveView('garage')}
-          icon={Plane}
-          label={t('nav.garage')}
-        />
-        <NavButton 
-          active={activeView === 'logbook'} 
+        <NavButton
+          active={activeView === 'logbook'}
           onClick={() => setActiveView('logbook')}
           icon={Book}
           label={t('nav.logbuch')}
         />
-        <NavButton 
-          active={activeView === 'inventory'} 
-          onClick={() => setActiveView('inventory')}
-          icon={Printer}
-          label={t('nav.inventar')}
-        />
-        <NavButton 
-          active={activeView === 'pilots'} 
-          onClick={() => setActiveView('pilots')}
-          icon={User}
-          label={t('nav.piloten')}
-        />
         <NavButton
-          active={activeView === 'knowledge'}
-          onClick={() => setActiveView('knowledge')}
-          icon={Library}
-          label={t('nav.lbaInfo')}
+          active={activeView === 'garage'}
+          onClick={() => setActiveView('garage')}
+          icon={Plane}
+          label={t('nav.flotte')}
         />
         <NavButton
           active={activeView === 'safety'}
@@ -533,10 +505,10 @@ export default function App() {
           label={t('nav.safety')}
         />
         <NavButton
-          active={activeView === 'profile'}
-          onClick={() => setActiveView('profile')}
-          icon={Settings}
-          label={t('nav.profil')}
+          active={MEHR_VIEWS.includes(activeView)}
+          onClick={() => setShowMehr(true)}
+          icon={LayoutGrid}
+          label={t('nav.mehr')}
         />
       </nav>
 
@@ -555,8 +527,111 @@ export default function App() {
           onClose={() => setShowBehoerdenCheck(false)}
         />
       )}
+
+      {showMehr && (
+        <MehrSheet
+          activeView={activeView}
+          theme={theme}
+          sprache={sprache}
+          onWaehle={(v) => { setActiveView(v); setShowMehr(false); }}
+          onTheme={() => setTheme(toggleTheme(theme))}
+          onSprache={spracheWechseln}
+          onClose={() => setShowMehr(false)}
+        />
+      )}
     </div>
     </SprachProvider>
+  );
+}
+
+// Ansichten, die nicht mehr fest unten stehen, sondern hinter „Mehr" liegen.
+// Eigene Konstante, damit der „Mehr"-Knopf zuverlässig aktiv wird, sobald eine
+// davon offen ist — ohne die Liste an zwei Stellen pflegen zu müssen.
+const MEHR_VIEWS: View[] = ['inventory', 'pilots', 'knowledge', 'roadmap', 'profile'];
+
+/** Das „Mehr"-Blatt: die selteneren Ansichten plus die zwei Schnell-
+ *  einstellungen (Sprache, Design), die vorher oben im Kopf klebten. */
+function MehrSheet({
+  activeView, theme, sprache, onWaehle, onTheme, onSprache, onClose,
+}: {
+  activeView: View;
+  theme: Theme;
+  sprache: Sprache;
+  onWaehle: (v: View) => void;
+  onTheme: () => void;
+  onSprache: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useSprache();
+  const eintraege: { view: View; icon: any; label: string }[] = [
+    { view: 'inventory', icon: Printer, label: t('nav.inventar') },
+    { view: 'pilots', icon: User, label: t('nav.piloten') },
+    { view: 'knowledge', icon: Library, label: t('nav.lbaInfo') },
+    { view: 'roadmap', icon: TrendingUp, label: t('nav.roadmap') },
+    { view: 'profile', icon: Settings, label: t('nav.profil') },
+  ];
+
+  return (
+    <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center" onClick={onClose}>
+      <div
+        className="bg-slate-50 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[85vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
+          <h3 className="font-black text-slate-900">{t('nav.mehr')}</h3>
+          <button onClick={onClose} aria-label={t('aktion.schliessen')} className="p-2 rounded-xl hover:bg-slate-100">
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+
+        <div className="overflow-y-auto px-4 py-4 space-y-4">
+          {/* Ansichten */}
+          <div className="space-y-1.5">
+            {eintraege.map(({ view, icon: Icon, label }) => (
+              <button
+                key={view}
+                onClick={() => onWaehle(view)}
+                className={cn(
+                  'w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors',
+                  activeView === view
+                    ? 'bg-brand-blue/10 border-brand-blue/30'
+                    : 'bg-white border-slate-200 hover:bg-slate-50'
+                )}
+              >
+                <Icon className={cn('w-5 h-5 shrink-0', activeView === view ? 'text-brand-blue' : 'text-slate-400')} />
+                <span className={cn('text-sm font-bold flex-1', activeView === view ? 'text-brand-blue' : 'text-slate-700')}>{label}</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+            ))}
+          </div>
+
+          {/* Schnelleinstellungen */}
+          <div>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">{t('mehr.einstellungen')}</p>
+            <div className="space-y-1.5">
+              <button
+                onClick={onSprache}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                <Languages className="w-5 h-5 shrink-0 text-slate-400" />
+                <span className="text-sm font-bold flex-1 text-slate-700">{t('mehr.sprache')}</span>
+                <span className="text-xs font-black text-brand-blue tracking-wider">{sprache.toUpperCase()}</span>
+              </button>
+              <button
+                onClick={onTheme}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0 text-slate-400" /> : <Moon className="w-5 h-5 shrink-0 text-slate-400" />}
+                <span className="text-sm font-bold flex-1 text-slate-700">{t('mehr.design')}</span>
+                <span className="text-xs font-bold text-slate-400">
+                  {theme === 'dark' ? t('mehr.dunkel') : t('mehr.hell')}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

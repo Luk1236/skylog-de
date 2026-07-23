@@ -18,13 +18,21 @@ type Eintrag = { de: string; en: string };
 export const TEXTE = {
   // Navigation
   'nav.karte': { de: 'Karte', en: 'Map' },
-  'nav.garage': { de: 'Garage', en: 'Hangar' },
   'nav.logbuch': { de: 'Logbuch', en: 'Logbook' },
   'nav.inventar': { de: 'Inventar', en: 'Inventory' },
   'nav.piloten': { de: 'Piloten', en: 'Pilots' },
   'nav.lbaInfo': { de: 'LBA Info', en: 'Regulations' },
   'nav.safety': { de: 'Safety', en: 'Safety' },
   'nav.profil': { de: 'Profil', en: 'Profile' },
+  'nav.flotte': { de: 'Flotte', en: 'Fleet' },
+  'nav.mehr': { de: 'Mehr', en: 'More' },
+
+  // „Mehr"-Blatt
+  'mehr.einstellungen': { de: 'Einstellungen', en: 'Settings' },
+  'mehr.sprache': { de: 'Sprache', en: 'Language' },
+  'mehr.design': { de: 'Design', en: 'Theme' },
+  'mehr.hell': { de: 'Hell', en: 'Light' },
+  'mehr.dunkel': { de: 'Dunkel', en: 'Dark' },
 
   // Kopfzeile
   'app.untertitel': { de: 'LBA Info & Flight Log', en: 'Regulations & Flight Log' },
@@ -69,10 +77,7 @@ export const TEXTE = {
   'wartung.eintragHinzufuegen': { de: 'Eintrag Hinzufügen', en: 'Add Entry' },
 
   // Bedienhilfen (aria-labels)
-  'a11y.themaHell': { de: 'Helles Design', en: 'Light theme' },
-  'a11y.themaDunkel': { de: 'Dunkles Design', en: 'Dark theme' },
   'a11y.behoerdenCheck': { de: 'Behörden-Check anzeigen', en: 'Show authority check' },
-  'a11y.sprache': { de: 'Sprache wechseln', en: 'Switch language' },
   'a11y.planer': { de: 'Flugplaner öffnen', en: 'Open flight planner' },
   'a11y.gespeichertePlaene': { de: 'Gespeicherte Pläne', en: 'Saved plans' },
   'a11y.planLoeschen': { de: 'Plan löschen', en: 'Delete plan' },
