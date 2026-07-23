@@ -1892,30 +1892,33 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
 
 function RoadmapView() {
   const { t } = useSprache();
+  // Ehrlicher Stand: Was fertig ist, steht auf „Live". Nur was wirklich noch
+  // fehlt, ist „Geplant". Vorher standen gebaute Funktionen hier als „geplant"
+  // — das las sich, als wäre nichts fertig.
   const steps = [
     {
-      title: "KI-Flug-Check (Gemini Integration)",
-      desc: "KI analysiert automatisch den Zielort auf potenzielle Hindernisse wie Strommasten oder private Grundstücke.",
-      status: "Geplant",
-      icon: Rocket
-    },
-    {
-      title: "Automatische PDF-Logbuch-Exporte",
-      desc: "Generieren Sie amtlich anerkannte Flugberichte mit einem Klick für die Versicherung oder das LBA.",
-      status: "In Entwicklung",
+      title: "PDF-Logbuch-Export",
+      desc: "Flugberichte als PDF mit einem Klick — für Versicherung oder LBA.",
+      status: "Live",
       icon: Download
     },
     {
-      title: "Checkliste vor dem Start",
-      desc: "Interaktive Sicherheitsprüfung (Akku, Propeller, GPS, SD-Karte) vor jedem Flug.",
-      status: "Geplant",
+      title: "Vor- und Nach-Flug-Checkliste",
+      desc: "Interaktive Sicherheitsprüfung (Akku, Propeller, GPS, SD-Karte) vor und nach jedem Flug.",
+      status: "Live",
       icon: CheckCircle2
     },
     {
       title: "Live NOTAM Feed",
-      desc: "Echtzeit-NOTAMs aus dem FAA-Datenbankportal für deutschen Luftraum (EDWW/EDGG/EDMM) — sichtbar vor jedem Flugstart.",
+      desc: "Echtzeit-NOTAMs für deutschen Luftraum (EDWW/EDGG/EDMM) — sichtbar vor jedem Flugstart.",
       status: "Live",
       icon: AlertTriangle
+    },
+    {
+      title: "Flächen- und Grid-Planung",
+      desc: "Automatische Mäander-/Rasterrouten für Mapping-Flüge. Der Wegpunkt-Planer ist da; das Flächenraster fehlt noch.",
+      status: "Geplant",
+      icon: Rocket
     }
   ];
 
@@ -1935,7 +1938,10 @@ function RoadmapView() {
                 <div className="p-2 bg-slate-50 rounded-xl">
                   <step.icon className="w-5 h-5 text-brand-blue" />
                 </div>
-                <span className="text-[10px] font-black text-brand-blue uppercase tracking-widest">{step.status}</span>
+                <span className={cn(
+                  "text-[10px] font-black uppercase tracking-widest",
+                  step.status === 'Live' ? "text-brand-green" : "text-slate-400"
+                )}>{step.status}</span>
               </div>
               <h3 className="font-bold text-slate-900 mb-1">{step.title}</h3>
               <p className="text-xs text-slate-500 leading-relaxed">{step.desc}</p>
@@ -2535,42 +2541,10 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
     onUpdate();
   };
 
-  const exportToJSON = async () => {
-    const [allFlights, allDrones, allBatteries, allPilots, savedProfile] = await Promise.all([
-      dbService.getFlights(),
-      dbService.getDrones(),
-      dbService.getBatteries(),
-      dbService.getPilots(),
-      dbService.getProfile(),
-    ]);
-    const data = { version: 1, exportedAt: new Date().toISOString(), profile: savedProfile, drones: allDrones, batteries: allBatteries, flights: allFlights, pilots: allPilots };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `skylog_backup_${new Date().toISOString().split('T')[0]}.json`;
-    link.click();
-  };
-
-  const importFromJSON = async (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      if (!data.version || !data.flights) { alert('Ungültige Backup-Datei.'); return; }
-      if (!confirm(`Backup vom ${new Date(data.exportedAt).toLocaleDateString('de-DE')} importieren?\n\nDies fügt ${data.flights?.length ?? 0} Flüge, ${data.drones?.length ?? 0} Drohnen und ${data.batteries?.length ?? 0} Akkus hinzu.`)) return;
-      const saves: Promise<void>[] = [];
-      (data.drones || []).forEach((d: Drone) => saves.push(dbService.saveDrone(d)));
-      (data.batteries || []).forEach((b: Battery) => saves.push(dbService.saveBattery(b)));
-      (data.flights || []).forEach((f: Flight) => saves.push(dbService.saveFlight(f)));
-      (data.pilots || []).forEach((p: Pilot) => saves.push(dbService.savePilot(p)));
-      if (data.profile) saves.push(dbService.saveProfile(data.profile));
-      await Promise.all(saves);
-      onUpdate();
-      alert('Import erfolgreich!');
-    } catch { alert('Fehler beim Import — Datei beschädigt?'); }
-    e.target.value = '';
-  };
+  // Voll-Backup (JSON) liegt bewusst nur in „Profil": dort läuft der Export
+  // über backup.ts, das die NOTAM-Zugangsdaten herausfiltert. Ein zweiter,
+  // ungefilterter Weg hier hätte die Geheimnisse doch in die Datei geschrieben.
+  // Im Logbuch bleiben nur die flug-spezifischen Exporte (PDF, CSV, KML).
 
   const exportToCSV = () => {
     const headers = ['Datum', 'Drohne', 'Pilot', 'Start', 'Ende', 'Dauer (Min)', 'Ort', 'Zweck', 'Wetter', 'Notizen', 'Vorkommnisse'];
@@ -2749,20 +2723,6 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
           >
              <MapPin className="w-5 h-5" />
           </button>
-          <button
-             onClick={exportToJSON}
-             className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Backup als JSON"
-          >
-             <Cpu className="w-5 h-5" />
-          </button>
-          <label
-             className="p-2.5 text-slate-400 hover:text-brand-green bg-white border border-slate-200 rounded-2xl shadow-sm transition-all cursor-pointer flex items-center"
-             title="Backup importieren"
-          >
-             <ArrowRight className="w-5 h-5 rotate-180" />
-             <input type="file" accept=".json" className="hidden" onChange={importFromJSON} />
-          </label>
           <button
              onClick={() => setShowImport(true)}
              className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
@@ -4117,104 +4077,6 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
       </div>
     </div>
   </div>
-  );
-}
-
-function ChecklistView() {
-  const [checked, setChecked] = useState<Record<string, boolean>>({});
-
-  const toggle = (id: string) => {
-    setChecked(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const totalItems = CHECKLIST_ITEMS.reduce((acc, s) => acc + s.items.length, 0);
-  const checkedCount = Object.values(checked).filter(Boolean).length;
-  const progress = (checkedCount / totalItems) * 100;
-
-  return (
-    <div className="max-w-md mx-auto pb-12">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight">Pre-Flight Check</h2>
-          <p className="text-slate-500 text-sm font-medium">Sicherheit geht vor jedem Start vor</p>
-        </div>
-        <div className="text-right">
-          <p className="text-xl font-black text-brand-blue">{Math.round(progress)}%</p>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Fertig</p>
-        </div>
-      </div>
-
-      {/* Progress Bar */}
-      <div className="w-full h-2 bg-slate-200 rounded-full mb-8 overflow-hidden">
-        <motion.div 
-          className="h-full bg-brand-green"
-          initial={{ width: 0 }}
-          animate={{ width: `${progress}%` }}
-        />
-      </div>
-
-      <div className="space-y-8">
-        {CHECKLIST_ITEMS.map((section, idx) => (
-          <div key={idx}>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-brand-blue/10 rounded-xl">
-                <section.icon className="w-5 h-5 text-brand-blue" />
-              </div>
-              <h3 className="font-bold text-slate-900 uppercase tracking-wider text-xs">{section.title}</h3>
-            </div>
-            
-            <div className="space-y-2">
-              {section.items.map((item) => (
-                <button 
-                  key={item.id}
-                  onClick={() => toggle(item.id)}
-                  className={cn(
-                    "w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left",
-                    checked[item.id] 
-                      ? "bg-brand-green/5 border-brand-green/20" 
-                      : "bg-white border-slate-200 shadow-sm"
-                  )}
-                >
-                  <div className={cn(
-                    "w-6 h-6 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all",
-                    checked[item.id] 
-                      ? "bg-brand-green border-brand-green" 
-                      : "border-slate-300"
-                  )}>
-                    {checked[item.id] && <CheckCircle className="w-4 h-4 text-white" />}
-                  </div>
-                  <span className={cn(
-                    "text-xs font-semibold",
-                    checked[item.id] ? "text-brand-green" : "text-slate-700"
-                  )}>
-                    {item.label}
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {progress === 100 && (
-        <motion.div 
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="mt-10 p-6 bg-brand-green text-white rounded-3xl text-center shadow-xl shadow-brand-green/20"
-        >
-          <ShieldCheck className="w-12 h-12 mx-auto mb-3" />
-          <h3 className="text-xl font-bold mb-1">Bereit zum Abheben!</h3>
-          <p className="text-sm text-green-50 opacity-90">Alle Checks erfolgreich abgeschlossen. Guten Flug!</p>
-        </motion.div>
-      )}
-
-      <button 
-        onClick={() => setChecked({})}
-        className="w-full mt-8 py-4 text-slate-400 text-xs font-bold uppercase tracking-widest hover:text-brand-red transition-colors"
-      >
-        Checkliste zurücksetzen
-      </button>
-    </div>
   );
 }
 

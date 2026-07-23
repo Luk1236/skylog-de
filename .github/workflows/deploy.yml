@@ -1,8 +1,11 @@
 name: Deploy to GitHub Pages
 
+# Nur noch manuell. Die App wird als APK ausgeliefert, GitHub Pages ist im Repo
+# nicht aktiviert — bei jedem Push lief der Deploy-Schritt daher rot ins Leere.
+# Wer Pages doch nutzen will: in den Repo-Einstellungen aktivieren und diesen
+# Workflow unter „Actions" von Hand starten.
 on:
-  push:
-    branches: [main, master]
+  workflow_dispatch:
 
 permissions:
   contents: read
