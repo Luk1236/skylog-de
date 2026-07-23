@@ -146,6 +146,24 @@ export interface Pilot {
   createdAt: number;
 }
 
+/** Ein geplanter Wegpunkt. Höhe optional (m über Grund). */
+export interface Wegpunkt {
+  lat: number;
+  lon: number;
+  alt?: number;
+}
+
+/** Ein benannter Flugplan — Route zum Vorbereiten und Wiederverwenden.
+ *  Bewusst KEIN Upload zur Drohne: dafür bräuchte es DJIs Waypoint-Format
+ *  und das native SDK. */
+export interface FlightPlan {
+  id: string;
+  name: string;
+  wegpunkte: Wegpunkt[];
+  notizen?: string;
+  createdAt: number;
+}
+
 export interface SparePart {
   id: string;
   name: string;
@@ -162,9 +180,10 @@ const BATTERIES_STORE = 'batteries';
 const PROFILE_STORE = 'profile';
 const MAINTENANCE_STORE = 'maintenance';
 const PILOTS_STORE = 'pilots';
+const FLIGHTPLANS_STORE = 'flightplans';
 
 async function getDB(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, 6, {
+  return openDB(DB_NAME, 7, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(DRONES_STORE)) {
         db.createObjectStore(DRONES_STORE, { keyPath: 'id' });
@@ -186,6 +205,9 @@ async function getDB(): Promise<IDBPDatabase> {
       }
       if (!db.objectStoreNames.contains(PILOTS_STORE)) {
         db.createObjectStore(PILOTS_STORE, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(FLIGHTPLANS_STORE)) {
+        db.createObjectStore(FLIGHTPLANS_STORE, { keyPath: 'id' });
       }
     },
   });
@@ -212,6 +234,21 @@ export const dbService = {
     const db = await getDB();
     await db.delete(MAINTENANCE_STORE, id);
   },
+  // Flugpläne
+  async getFlightPlans(): Promise<FlightPlan[]> {
+    const db = await getDB();
+    const alle = await db.getAll(FLIGHTPLANS_STORE);
+    return alle.sort((a, b) => b.createdAt - a.createdAt);
+  },
+  async saveFlightPlan(plan: FlightPlan): Promise<void> {
+    const db = await getDB();
+    await db.put(FLIGHTPLANS_STORE, plan);
+  },
+  async deleteFlightPlan(id: string): Promise<void> {
+    const db = await getDB();
+    await db.delete(FLIGHTPLANS_STORE, id);
+  },
+
   // Profile
   async getProfile(): Promise<UserProfile | null> {
     const db = await getDB();

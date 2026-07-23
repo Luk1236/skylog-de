@@ -81,6 +81,7 @@ import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
+import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
 import { FlightMediaDialog } from './components/FlightMediaDialog';
@@ -158,6 +159,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
+  const [showPlaner, setShowPlaner] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => ladeTheme());
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -333,7 +335,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               className="absolute inset-0"
             >
-              <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} />
+              <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} onPlaner={() => setShowPlaner(true)} />
               {gpsError && (
                 <div className="absolute top-4 left-4 right-4 z-[500] bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -519,6 +521,14 @@ export default function App() {
         />
       </nav>
 
+      {showPlaner && (
+        <FlightPlannerDialog
+          startLat={location[0]}
+          startLon={location[1]}
+          onClose={() => setShowPlaner(false)}
+        />
+      )}
+
       {showBehoerdenCheck && (
         <BehoerdenCheckDialog
           profile={profile}
@@ -550,7 +560,7 @@ function NavButton({ active, onClick, icon: Icon, label }: { active: boolean, on
   );
 }
 
-function DroneMap({ location, onLocate, isLocating, weather, flights }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[] }) {
+function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], onPlaner: () => void }) {
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
 
   function MapEvents() {
@@ -667,7 +677,16 @@ function DroneMap({ location, onLocate, isLocating, weather, flights }: { locati
         >
           <Navigation className={cn("w-6 h-6", isLocating ? "text-slate-400" : "text-brand-blue")} />
         </button>
-        
+
+        {/* Flugplaner: Route vorab auf der Karte anlegen */}
+        <button
+          onClick={onPlaner}
+          aria-label="Flugplaner öffnen"
+          className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
+        >
+          <Route className="w-6 h-6 text-brand-blue" />
+        </button>
+
         {weather && (
           <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-4 items-center">
             <div className="flex flex-col items-center gap-1">
