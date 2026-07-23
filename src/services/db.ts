@@ -70,6 +70,18 @@ export interface TrackPoint {
   battery?: number;  // Prozent
 }
 
+// Ein an einen Flug gehängtes Bild. Liegt als Data-URL direkt am Flug —
+// so wandert es automatisch mit der Sicherung mit, ohne eigene Verknüpfung.
+// Deshalb gibt es eine Größengrenze (siehe services/flightMedia.ts).
+export interface FlightMedia {
+  id: string;
+  name: string;
+  type: string;      // MIME, z.B. image/jpeg
+  dataUrl: string;
+  size: number;      // Bytes des Originals
+  addedAt: number;
+}
+
 export interface Flight {
   id: string;
   droneId: string;
@@ -83,6 +95,7 @@ export interface Flight {
   duration: number; // total minutes
   legs?: FlightLeg[];
   track?: TrackPoint[];  // optionale Flugaufzeichnung (GPS/Höhe/Speed/Akku über Zeit)
+  media?: FlightMedia[]; // an den Flug gehängte Bilder
   location: string;
   locationName: string;
   coordinates: [number, number];

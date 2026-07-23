@@ -53,6 +53,7 @@ import {
   ListChecks,
   QrCode,
   Moon,
+  Image as ImageIcon,
   Sun,
   Route
 } from 'lucide-react';
@@ -80,6 +81,7 @@ import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
+import { FlightMediaDialog } from './components/FlightMediaDialog';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
@@ -2342,6 +2344,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
   const [newFlight, setNewFlight] = useState<Partial<Flight>>({});
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const [trackFlight, setTrackFlight] = useState<Flight | null>(null);
+  const [mediaFlight, setMediaFlight] = useState<Flight | null>(null);
   const [showStats, setShowStats] = useState(false);
   const touchStartX = { current: 0 };
 
@@ -2971,6 +2974,19 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
                     )}
                   </div>
                 </div>
+                {/* Bilder zum Flug. Gefüllt, wenn welche hängen. */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setMediaFlight(flight); }}
+                  aria-label="Bilder zum Flug"
+                  className={cn(
+                    'p-2 rounded-xl transition-colors shrink-0',
+                    flight.media && flight.media.length > 0
+                      ? 'bg-brand-blue/10 text-brand-blue'
+                      : 'text-slate-300 hover:bg-slate-100'
+                  )}
+                >
+                  <ImageIcon className="w-5 h-5" />
+                </button>
                 {/* Track ansehen / hinzufügen. Gefüllt, wenn eine Aufzeichnung da ist. */}
                 <button
                   onClick={(e) => { e.stopPropagation(); setTrackFlight(flight); }}
@@ -3005,6 +3021,14 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
         <FlightTrackDialog
           flight={trackFlight}
           onClose={() => setTrackFlight(null)}
+          onUpdate={onUpdate}
+        />
+      )}
+
+      {mediaFlight && (
+        <FlightMediaDialog
+          flight={mediaFlight}
+          onClose={() => setMediaFlight(null)}
           onUpdate={onUpdate}
         />
       )}
