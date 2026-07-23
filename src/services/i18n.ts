@@ -36,13 +36,37 @@ export const TEXTE = {
   'view.logbuch': { de: 'Logbuch', en: 'Logbook' },
   'view.safetyHub': { de: 'Safety Hub', en: 'Safety Hub' },
   'view.profil': { de: 'Piloten Profil', en: 'Pilot Profile' },
+  'view.roadmap': { de: 'Roadmap', en: 'Roadmap' },
+  'view.lbaWissen': { de: 'LBA Wissen', en: 'Regulatory Knowledge' },
+  'view.ersatzteile': { de: 'Ersatzteil-Katalog', en: 'Spare Part Catalogue' },
+  'view.pilotenManagement': { de: 'Piloten-Management', en: 'Pilot Management' },
+
+  // Flugplaner
+  'planer.titel': { de: 'Flugplaner', en: 'Flight Planner' },
+  'planer.hinweisKarte': { de: 'Auf die Karte tippen, um Wegpunkte zu setzen.', en: 'Tap the map to place waypoints.' },
+  'planer.strecke': { de: 'Strecke', en: 'Distance' },
+  'planer.flugzeit': { de: 'ca. Flugzeit', en: 'est. flight time' },
+  'planer.maxEntfernung': { de: 'max. Entfernung', en: 'max. distance' },
+  'planer.wegpunkte': { de: 'Wegpunkte', en: 'Waypoints' },
+  'planer.alleLoeschen': { de: 'Alle löschen', en: 'Clear all' },
+  'planer.gespeicherte': { de: 'Gespeicherte Pläne', en: 'Saved plans' },
+  'planer.keinePlaene': { de: 'Noch keine Pläne gespeichert.', en: 'No plans saved yet.' },
+  'planer.benennen': { de: 'Plan benennen…', en: 'Name this plan…' },
+  'planer.loeschenFrage': { de: 'Diesen Flugplan löschen?', en: 'Delete this flight plan?' },
+  'planer.exportieren': { de: 'Route exportieren', en: 'Export route' },
+  'planer.fussnote': {
+    de: 'Planungshilfe. GPX und KML lassen sich in Karten- und Flug-Apps oder Google Earth öffnen. Direkt an die Drohne senden geht nicht — dafür wären DJIs Waypoint-Format und das native SDK nötig.',
+    en: 'Planning aid. GPX and KML open in mapping and flight apps or Google Earth. Sending directly to the drone is not possible — that would require DJI’s waypoint format and the native SDK.',
+  },
 
   // Wiederkehrende Aktionen
   'aktion.speichern': { de: 'Speichern', en: 'Save' },
   'aktion.abbrechen': { de: 'Abbrechen', en: 'Cancel' },
   'aktion.loeschen': { de: 'Löschen', en: 'Delete' },
   'aktion.schliessen': { de: 'Schließen', en: 'Close' },
-  'aktion.hinzufuegen': { de: 'Hinzufügen', en: 'Add' },
+
+  // Wartung
+  'wartung.eintragHinzufuegen': { de: 'Eintrag Hinzufügen', en: 'Add Entry' },
 
   // Bedienhilfen (aria-labels)
   'a11y.themaHell': { de: 'Helles Design', en: 'Light theme' },
@@ -50,6 +74,11 @@ export const TEXTE = {
   'a11y.behoerdenCheck': { de: 'Behörden-Check anzeigen', en: 'Show authority check' },
   'a11y.sprache': { de: 'Sprache wechseln', en: 'Switch language' },
   'a11y.planer': { de: 'Flugplaner öffnen', en: 'Open flight planner' },
+  'a11y.gespeichertePlaene': { de: 'Gespeicherte Pläne', en: 'Saved plans' },
+  'a11y.planLoeschen': { de: 'Plan löschen', en: 'Delete plan' },
+  'a11y.wegpunktEntfernen': { de: 'Wegpunkt entfernen', en: 'Remove waypoint' },
+  'a11y.nachOben': { de: 'Nach oben', en: 'Move up' },
+  'a11y.nachUnten': { de: 'Nach unten', en: 'Move down' },
 } satisfies Record<string, Eintrag>;
 
 export type TextKey = keyof typeof TEXTE;

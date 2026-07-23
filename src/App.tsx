@@ -82,6 +82,7 @@ import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
+import { SprachProvider, useSprache } from './lib/sprache';
 import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
@@ -257,6 +258,7 @@ export default function App() {
   }
 
   return (
+    <SprachProvider sprache={sprache}>
     <div className="flex flex-col app-shell overflow-hidden bg-slate-50 font-sans">
       {/* Offline Banner */}
       {!isOnline && (
@@ -554,6 +556,7 @@ export default function App() {
         />
       )}
     </div>
+    </SprachProvider>
   );
 }
 
@@ -578,6 +581,7 @@ function NavButton({ active, onClick, icon: Icon, label }: { active: boolean, on
 }
 
 function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], onPlaner: () => void }) {
+  const { t } = useSprache();
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
 
   function MapEvents() {
@@ -698,7 +702,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
         {/* Flugplaner: Route vorab auf der Karte anlegen */}
         <button
           onClick={onPlaner}
-          aria-label="Flugplaner öffnen"
+          aria-label={t('a11y.planer')}
           className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
         >
           <Route className="w-6 h-6 text-brand-blue" />
@@ -743,6 +747,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
 }
 
 function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[], flights: Flight[], batteries: Battery[], onUpdate: () => void }) {
+  const { t } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [editingDroneId, setEditingDroneId] = useState<string | null>(null);
   const [newDrone, setNewDrone] = useState<Partial<Drone>>({});
@@ -992,7 +997,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
     <div className="max-w-md mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">Flotte</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.flotte')}</h2>
           <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Drohnen Management</p>
         </div>
         <button 
@@ -1459,7 +1464,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
                     onClick={handleAddMaint}
                     className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95 transition-all"
                   >
-                    Eintrag Hinzufügen
+                    {t('wartung.eintragHinzufuegen')}
                   </button>
                 </motion.div>
               )}
@@ -1553,7 +1558,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
 
       <div className="flex items-center justify-between mb-6 pt-4 border-t border-slate-200">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-orange">Akkus</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-orange">{t('view.akkus')}</h2>
           <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Inventar & Zyklen</p>
         </div>
         <button 
@@ -1672,6 +1677,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
 }
 
 function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void }) {
+  const { t } = useSprache();
   const [showVorfall, setShowVorfall] = useState(false);
   const [showRisiko, setShowRisiko] = useState(false);
   const emergencySteps = [
@@ -1684,7 +1690,7 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
   return (
     <div className="max-w-md mx-auto pb-20">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">Safety Hub</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Notfall-Leitfaden & LBA Meldung</p>
       </div>
 
@@ -1810,6 +1816,7 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
 }
 
 function RoadmapView() {
+  const { t } = useSprache();
   const steps = [
     {
       title: "KI-Flug-Check (Gemini Integration)",
@@ -1840,7 +1847,7 @@ function RoadmapView() {
   return (
     <div className="max-w-md mx-auto pb-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">Roadmap</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.roadmap')}</h2>
         <p className="text-slate-500 text-sm font-medium">Unsere Vision für SkyLog DE</p>
       </div>
 
@@ -1872,6 +1879,7 @@ function RoadmapView() {
 }
 
 function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | null, documents: AppDocument[], onUpdate: () => void }) {
+  const { t } = useSprache();
   const [isEditing, setIsEditing] = useState(!profile);
   const [editedProfile, setEditedProfile] = useState<Partial<UserProfile>>(profile || { id: 'main_profile' });
 
@@ -2040,7 +2048,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">Piloten Profil</h2>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.profil')}</h2>
             <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Stammdaten & Lizenzen</p>
           </div>
           <div className="flex items-center gap-2">
@@ -2194,7 +2202,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
                   onClick={() => setIsEditing(false)}
                   className="px-4 py-3 bg-slate-100 text-slate-400 font-bold rounded-xl text-xs"
                 >
-                  Abbrechen
+                  {t('aktion.abbrechen')}
                 </button>
               )}
             </div>
@@ -2297,7 +2305,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
               onClick={() => setBackupDatei(null)}
               className="w-full py-3 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-2xl"
             >
-              Abbrechen
+              {t('aktion.abbrechen')}
             </button>
           </div>
         </div>
@@ -2398,6 +2406,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
 }
 
 function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLocation }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, onUpdate: () => void, currentLocation: [number, number] }) {
+  const { t } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -2640,7 +2649,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
     <div className="max-w-md mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">Logbuch</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.logbuch')}</h2>
           <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Statistik & Dokumentation</p>
         </div>
         <div className="flex gap-2">
@@ -2974,7 +2983,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
                 className="absolute right-0 top-0 bottom-0 w-20 bg-brand-red flex flex-col items-center justify-center gap-1 z-10"
               >
                 <Trash2 className="w-5 h-5 text-white" />
-                <span className="text-[9px] font-black text-white uppercase">Löschen</span>
+                <span className="text-[9px] font-black text-white uppercase">{t('aktion.loeschen')}</span>
               </button>
               <div
                 className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm transition-transform duration-200 relative z-20"
@@ -4135,6 +4144,7 @@ function ChecklistView() {
 }
 
 function KnowledgeView() {
+  const { t } = useSprache();
   const sections = [
     {
       title: "Die 'Offene' Kategorie",
@@ -4168,7 +4178,7 @@ function KnowledgeView() {
   return (
     <div className="max-w-md mx-auto pb-12">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">LBA Wissen</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.lbaWissen')}</h2>
         <p className="text-slate-500 text-sm font-medium">Offizielle Regeln & Informationen</p>
       </div>
 
@@ -4218,6 +4228,7 @@ function KnowledgeView() {
 }
 
 function InventoryView() {
+  const { t } = useSprache();
   const [parts] = useState<SparePart[]>([
     { id: '1', name: 'Landegestell DJI Mini 3', description: '3D-gedrucktes Landegestell für hohe Gräser.', stlUrl: '#', printable: true },
     { id: '2', name: 'Kameraschutz Sonnenblende', description: 'Reduziert Lens-Flare bei tiefstehender Sonne.', stlUrl: '#', printable: true },
@@ -4229,7 +4240,7 @@ function InventoryView() {
   return (
     <div className="max-w-md mx-auto pb-12">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">Ersatzteil-Katalog</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.ersatzteile')}</h2>
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">3D-Druck & Hardware Verwaltung</p>
       </div>
 
@@ -4287,6 +4298,7 @@ function InventoryView() {
 }
 
 function PilotsView() {
+  const { t } = useSprache();
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [newPilot, setNewPilot] = useState<Partial<Pilot>>({ isGuest: true });
@@ -4322,7 +4334,7 @@ function PilotsView() {
   return (
     <div className="max-w-md mx-auto pb-12">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">Piloten-Management</h2>
+        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.pilotenManagement')}</h2>
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">LBA Registrierungen & Gast-Zugänge</p>
       </div>
 
@@ -4387,7 +4399,7 @@ function PilotsView() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => setShowAdd(false)} className="flex-1 py-3 bg-white/5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">Abbrechen</button>
+                    <button onClick={() => setShowAdd(false)} className="flex-1 py-3 bg-white/5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">{t('aktion.abbrechen')}</button>
                     <button onClick={handleAddPilot} className="flex-1 py-3 bg-brand-blue rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-colors">Speichern</button>
                   </div>
                </div>

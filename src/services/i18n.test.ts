@@ -26,6 +26,33 @@ describe('Vollständigkeit des Wörterbuchs', () => {
     );
     expect(luecken).toEqual([]);
   });
+
+  // Grund für diesen Test: Es lagen acht Schlüssel im Wörterbuch, die nirgends
+  // gerendert wurden — die Oberfläche blieb deutsch, obwohl die Übersetzung da
+  // war. Der Fehler war unsichtbar, weil ein unbenutzter Eintrag nichts kaputt
+  // macht. Dieser Test macht ihn sichtbar.
+  it('jeder Schlüssel wird auch irgendwo per t() benutzt', async () => {
+    const { readFileSync, readdirSync, statSync } = await import('node:fs');
+    const { join } = await import('node:path');
+
+    const dateien: string[] = [];
+    const sammle = (verzeichnis: string) => {
+      for (const eintrag of readdirSync(verzeichnis)) {
+        const pfad = join(verzeichnis, eintrag);
+        if (statSync(pfad).isDirectory()) sammle(pfad);
+        // i18n.ts selbst ausschliessen: dort steht jeder Schluessel als
+        // Definition, sonst faende sich jeder Schluessel immer selbst.
+        else if (/\.tsx?$/.test(eintrag) && !/\.test\.tsx?$/.test(eintrag) && eintrag !== 'i18n.ts') {
+          dateien.push(pfad);
+        }
+      }
+    };
+    sammle('src');
+
+    const quelltext = dateien.map(d => readFileSync(d, 'utf8')).join('\n');
+    const unbenutzt = Object.keys(TEXTE).filter(k => !quelltext.includes(`'${k}'`));
+    expect(unbenutzt).toEqual([]);
+  });
 });
 
 describe('setzeSprache', () => {
