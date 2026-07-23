@@ -81,6 +81,7 @@ import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
+import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
 import { FlightMediaDialog } from './components/FlightMediaDialog';
 import { FlightImportDialog } from './components/FlightImportDialog';
@@ -3549,6 +3550,9 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                       </div>
                     );
                   })()}
+
+                  {/* Amtliche Geo-Zonen am Standort (dipul/DFS) */}
+                  <AirspaceCheckPanel lat={currentLocation[0]} lon={currentLocation[1]} />
 
                   {/* Luftfahrtwetter der nächsten Flugplatz-Station (METAR/TAF) */}
                   <AviationWeatherPanel lat={currentLocation[0]} lon={currentLocation[1]} />
