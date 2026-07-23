@@ -81,6 +81,7 @@ import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
 import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
+import { AviationWeatherPanel } from './components/AviationWeatherPanel';
 import { FlightMediaDialog } from './components/FlightMediaDialog';
 import { FlightImportDialog } from './components/FlightImportDialog';
 import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
@@ -3548,6 +3549,9 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                       </div>
                     );
                   })()}
+
+                  {/* Luftfahrtwetter der nächsten Flugplatz-Station (METAR/TAF) */}
+                  <AviationWeatherPanel lat={currentLocation[0]} lon={currentLocation[1]} />
 
                   {/* 6h Wettervorhersage */}
                   {forecast.length > 0 && (

@@ -78,6 +78,34 @@ async function startServer() {
     }
   });
 
+  // Proxy für Luftfahrtwetter (aviationweather.gov / NOAA).
+  // Nötig, weil der Dienst KEINE CORS-Header sendet — ein direkter Aufruf aus
+  // dem Browser wird blockiert. In der Android-App läuft der Aufruf dagegen
+  // nativ über CapacitorHttp und braucht diesen Proxy nicht.
+  // Der Dienst antwortet nur mit gesetztem User-Agent.
+  app.get("/api/aviation/:art", async (req, res) => {
+    const art = req.params.art === "taf" ? "taf" : "metar";
+    const { ids, bbox } = req.query as { ids?: string; bbox?: string };
+    if (!ids && !bbox) {
+      return res.status(400).json({ error: "ids oder bbox erforderlich" });
+    }
+    const params = new URLSearchParams({ format: "json" });
+    if (ids) params.set("ids", ids);
+    if (bbox) params.set("bbox", bbox);
+    try {
+      const antwort = await fetch(`https://aviationweather.gov/api/data/${art}?${params}`, {
+        headers: { "User-Agent": "SkyLog-DE/1.0" },
+      });
+      if (!antwort.ok) {
+        return res.status(antwort.status).json({ error: `Wetterdienst antwortete mit ${antwort.status}` });
+      }
+      res.json(await antwort.json());
+    } catch (error) {
+      console.error("Aviation weather error:", error);
+      res.status(502).json({ error: "Luftfahrtwetter nicht erreichbar" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
