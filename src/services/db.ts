@@ -144,6 +144,11 @@ export interface Pilot {
   eid: string;
   isGuest: boolean;
   createdAt: number;
+  /** Rolle im Team. Fehlt sie (Altbestand), wird sie aus isGuest abgeleitet. */
+  rolle?: 'verantwortlicher' | 'pilot' | 'gast';
+  /** Ablauf des Fernpilotennachweises (ISO-Datum), für die Team-Übersicht. */
+  lizenzAblauf?: string;
+  notiz?: string;
 }
 
 /** Ein geplanter Wegpunkt. Höhe optional (m über Grund). */
