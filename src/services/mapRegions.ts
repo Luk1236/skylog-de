@@ -42,6 +42,12 @@ export const RELEASE_BASIS =
  *  Die Kästen überlappen (~0,3°). Ein früherer Versuch mit knapp
  *  zugeschnittenen Regionen hatte ein Loch bei Hannover; der Flächentest
  *  unten rastert die Abdeckung deshalb systematisch ab. */
+// ACHTUNG: `code` und `datei` sind historische Bezeichner aus dem ersten
+// Entwurf und stimmen NICHT immer mit dem Ort im Namen überein — `de-berlin`
+// enthält z.B. Magdeburg/Leipzig, Berlin liegt in `de-brandenburg-ost`. Die
+// Namen wurden korrigiert, die Dateinamen nicht, weil die Assets bereits
+// hochgeladen sind. Verbindlich sind immer `name` und `bbox`; der Test unten
+// hält beide zusammen.
 export const REGIONEN: KartenRegion[] = [
   // Nord (52,9–55,1)
   { code: 'de-nordsee', name: 'Nordseeküste / Ostfriesland',
@@ -56,31 +62,31 @@ export const REGIONEN: KartenRegion[] = [
   // Nord-Mitte (51,0–53,2)
   { code: 'de-muensterland', name: 'Münsterland / Osnabrück',
     bbox: { minLon: 5.8, minLat: 51.0, maxLon: 8.3, maxLat: 53.2 }, maxZoom: 13, datei: 'de-muensterland-z13.pmtiles' },
-  { code: 'de-hannover', name: 'Hannover / Bielefeld / Braunschweig',
+  { code: 'de-hannover', name: 'Hannover / Bielefeld / Kassel',
     bbox: { minLon: 8.0, minLat: 51.0, maxLon: 10.5, maxLat: 53.2 }, maxZoom: 13, datei: 'de-hannover-z13.pmtiles' },
-  { code: 'de-berlin', name: 'Berlin / Magdeburg / Potsdam',
+  { code: 'de-berlin', name: 'Magdeburg / Braunschweig / Leipzig',
     bbox: { minLon: 10.2, minLat: 51.0, maxLon: 12.7, maxLat: 53.2 }, maxZoom: 13, datei: 'de-berlin-z13.pmtiles' },
-  { code: 'de-brandenburg-ost', name: 'Brandenburg Ost / Cottbus',
+  { code: 'de-brandenburg-ost', name: 'Berlin / Potsdam / Cottbus',
     bbox: { minLon: 12.4, minLat: 51.0, maxLon: 15.1, maxLat: 53.2 }, maxZoom: 13, datei: 'de-brandenburg-ost-z13.pmtiles' },
 
   // Süd-Mitte (49,1–51,3)
   { code: 'de-koeln', name: 'Köln / Bonn / Trier / Saarbrücken',
     bbox: { minLon: 5.8, minLat: 49.1, maxLon: 8.3, maxLat: 51.3 }, maxZoom: 13, datei: 'de-koeln-z13.pmtiles' },
-  { code: 'de-frankfurt', name: 'Frankfurt / Kassel / Würzburg',
+  { code: 'de-frankfurt', name: 'Frankfurt / Mainz / Würzburg',
     bbox: { minLon: 8.0, minLat: 49.1, maxLon: 10.5, maxLat: 51.3 }, maxZoom: 13, datei: 'de-frankfurt-z13.pmtiles' },
-  { code: 'de-thueringen', name: 'Thüringen / Leipzig / Nürnberg',
+  { code: 'de-thueringen', name: 'Erfurt / Nürnberg / Jena',
     bbox: { minLon: 10.2, minLat: 49.1, maxLon: 12.7, maxLat: 51.3 }, maxZoom: 13, datei: 'de-thueringen-z13.pmtiles' },
   { code: 'de-dresden', name: 'Dresden / Chemnitz',
     bbox: { minLon: 12.4, minLat: 49.1, maxLon: 15.1, maxLat: 51.3 }, maxZoom: 13, datei: 'de-dresden-z13.pmtiles' },
 
   // Süd (47,2–49,4)
-  { code: 'de-schwarzwald', name: 'Schwarzwald / Freiburg / Karlsruhe',
+  { code: 'de-schwarzwald', name: 'Schwarzwald / Freiburg',
     bbox: { minLon: 5.8, minLat: 47.2, maxLon: 8.3, maxLat: 49.4 }, maxZoom: 13, datei: 'de-schwarzwald-z13.pmtiles' },
-  { code: 'de-stuttgart', name: 'Stuttgart / Ulm / Bodensee',
+  { code: 'de-stuttgart', name: 'Stuttgart / Karlsruhe / Ulm',
     bbox: { minLon: 8.0, minLat: 47.2, maxLon: 10.5, maxLat: 49.4 }, maxZoom: 13, datei: 'de-stuttgart-z13.pmtiles' },
-  { code: 'de-muenchen', name: 'München / Augsburg / Ingolstadt',
+  { code: 'de-muenchen', name: 'München / Augsburg / Regensburg',
     bbox: { minLon: 10.2, minLat: 47.2, maxLon: 12.7, maxLat: 49.4 }, maxZoom: 13, datei: 'de-muenchen-z13.pmtiles' },
-  { code: 'de-niederbayern', name: 'Niederbayern / Regensburg / Passau',
+  { code: 'de-niederbayern', name: 'Niederbayern / Passau',
     bbox: { minLon: 12.4, minLat: 47.2, maxLon: 15.1, maxLat: 49.4 }, maxZoom: 13, datei: 'de-niederbayern-z13.pmtiles' },
 ];
 

@@ -52,6 +52,48 @@ describe('Abdeckung', () => {
   });
 });
 
+// Beim Browser-Test fiel auf, dass die Region namens „Berlin / Magdeburg /
+// Potsdam" Berlin gar nicht enthielt — der Kasten endet bei 12,7° Ost, Berlin
+// liegt bei 13,4°. Insgesamt waren 7 Ortsangaben falsch. Ein Name, der einen
+// Ort verspricht, den die Datei nicht abdeckt, führt direkt zum falschen
+// Download. Dieser Test hält Namen und Kasten zusammen.
+describe('Namen sagen die Wahrheit', () => {
+  const koordinaten: Record<string, [number, number]> = {
+    Hamburg: [53.55, 9.99], Bremen: [53.08, 8.80], Kiel: [54.32, 10.14],
+    'Lübeck': [53.87, 10.69], 'Osnabrück': [52.28, 8.05], Hannover: [52.37, 9.73],
+    Bielefeld: [52.02, 8.53], Kassel: [51.31, 9.50], Magdeburg: [52.13, 11.63],
+    Braunschweig: [52.27, 10.52], Leipzig: [51.34, 12.37], Berlin: [52.52, 13.40],
+    Potsdam: [52.40, 13.06], Cottbus: [51.76, 14.33], 'Köln': [50.94, 6.96],
+    Bonn: [50.73, 7.10], Trier: [49.76, 6.64], 'Saarbrücken': [49.24, 7.00],
+    Frankfurt: [50.11, 8.68], Mainz: [49.99, 8.27], 'Würzburg': [49.79, 9.93],
+    Erfurt: [50.98, 11.03], 'Nürnberg': [49.45, 11.08], Jena: [50.93, 11.59],
+    Dresden: [51.05, 13.74], Chemnitz: [50.83, 12.92], Freiburg: [47.99, 7.85],
+    Stuttgart: [48.78, 9.18], Karlsruhe: [49.01, 8.40], Ulm: [48.40, 9.99],
+    'München': [48.14, 11.58], Augsburg: [48.37, 10.90], Regensburg: [49.01, 12.10],
+    Passau: [48.57, 13.46],
+  };
+
+  it('jeder im Namen genannte Ort liegt auch im Kasten der Region', () => {
+    const luegen: string[] = [];
+    for (const r of REGIONEN) {
+      for (const teil of r.name.split('/').map((s) => s.trim())) {
+        const c = koordinaten[teil];
+        if (!c) continue; // Landschaftsnamen wie „Schwarzwald" haben keine Koordinate
+        if (!regionEnthaelt(r, c[0], c[1])) {
+          luegen.push(`"${r.name}" (${r.code}) enthält ${teil} nicht`);
+        }
+      }
+    }
+    expect(luegen).toEqual([]);
+  });
+
+  it('Berlin liegt in der Region, die Berlin im Namen führt', () => {
+    const [lat, lon] = koordinaten.Berlin;
+    const treffer = regionenFuerStandort(lat, lon);
+    expect(treffer.some((r) => r.name.includes('Berlin'))).toBe(true);
+  });
+});
+
 describe('Katalog-Hygiene', () => {
   it('Codes und Dateinamen sind eindeutig', () => {
     const codes = REGIONEN.map((r) => r.code);
