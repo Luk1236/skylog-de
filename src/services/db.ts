@@ -169,6 +169,18 @@ export interface FlightPlan {
   createdAt: number;
 }
 
+/** Importierte Geozonen eines Landes (ED-269).
+ *  Bewusst mit Importdatum: Zonendaten veralten, und der Pilot muss sehen
+ *  können, wie alt sein Stand ist. */
+export interface GespeicherteZonen {
+  /** ISO-3166-1 alpha-3, z.B. "AUT" — zugleich der Schlüssel. */
+  land: string;
+  zonen: unknown[];
+  anzahl: number;
+  importiertAm: number;
+  dateiname?: string;
+}
+
 /** Eine heruntergeladene Offline-Karte (PMTiles-Datei einer Region). */
 export interface GespeicherteKarte {
   /** Regionscode aus mapRegions.ts — zugleich der Schlüssel. */
@@ -198,9 +210,10 @@ const MAINTENANCE_STORE = 'maintenance';
 const PILOTS_STORE = 'pilots';
 const FLIGHTPLANS_STORE = 'flightplans';
 const MAPREGIONS_STORE = 'mapregions';
+const EUZONES_STORE = 'euzones';
 
 async function getDB(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, 8, {
+  return openDB(DB_NAME, 9, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(DRONES_STORE)) {
         db.createObjectStore(DRONES_STORE, { keyPath: 'id' });
@@ -230,6 +243,10 @@ async function getDB(): Promise<IDBPDatabase> {
       // damit eine Region nicht doppelt liegen kann.
       if (!db.objectStoreNames.contains(MAPREGIONS_STORE)) {
         db.createObjectStore(MAPREGIONS_STORE, { keyPath: 'code' });
+      }
+      // v9: importierte ED-269-Geozonen fremder Laender, je Land ein Eintrag.
+      if (!db.objectStoreNames.contains(EUZONES_STORE)) {
+        db.createObjectStore(EUZONES_STORE, { keyPath: 'land' });
       }
     },
   });
@@ -289,6 +306,20 @@ export const dbService = {
   async deleteMapRegion(code: string): Promise<void> {
     const db = await getDB();
     await db.delete(MAPREGIONS_STORE, code);
+  },
+
+  // Importierte ED-269-Zonen fremder Laender.
+  async getEuZonen(): Promise<GespeicherteZonen[]> {
+    const db = await getDB();
+    return db.getAll(EUZONES_STORE);
+  },
+  async saveEuZonen(eintrag: GespeicherteZonen): Promise<void> {
+    const db = await getDB();
+    await db.put(EUZONES_STORE, eintrag);
+  },
+  async deleteEuZonen(land: string): Promise<void> {
+    const db = await getDB();
+    await db.delete(EUZONES_STORE, land);
   },
 
   // Profile

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  parseEd269, zonenAnPunkt, punktInRing, stufeFuer, bewerteZonen,
+  parseEd269, zonenAnPunkt, punktInRing, stufeFuer, bewerteZonen, zonenInUmkreis,
 } from './ed269';
 import echteZonen from './__fixtures__/ed269-austria.json';
 
@@ -110,6 +110,26 @@ describe('punktInRing / zonenAnPunkt', () => {
 
   it('liefert nichts weit weg', () => {
     expect(zonenAnPunkt(parseEd269(roh), 52.52, 13.40)).toEqual([]); // Berlin
+  });
+});
+
+describe('zonenInUmkreis', () => {
+  const zonen = parseEd269(roh);
+  const ring = zonen[0].polygone[0];
+  const lat = ring[0][0];
+  const lon = ring[0][1];
+
+  it('findet Zonen in der Nähe', () => {
+    expect(zonenInUmkreis(zonen, lat, lon, 0.5).length).toBeGreaterThan(0);
+  });
+
+  it('liefert weit entfernt nichts', () => {
+    expect(zonenInUmkreis(zonen, 52.52, 13.40, 0.5)).toEqual([]); // Berlin
+  });
+
+  // Harte Bremse: 286 Polygone gleichzeitig ruckeln auf dem Handy.
+  it('deckelt die Anzahl', () => {
+    expect(zonenInUmkreis(zonen, lat, lon, 90, 2).length).toBeLessThanOrEqual(2);
   });
 });
 

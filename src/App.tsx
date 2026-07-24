@@ -59,6 +59,7 @@ import {
   LayoutGrid,
   Languages,
   DownloadCloud,
+  Globe2,
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -92,6 +93,9 @@ import { bestaetige, melde } from './services/dialog';
 import { OfflineBasemap } from './components/OfflineBasemap';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
 import { OfflineMapsDialog } from './components/OfflineMapsDialog';
+import { EuZonesDialog } from './components/EuZonesDialog';
+import { EuZoneLayer } from './components/EuZoneLayer';
+import { zonenInUmkreis, type Ed269Zone } from './services/ed269';
 import { regionenFuerStandort } from './services/mapRegions';
 import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
 import type { PMTiles } from 'pmtiles';
@@ -681,8 +685,20 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
     setGeladeneKarte(karte ? alsPmtiles(karte) : null);
   };
 
+  // Importierte Zonen fremder Laender. Nur die im Umkreis werden gezeichnet —
+  // ein ganzes Land waeren mehrere hundert Polygone.
+  const [euZonen, setEuZonen] = useState<Ed269Zone[]>([]);
+  const [zeigeEuZonen, setZeigeEuZonen] = useState(false);
+
+  const ladeEuZonen = async () => {
+    const eintraege = await dbService.getEuZonen();
+    const alle = eintraege.flatMap(e => e.zonen as Ed269Zone[]);
+    setEuZonen(zonenInUmkreis(alle, location[0], location[1]));
+  };
+
   useEffect(() => { pruefeOfflineKarte().then(setOfflineKarte); }, []);
   useEffect(() => { pruefeKarten(); }, [location[0], location[1]]);
+  useEffect(() => { ladeEuZonen(); }, [location[0], location[1]]);
 
   function MapEvents() {
     useMapEvents({
@@ -755,6 +771,10 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
           version="1.3.0"
           opacity={0.6}
         />
+
+        {/* Zonen fremder Laender (importiert). Liegen ueber der Grundkarte,
+            genau wie das deutsche Overlay. */}
+        <EuZoneLayer zonen={euZonen} />
 
         <Marker position={location} icon={droneIcon}>
           <Popup>Ihr Standort</Popup>
@@ -829,6 +849,15 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
           <DownloadCloud className={cn('w-6 h-6', geladeneKarte ? 'text-brand-green' : 'text-slate-400')} />
         </button>
 
+        {/* Zonen fremder Laender. Gruen, sobald welche importiert sind. */}
+        <button
+          onClick={() => setZeigeEuZonen(true)}
+          aria-label="Zonen anderer Länder"
+          className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
+        >
+          <Globe2 className={cn('w-6 h-6', euZonen.length > 0 ? 'text-brand-green' : 'text-slate-400')} />
+        </button>
+
         {weather && (
           <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-4 items-center">
             <div className="flex flex-col items-center gap-1">
@@ -870,6 +899,13 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
           lon={location[1]}
           onClose={() => setZeigeKarten(false)}
           onGeaendert={pruefeKarten}
+        />
+      )}
+
+      {zeigeEuZonen && (
+        <EuZonesDialog
+          onClose={() => setZeigeEuZonen(false)}
+          onGeaendert={ladeEuZonen}
         />
       )}
     </div>

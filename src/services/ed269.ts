@@ -138,6 +138,27 @@ export function zonenAnPunkt(zonen: Ed269Zone[], lat: number, lon: number): Ed26
   return zonen.filter((z) => z.polygone.some((r) => punktInRing(r, lat, lon)));
 }
 
+/** Zonen in der Nähe eines Punktes — fürs Zeichnen auf der Karte.
+ *
+ *  Ohne diesen Filter würden alle Zonen eines Landes gerendert (Österreich:
+ *  286 Polygone). Das ruckelt auf dem Handy und bringt nichts, weil ohnehin
+ *  nur der Kartenausschnitt sichtbar ist. `maxAnzahl` ist die harte Bremse,
+ *  falls jemand in einer Ballung sehr vieler Zonen steht. */
+export function zonenInUmkreis(
+  zonen: Ed269Zone[],
+  lat: number,
+  lon: number,
+  gradRadius = 0.5,
+  maxAnzahl = 200
+): Ed269Zone[] {
+  const nah = zonen.filter((z) =>
+    z.polygone.some((ring) =>
+      ring.some((p) => Math.abs(p[0] - lat) <= gradRadius && Math.abs(p[1] - lon) <= gradRadius)
+    )
+  );
+  return nah.slice(0, maxAnzahl);
+}
+
 export type Stufe = 'frei' | 'hinweis' | 'kritisch';
 
 /** Beschränkung auf die Ampel der App abbilden. CONDITIONAL bewusst als
