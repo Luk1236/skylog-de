@@ -88,6 +88,8 @@ import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } fr
 import { SprachProvider, useSprache } from './lib/sprache';
 import { DialogHost } from './components/DialogHost';
 import { bestaetige, melde } from './services/dialog';
+import { OfflineBasemap } from './components/OfflineBasemap';
+import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
 import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
@@ -662,6 +664,9 @@ function NavButton({ active, onClick, icon: Icon, label }: { active: boolean, on
 function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], onPlaner: () => void }) {
   const { t } = useSprache();
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
+  // Einmal beim Start pruefen, ob eine Offline-Karte mitgeliefert wurde.
+  const [offlineKarte, setOfflineKarte] = useState(false);
+  useEffect(() => { pruefeOfflineKarte().then(setOfflineKarte); }, []);
 
   function MapEvents() {
     useMapEvents({
@@ -688,10 +693,18 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
         className="w-full h-full"
         zoomControl={false}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-        />
+        {/* Grundkarte: Liegt die mitgelieferte Offline-Karte vor (wird beim Bau
+            erzeugt, siehe scripts/karte-extrahieren.mjs), wird sie benutzt —
+            sonst wie bisher die Online-Kacheln. Kein Bruch, wenn die Datei
+            fehlt; beim Entwickeln ist das der Normalfall. */}
+        {offlineKarte
+          ? <OfflineBasemap url={OFFLINE_KARTE_URL} />
+          : (
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+            />
+          )}
         
         {/* DIPUL Geo-Zonen (DFS/dipul).
             Zwei Fallstricke, beide am 2026-07-23 gegen den Live-Dienst geprüft:

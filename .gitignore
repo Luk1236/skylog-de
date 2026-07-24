@@ -2,6 +2,11 @@ node_modules/
 build/
 dist/
 coverage/
+
+# Offline-Karte: wird beim Bau erzeugt (scripts/karte-extrahieren.mjs).
+# Bewusst nicht eingecheckt — je nach Region 50 MB bis über 1 GB.
+public/karten/*.pmtiles
+.cache/
 .DS_Store
 *.log
 .env*
