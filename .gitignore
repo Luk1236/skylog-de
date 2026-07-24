@@ -3,9 +3,11 @@ build/
 dist/
 coverage/
 
-# Offline-Karte: wird beim Bau erzeugt (scripts/karte-extrahieren.mjs).
-# Bewusst nicht eingecheckt — je nach Region 50 MB bis über 1 GB.
+# Offline-Karten: werden beim Bau erzeugt (scripts/karten-bauen.ts) und als
+# GitHub-Release-Assets veröffentlicht. Niemals ins Repo — eine Region ist
+# rund 150 MB, der ganze Satz mehrere Gigabyte.
 public/karten/*.pmtiles
+dist-karten/
 .cache/
 .DS_Store
 *.log

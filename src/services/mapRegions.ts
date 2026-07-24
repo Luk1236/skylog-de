@@ -30,35 +30,58 @@ export interface KartenRegion {
 export const RELEASE_BASIS =
   'https://github.com/Luk1236/skylog-de/releases/download/karten-v1';
 
-/** Deutschland als überlappendes 2×2-Raster: So lädt niemand das ganze Land,
- *  nur um in seiner Ecke zu fliegen. Zoom 13 ist der Kompromiss zwischen
- *  Detail im Feld und Dateigröße.
+/** Deutschland als überlappendes 4×4-Raster.
  *
- *  Die Kästen überlappen bewusst (~0,5°). Ein erster Versuch mit fünf knapp
- *  zugeschnittenen Regionen hatte ein Loch bei Hannover — überlappende
- *  Quadranten sind gegen solche Lücken unempfindlich, und der Test unten
- *  prüft die Fläche systematisch ab. */
+ *  Warum so klein geschnitten: Gemessen am 2026-07-24 kostet ein Viertel des
+ *  Landes bei Zoom 13 rund 600 MB — zu viel für einen Handy-Download und
+ *  grenzwertig für den Browser-Speicher. Ein Sechzehntel kostet rund 150 MB
+ *  bei UNVERÄNDERTER Detailstufe. Kleiner schneiden ist deshalb besser als
+ *  gröber rendern: Man lädt weniger und sieht trotzdem mehr, weil nur das
+ *  wirklich gebrauchte Gebiet auf dem Gerät landet.
+ *
+ *  Die Kästen überlappen (~0,3°). Ein früherer Versuch mit knapp
+ *  zugeschnittenen Regionen hatte ein Loch bei Hannover; der Flächentest
+ *  unten rastert die Abdeckung deshalb systematisch ab. */
 export const REGIONEN: KartenRegion[] = [
-  {
-    code: 'de-nordwest', name: 'Deutschland Nordwest',
-    bbox: { minLon: 5.8, minLat: 51.0, maxLon: 10.5, maxLat: 55.1 },
-    maxZoom: 13, datei: 'de-nordwest-z13.pmtiles',
-  },
-  {
-    code: 'de-nordost', name: 'Deutschland Nordost',
-    bbox: { minLon: 10.0, minLat: 51.0, maxLon: 15.1, maxLat: 55.1 },
-    maxZoom: 13, datei: 'de-nordost-z13.pmtiles',
-  },
-  {
-    code: 'de-suedwest', name: 'Deutschland Südwest',
-    bbox: { minLon: 5.8, minLat: 47.2, maxLon: 10.5, maxLat: 51.5 },
-    maxZoom: 13, datei: 'de-suedwest-z13.pmtiles',
-  },
-  {
-    code: 'de-suedost', name: 'Deutschland Südost',
-    bbox: { minLon: 10.0, minLat: 47.2, maxLon: 15.1, maxLat: 51.5 },
-    maxZoom: 13, datei: 'de-suedost-z13.pmtiles',
-  },
+  // Nord (52,9–55,1)
+  { code: 'de-nordsee', name: 'Nordseeküste / Ostfriesland',
+    bbox: { minLon: 5.8, minLat: 52.9, maxLon: 8.3, maxLat: 55.1 }, maxZoom: 13, datei: 'de-nordsee-z13.pmtiles' },
+  { code: 'de-hamburg', name: 'Hamburg / Bremen / Kiel',
+    bbox: { minLon: 8.0, minLat: 52.9, maxLon: 10.5, maxLat: 55.1 }, maxZoom: 13, datei: 'de-hamburg-z13.pmtiles' },
+  { code: 'de-mecklenburg', name: 'Mecklenburg / Lübeck',
+    bbox: { minLon: 10.2, minLat: 52.9, maxLon: 12.7, maxLat: 55.1 }, maxZoom: 13, datei: 'de-mecklenburg-z13.pmtiles' },
+  { code: 'de-vorpommern', name: 'Vorpommern / Rügen',
+    bbox: { minLon: 12.4, minLat: 52.9, maxLon: 15.1, maxLat: 55.1 }, maxZoom: 13, datei: 'de-vorpommern-z13.pmtiles' },
+
+  // Nord-Mitte (51,0–53,2)
+  { code: 'de-muensterland', name: 'Münsterland / Osnabrück',
+    bbox: { minLon: 5.8, minLat: 51.0, maxLon: 8.3, maxLat: 53.2 }, maxZoom: 13, datei: 'de-muensterland-z13.pmtiles' },
+  { code: 'de-hannover', name: 'Hannover / Bielefeld / Braunschweig',
+    bbox: { minLon: 8.0, minLat: 51.0, maxLon: 10.5, maxLat: 53.2 }, maxZoom: 13, datei: 'de-hannover-z13.pmtiles' },
+  { code: 'de-berlin', name: 'Berlin / Magdeburg / Potsdam',
+    bbox: { minLon: 10.2, minLat: 51.0, maxLon: 12.7, maxLat: 53.2 }, maxZoom: 13, datei: 'de-berlin-z13.pmtiles' },
+  { code: 'de-brandenburg-ost', name: 'Brandenburg Ost / Cottbus',
+    bbox: { minLon: 12.4, minLat: 51.0, maxLon: 15.1, maxLat: 53.2 }, maxZoom: 13, datei: 'de-brandenburg-ost-z13.pmtiles' },
+
+  // Süd-Mitte (49,1–51,3)
+  { code: 'de-koeln', name: 'Köln / Bonn / Trier / Saarbrücken',
+    bbox: { minLon: 5.8, minLat: 49.1, maxLon: 8.3, maxLat: 51.3 }, maxZoom: 13, datei: 'de-koeln-z13.pmtiles' },
+  { code: 'de-frankfurt', name: 'Frankfurt / Kassel / Würzburg',
+    bbox: { minLon: 8.0, minLat: 49.1, maxLon: 10.5, maxLat: 51.3 }, maxZoom: 13, datei: 'de-frankfurt-z13.pmtiles' },
+  { code: 'de-thueringen', name: 'Thüringen / Leipzig / Nürnberg',
+    bbox: { minLon: 10.2, minLat: 49.1, maxLon: 12.7, maxLat: 51.3 }, maxZoom: 13, datei: 'de-thueringen-z13.pmtiles' },
+  { code: 'de-dresden', name: 'Dresden / Chemnitz',
+    bbox: { minLon: 12.4, minLat: 49.1, maxLon: 15.1, maxLat: 51.3 }, maxZoom: 13, datei: 'de-dresden-z13.pmtiles' },
+
+  // Süd (47,2–49,4)
+  { code: 'de-schwarzwald', name: 'Schwarzwald / Freiburg / Karlsruhe',
+    bbox: { minLon: 5.8, minLat: 47.2, maxLon: 8.3, maxLat: 49.4 }, maxZoom: 13, datei: 'de-schwarzwald-z13.pmtiles' },
+  { code: 'de-stuttgart', name: 'Stuttgart / Ulm / Bodensee',
+    bbox: { minLon: 8.0, minLat: 47.2, maxLon: 10.5, maxLat: 49.4 }, maxZoom: 13, datei: 'de-stuttgart-z13.pmtiles' },
+  { code: 'de-muenchen', name: 'München / Augsburg / Ingolstadt',
+    bbox: { minLon: 10.2, minLat: 47.2, maxLon: 12.7, maxLat: 49.4 }, maxZoom: 13, datei: 'de-muenchen-z13.pmtiles' },
+  { code: 'de-niederbayern', name: 'Niederbayern / Regensburg / Passau',
+    bbox: { minLon: 12.4, minLat: 47.2, maxLon: 15.1, maxLat: 49.4 }, maxZoom: 13, datei: 'de-niederbayern-z13.pmtiles' },
 ];
 
 export function regionFuerCode(code: string): KartenRegion | null {

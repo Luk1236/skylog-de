@@ -74,7 +74,7 @@ describe('Katalog-Hygiene', () => {
 
 describe('regionFuerCode', () => {
   it('findet eine Region', () => {
-    expect(regionFuerCode('de-suedost')?.name).toBe('Deutschland Südost');
+    expect(regionFuerCode('de-muenchen')?.name).toContain('München');
   });
   it('liefert null bei Unbekanntem', () => {
     expect(regionFuerCode('gibt-es-nicht')).toBeNull();
@@ -104,8 +104,8 @@ describe('URLs', () => {
 
 describe('regionEnthaelt', () => {
   it('trifft innen und verneint außen', () => {
-    const suedost = regionFuerCode('de-suedost')!;
-    expect(regionEnthaelt(suedost, 48.14, 11.58)).toBe(true);  // München
-    expect(regionEnthaelt(suedost, 53.55, 9.99)).toBe(false);  // Hamburg
+    const muenchen = regionFuerCode('de-muenchen')!;
+    expect(regionEnthaelt(muenchen, 48.14, 11.58)).toBe(true);  // München
+    expect(regionEnthaelt(muenchen, 53.55, 9.99)).toBe(false);  // Hamburg
   });
 });

@@ -16,7 +16,10 @@ import { join } from 'node:path';
 import { REGIONEN } from '../src/services/mapRegions';
 import { extrahiere } from './karte-extrahieren.mjs';
 
-const AUSGABE = 'dist-karten';
+// Standardmäßig neben dem Projekt — NICHT hinein: Das Repo liegt bei Lukas in
+// OneDrive, und ein paar Gigabyte Kartendateien würden sonst in die Cloud
+// synchronisiert. Mit KARTEN_AUSGABE überschreibbar.
+const AUSGABE = process.env.KARTEN_AUSGABE ?? 'dist-karten';
 
 async function main() {
   const gewaehlt = process.argv[2];
