@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, useMapEvents } from 'react-leaflet';
-import { X, Route, Trash2, ChevronUp, ChevronDown, Save, FolderOpen, AlertTriangle, MapPin, Download } from 'lucide-react';
+import { MapContainer, TileLayer, Polyline, Marker, Rectangle, useMapEvents } from 'react-leaflet';
+import { X, Route, Trash2, ChevronUp, ChevronDown, Save, FolderOpen, AlertTriangle, MapPin, Download, Grid3x3 } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
 import { dbService, type FlightPlan, type Wegpunkt } from '../services/db';
@@ -9,6 +9,7 @@ import {
   wegpunktHinzufuegen, wegpunktEntfernen, wegpunktVerschieben,
   STANDARD_SPEED_KMH,
 } from '../services/flightPlan';
+import { erzeugeRaster, type Rasterrichtung } from '../services/gridPlan';
 import { alsGpx, alsKml, dateiname } from '../services/flightPlanExport';
 import { useSprache } from '../lib/sprache';
 
@@ -29,6 +30,16 @@ function punktIcon(nummer: number, letzter: boolean) {
   });
 }
 
+/** Kleiner grüner Punkt für die beiden Flächen-Ecken. */
+function eckIcon() {
+  return L.divIcon({
+    className: 'custom-div-icon',
+    html: `<div style="background:#059669;width:14px;height:14px;border-radius:50%;border:2px solid white;
+      box-shadow:0 0 4px rgba(0,0,0,.4)"></div>`,
+    iconSize: [14, 14], iconAnchor: [7, 7],
+  });
+}
+
 /** Fängt Klicks auf die Karte ab und meldet die Koordinate. */
 function KlickFaenger({ onKlick }: { onKlick: (lat: number, lon: number) => void }) {
   useMapEvents({ click: (e) => onKlick(e.latlng.lat, e.latlng.lng) });
@@ -41,6 +52,13 @@ export function FlightPlannerDialog({ startLat, startLon, onClose }: Props) {
   const [name, setName] = useState('');
   const [plaene, setPlaene] = useState<FlightPlan[]>([]);
   const [zeigePlaene, setZeigePlaene] = useState(false);
+
+  // Flächen-Modus: zwei Ecken tippen, daraus eine Mäander-Route erzeugen.
+  const [modus, setModus] = useState<'route' | 'flaeche'>('route');
+  const [ecken, setEcken] = useState<Wegpunkt[]>([]);
+  const [bahnabstand, setBahnabstand] = useState(30);
+  const [rasterRichtung, setRasterRichtung] = useState<Rasterrichtung>('ost-west');
+  const [rasterBegrenzt, setRasterBegrenzt] = useState(false);
 
   useEffect(() => { dbService.getFlightPlans().then(setPlaene); }, []);
 
@@ -94,6 +112,29 @@ export function FlightPlannerDialog({ startLat, startLon, onClose }: Props) {
     setPlaene(await dbService.getFlightPlans());
   };
 
+  /** Ein Kartentipp: im Route-Modus ein Wegpunkt, im Flächen-Modus eine der
+   *  beiden Ecken (die dritte Berührung beginnt ein neues Rechteck). */
+  const kartenTipp = (lat: number, lon: number) => {
+    if (modus === 'route') {
+      setWegpunkte(w => wegpunktHinzufuegen(w, { lat, lon }));
+    } else {
+      setEcken(e => (e.length >= 2 ? [{ lat, lon }] : [...e, { lat, lon }]));
+      setRasterBegrenzt(false);
+    }
+  };
+
+  /** Aus den zwei Ecken die Mäander-Route bauen und in die Wegpunkte
+   *  übernehmen. Danach in den Route-Modus, damit man sie prüfen, speichern
+   *  und exportieren kann. */
+  const rasterErzeugen = () => {
+    if (ecken.length < 2) return;
+    const r = erzeugeRaster(ecken[0], ecken[1], { bahnabstandM: bahnabstand, richtung: rasterRichtung });
+    setWegpunkte(r.wegpunkte);
+    setRasterBegrenzt(r.begrenzt);
+    setEcken([]);
+    setModus('route');
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center">
       <div className="bg-slate-50 w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[92vh] flex flex-col">
@@ -137,20 +178,79 @@ export function FlightPlannerDialog({ startLat, startLon, onClose }: Props) {
             </div>
           ) : (
             <>
+              {/* Modus: Route von Hand vs. Fläche kartieren */}
+              <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
+                <button onClick={() => setModus('route')}
+                  className={cn('flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
+                    modus === 'route' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                  <Route className="w-3.5 h-3.5" /> {t('planer.modusRoute')}
+                </button>
+                <button onClick={() => setModus('flaeche')}
+                  className={cn('flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
+                    modus === 'flaeche' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                  <Grid3x3 className="w-3.5 h-3.5" /> {t('planer.modusFlaeche')}
+                </button>
+              </div>
+
               <p className="text-[11px] text-slate-500">
-                {t('planer.hinweisKarte')}
+                {modus === 'route' ? t('planer.hinweisKarte') : t('planer.hinweisFlaeche')}
               </p>
 
               <div className="h-56 rounded-2xl overflow-hidden border border-slate-200">
                 <MapContainer center={[startLat, startLon]} zoom={14} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <KlickFaenger onKlick={(lat, lon) => setWegpunkte(w => wegpunktHinzufuegen(w, { lat, lon }))} />
+                  <KlickFaenger onKlick={kartenTipp} />
                   {linie.length > 1 && <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3, dashArray: '6 4' }} />}
                   {wegpunkte.map((w, i) => (
                     <Marker key={i} position={[w.lat, w.lon]} icon={punktIcon(i + 1, i === wegpunkte.length - 1 && wegpunkte.length > 1)} />
                   ))}
+                  {modus === 'flaeche' && ecken.map((e, i) => (
+                    <Marker key={`ecke-${i}`} position={[e.lat, e.lon]} icon={eckIcon()} />
+                  ))}
+                  {modus === 'flaeche' && ecken.length === 2 && (
+                    <Rectangle bounds={[[ecken[0].lat, ecken[0].lon], [ecken[1].lat, ecken[1].lon]]}
+                      pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
+                  )}
                 </MapContainer>
               </div>
+
+              {modus === 'flaeche' && (
+                <div className="rounded-2xl bg-white border border-slate-200 p-3 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <label className="text-xs font-bold text-slate-600 shrink-0">{t('planer.bahnabstand')}</label>
+                    <div className="flex items-center gap-2 flex-1 justify-end">
+                      <input type="range" min={5} max={100} step={5} value={bahnabstand}
+                        onChange={e => setBahnabstand(Number(e.target.value))} className="flex-1 max-w-[140px]" />
+                      <span className="text-xs font-mono font-bold text-slate-900 w-10 text-right">{bahnabstand} m</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-lg p-1">
+                    <button onClick={() => setRasterRichtung('ost-west')}
+                      className={cn('py-1.5 rounded-md text-[11px] font-bold transition-colors',
+                        rasterRichtung === 'ost-west' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                      {t('planer.richtungOstWest')}
+                    </button>
+                    <button onClick={() => setRasterRichtung('nord-sued')}
+                      className={cn('py-1.5 rounded-md text-[11px] font-bold transition-colors',
+                        rasterRichtung === 'nord-sued' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                      {t('planer.richtungNordSued')}
+                    </button>
+                  </div>
+                  <button onClick={rasterErzeugen} disabled={ecken.length < 2}
+                    className="w-full bg-brand-blue text-white font-bold py-2.5 rounded-xl text-sm active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5">
+                    <Grid3x3 className="w-4 h-4" /> {t('planer.rasterErzeugen')}
+                  </button>
+                  <p className="text-[10px] text-slate-400 text-center">
+                    {ecken.length}/2 {t('planer.eckenGesetzt')}
+                  </p>
+                </div>
+              )}
+
+              {rasterBegrenzt && (
+                <p className="text-[11px] text-amber-700 flex items-start gap-1.5 leading-relaxed">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {t('planer.rasterBegrenzt')}
+                </p>
+              )}
 
               <div className="grid grid-cols-3 gap-2">
                 <Kachel label={t('planer.strecke')} wert={formatStrecke(bewertung.streckeM)} />
