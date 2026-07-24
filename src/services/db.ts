@@ -164,6 +164,17 @@ export interface FlightPlan {
   createdAt: number;
 }
 
+/** Eine heruntergeladene Offline-Karte (PMTiles-Datei einer Region). */
+export interface GespeicherteKarte {
+  /** Regionscode aus mapRegions.ts — zugleich der Schlüssel. */
+  code: string;
+  name: string;
+  /** Die PMTiles-Datei selbst. */
+  blob: Blob;
+  groesse: number;
+  geladenAm: number;
+}
+
 export interface SparePart {
   id: string;
   name: string;
@@ -181,9 +192,10 @@ const PROFILE_STORE = 'profile';
 const MAINTENANCE_STORE = 'maintenance';
 const PILOTS_STORE = 'pilots';
 const FLIGHTPLANS_STORE = 'flightplans';
+const MAPREGIONS_STORE = 'mapregions';
 
 async function getDB(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, 7, {
+  return openDB(DB_NAME, 8, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(DRONES_STORE)) {
         db.createObjectStore(DRONES_STORE, { keyPath: 'id' });
@@ -208,6 +220,11 @@ async function getDB(): Promise<IDBPDatabase> {
       }
       if (!db.objectStoreNames.contains(FLIGHTPLANS_STORE)) {
         db.createObjectStore(FLIGHTPLANS_STORE, { keyPath: 'id' });
+      }
+      // v8: heruntergeladene Offline-Karten. Schluessel ist der Regionscode,
+      // damit eine Region nicht doppelt liegen kann.
+      if (!db.objectStoreNames.contains(MAPREGIONS_STORE)) {
+        db.createObjectStore(MAPREGIONS_STORE, { keyPath: 'code' });
       }
     },
   });
@@ -247,6 +264,26 @@ export const dbService = {
   async deleteFlightPlan(id: string): Promise<void> {
     const db = await getDB();
     await db.delete(FLIGHTPLANS_STORE, id);
+  },
+
+  // Offline-Karten. Die Datei liegt als Blob mit in der Datenbank — sie kann
+  // je nach Region einige hundert MB gross sein, deshalb bewusst ein eigener
+  // Store und keine Verquickung mit den Flugdaten.
+  async getMapRegions(): Promise<GespeicherteKarte[]> {
+    const db = await getDB();
+    return db.getAll(MAPREGIONS_STORE);
+  },
+  async getMapRegion(code: string): Promise<GespeicherteKarte | undefined> {
+    const db = await getDB();
+    return db.get(MAPREGIONS_STORE, code);
+  },
+  async saveMapRegion(karte: GespeicherteKarte): Promise<void> {
+    const db = await getDB();
+    await db.put(MAPREGIONS_STORE, karte);
+  },
+  async deleteMapRegion(code: string): Promise<void> {
+    const db = await getDB();
+    await db.delete(MAPREGIONS_STORE, code);
   },
 
   // Profile

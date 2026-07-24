@@ -30,7 +30,7 @@
     "leaflet": "^1.9.4",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
-    "pmtiles": "^4.4.1",
+    "pmtiles": "^3.2.1",
     "protomaps-leaflet": "^5.1.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.1",

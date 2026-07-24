@@ -58,6 +58,7 @@ import {
   Route,
   LayoutGrid,
   Languages,
+  DownloadCloud,
   X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -90,6 +91,10 @@ import { DialogHost } from './components/DialogHost';
 import { bestaetige, melde } from './services/dialog';
 import { OfflineBasemap } from './components/OfflineBasemap';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
+import { OfflineMapsDialog } from './components/OfflineMapsDialog';
+import { regionenFuerStandort } from './services/mapRegions';
+import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
+import type { PMTiles } from 'pmtiles';
 import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
@@ -664,9 +669,20 @@ function NavButton({ active, onClick, icon: Icon, label }: { active: boolean, on
 function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], onPlaner: () => void }) {
   const { t } = useSprache();
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
-  // Einmal beim Start pruefen, ob eine Offline-Karte mitgeliefert wurde.
+  // Grundkarte waehlen. Reihenfolge: heruntergeladene Region (beste, weil
+  // offline und vom Nutzer bewusst geholt) > mitgelieferte Datei > online.
   const [offlineKarte, setOfflineKarte] = useState(false);
+  const [geladeneKarte, setGeladeneKarte] = useState<PMTiles | null>(null);
+  const [zeigeKarten, setZeigeKarten] = useState(false);
+
+  const pruefeKarten = async () => {
+    const codes = regionenFuerStandort(location[0], location[1]).map(r => r.code);
+    const karte = await karteFuerStandort(codes);
+    setGeladeneKarte(karte ? alsPmtiles(karte) : null);
+  };
+
   useEffect(() => { pruefeOfflineKarte().then(setOfflineKarte); }, []);
+  useEffect(() => { pruefeKarten(); }, [location[0], location[1]]);
 
   function MapEvents() {
     useMapEvents({
@@ -697,14 +713,16 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
             erzeugt, siehe scripts/karte-extrahieren.mjs), wird sie benutzt —
             sonst wie bisher die Online-Kacheln. Kein Bruch, wenn die Datei
             fehlt; beim Entwickeln ist das der Normalfall. */}
-        {offlineKarte
-          ? <OfflineBasemap url={OFFLINE_KARTE_URL} />
-          : (
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-            />
-          )}
+        {geladeneKarte
+          ? <OfflineBasemap url={geladeneKarte} />
+          : offlineKarte
+            ? <OfflineBasemap url={OFFLINE_KARTE_URL} />
+            : (
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
+              />
+            )}
         
         {/* DIPUL Geo-Zonen (DFS/dipul).
             Zwei Fallstricke, beide am 2026-07-23 gegen den Live-Dienst geprüft:
@@ -800,6 +818,17 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
           <Route className="w-6 h-6 text-brand-blue" />
         </button>
 
+        {/* Offline-Karten verwalten. Gruen, sobald fuer den Standort eine
+            Karte auf dem Geraet liegt — das ist die Information, die vor dem
+            Losfahren ins Funkloch zaehlt. */}
+        <button
+          onClick={() => setZeigeKarten(true)}
+          aria-label="Offline-Karten verwalten"
+          className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
+        >
+          <DownloadCloud className={cn('w-6 h-6', geladeneKarte ? 'text-brand-green' : 'text-slate-400')} />
+        </button>
+
         {weather && (
           <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-4 items-center">
             <div className="flex flex-col items-center gap-1">
@@ -834,6 +863,15 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
           </button>
         </div>
       </div>
+
+      {zeigeKarten && (
+        <OfflineMapsDialog
+          lat={location[0]}
+          lon={location[1]}
+          onClose={() => setZeigeKarten(false)}
+          onGeaendert={pruefeKarten}
+        />
+      )}
     </div>
   );
 }
