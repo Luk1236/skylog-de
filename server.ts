@@ -106,6 +106,32 @@ async function startServer() {
     }
   });
 
+  // Zonen-Proxy fuer den Browser.
+  //
+  // Die Schweiz sendet Access-Control-Allow-Origin: * und braucht ihn nicht;
+  // Luxemburg schickt keine CORS-Header. Nativ ist beides egal (CapacitorHttp).
+  // Die erlaubten Ziele stehen fest im Code - eine frei waehlbare Ziel-URL
+  // waere ein offener Weiterleitungsdienst.
+  const ZONEN_ZIELE: Record<string, string> = {
+    CH: "https://data.geo.admin.ch/ch.bazl.einschraenkungen-drohnen/einschraenkungen-drohnen/einschraenkungen-drohnen_4326.json",
+    LU: "https://drones.geoportail.lu/zones",
+  };
+  app.get("/api/zonen/:land", async (req, res) => {
+    const ziel = ZONEN_ZIELE[String(req.params.land).toUpperCase()];
+    if (!ziel) return res.status(404).json({ error: "Fuer dieses Land ist keine Direktquelle hinterlegt" });
+    try {
+      const antwort = await fetch(ziel, { redirect: "follow" });
+      if (!antwort.ok) {
+        return res.status(antwort.status).json({ error: `Quelle antwortete mit ${antwort.status}` });
+      }
+      res.setHeader("content-type", "application/json");
+      res.send(await antwort.text());
+    } catch (error) {
+      console.error("Zonen-Proxy Fehler:", error);
+      res.status(502).json({ error: "Zonenquelle nicht erreichbar" });
+    }
+  });
+
   // Karten-Proxy fuer den Browser.
   //
   // Die PMTiles-Regionsdateien liegen als GitHub-Release-Assets. GitHub

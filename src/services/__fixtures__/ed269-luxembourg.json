@@ -1,0 +1,209 @@
+{
+  "title": "UASZoneVersion 2026-07-24 21:01",
+  "description": "",
+  "features": [
+    {
+      "identifier": "SPECI12",
+      "country": "LUX",
+      "name": "EL-UAS-S12",
+      "type": "COMMON",
+      "restriction": "PROHIBITED",
+      "reason": [
+        "SENSITIVE",
+        "POPULATION"
+      ],
+      "applicability": [
+        {
+          "startDateTime": "2020-12-29T01:00:00+01:00",
+          "endDateTime": "2020-12-30T01:00:00+01:00",
+          "permanent": "NO"
+        }
+      ],
+      "zoneAuthority": [
+        {
+          "name": "Direction de l'Aviation Civile",
+          "email": "uas.zones@av.etat.lu",
+          "phone": "",
+          "purpose": "INFORMATION"
+        }
+      ],
+      "geometry": [
+        {
+          "upperLimit": 120,
+          "lowerLimit": 0,
+          "uomDimensions": "M",
+          "upperVerticalReference": "AGL",
+          "lowerVerticalReference": "AGL",
+          "horizontalProjection": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  6.113898,
+                  49.6155676
+                ],
+                [
+                  6.1138779,
+                  49.6153032
+                ],
+                [
+                  6.113818,
+                  49.6150413
+                ],
+                [
+                  6.1137187,
+                  49.6147845
+                ],
+                [
+                  6.113581,
+                  49.6145352
+                ],
+                [
+                  6.1134063,
+                  49.6142959
+                ],
+                [
+                  6.113898,
+                  49.6155676
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "message": "Please consult https://g-o.lu/uas to check the conditions of access to UAS geographical zones. Please also see https://dac.gouvernement.lu/en/drones/geozones.html"
+    },
+    {
+      "identifier": "SPECI16",
+      "country": "LUX",
+      "name": "EL-UAS-S16",
+      "type": "COMMON",
+      "restriction": "REQ_AUTHORISATION",
+      "reason": [
+        "SENSITIVE"
+      ],
+      "applicability": [
+        {
+          "startDateTime": "2023-01-01T01:00:00+01:00",
+          "endDateTime": "2031-01-01T00:59:59+01:00",
+          "permanent": "NO"
+        }
+      ],
+      "zoneAuthority": [
+        {
+          "name": "Armée Luxembourgeoise",
+          "email": "opscell@armee.etat.lu",
+          "phone": "",
+          "purpose": "AUTHORIZATION"
+        }
+      ],
+      "geometry": [
+        {
+          "upperLimit": 120,
+          "lowerLimit": 0,
+          "uomDimensions": "M",
+          "upperVerticalReference": "AGL",
+          "lowerVerticalReference": "AGL",
+          "horizontalProjection": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  6.1597647,
+                  49.879452
+                ],
+                [
+                  6.1717261,
+                  49.8819387
+                ],
+                [
+                  6.1739446,
+                  49.8739051
+                ],
+                [
+                  6.1667188,
+                  49.8716887
+                ],
+                [
+                  6.1597647,
+                  49.879452
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "message": "Please consult https://g-o.lu/uas to check the conditions of access to UAS geographical zones. Please also see https://dac.gouvernement.lu/en/drones/geozones.html"
+    },
+    {
+      "identifier": "HELIS52",
+      "country": "LUX",
+      "name": "EL-UAS-H5-2",
+      "type": "COMMON",
+      "restriction": "CONDITIONAL",
+      "reason": [
+        "AIR_TRAFFIC"
+      ],
+      "applicability": [
+        {
+          "startDateTime": "2020-12-30T01:00:00+01:00",
+          "endDateTime": "2027-01-01T01:00:00+01:00",
+          "permanent": "NO"
+        }
+      ],
+      "zoneAuthority": [
+        {
+          "name": "Centre Hospitalier Emile Mayrisch",
+          "email": "helistation.ELEA@chem.lu; ops@lar.lu",
+          "phone": "+352 5711 83021",
+          "purpose": "NOTIFICATION"
+        }
+      ],
+      "geometry": [
+        {
+          "upperLimit": 120,
+          "lowerLimit": 50,
+          "uomDimensions": "M",
+          "upperVerticalReference": "AGL",
+          "lowerVerticalReference": "AGL",
+          "horizontalProjection": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  6.0029858,
+                  49.5008402
+                ],
+                [
+                  6.0028859,
+                  49.4995194
+                ],
+                [
+                  6.0025871,
+                  49.4982113
+                ],
+                [
+                  6.0020924,
+                  49.4969285
+                ],
+                [
+                  6.0014064,
+                  49.4956833
+                ],
+                [
+                  6.0005359,
+                  49.4944878
+                ],
+                [
+                  6.0029858,
+                  49.5008402
+                ]
+              ]
+            ]
+          }
+        }
+      ],
+      "message": "Please consult https://g-o.lu/uas to check the conditions of access to UAS geographical zones. Please also see https://dac.gouvernement.lu/en/drones/geozones.html"
+    }
+  ]
+}

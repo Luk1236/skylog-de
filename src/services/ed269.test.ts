@@ -3,6 +3,7 @@ import {
   parseEd269, zonenAnPunkt, punktInRing, stufeFuer, bewerteZonen, zonenInUmkreis,
 } from './ed269';
 import echteZonen from './__fixtures__/ed269-austria.json';
+import luxemburg from './__fixtures__/ed269-luxembourg.json';
 
 // Die Probe stammt aus einer echten Austro-Control-Datei (2026-07-24),
 // je eine Zone pro Beschränkungsstufe. Gegen erfundene Testdaten hätte der
@@ -47,6 +48,30 @@ describe('parseEd269 mit echten Daten', () => {
   });
 });
 
+// Der Standard ist einer, die Verpackung nicht: Österreich liefert ein blankes
+// Array, Luxemburg ein Objekt mit "features". Beim ersten Versuch mit der
+// echten Luxemburger Datei hat der Parser zu Recht abgelehnt — dieser Test
+// hält beide Formen offen.
+describe('unterschiedliche Verpackung je Land', () => {
+  it('liest auch die "features"-Form (Luxemburg)', () => {
+    const zonen = parseEd269(JSON.stringify(luxemburg));
+    expect(zonen.length).toBe(3);
+    expect(zonen.every((z) => z.land === 'LUX')).toBe(true);
+  });
+
+  it('kommt ohne zoneId aus und fällt auf identifier zurück', () => {
+    // Luxemburg vergibt keine zoneId — ohne Rückfall hätten alle Zonen
+    // dieselbe leere Kennung und würden sich beim Zeichnen überschreiben.
+    const ids = parseEd269(JSON.stringify(luxemburg)).map((z) => z.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(ids.every((i) => i.length > 0)).toBe(true);
+  });
+
+  it('meldet weiterhin klar, wenn gar keine Zonenliste drin ist', () => {
+    expect(() => parseEd269('{"titel":"nix"}')).toThrow(/ED-269/i);
+  });
+});
+
 describe('Robustheit', () => {
   it('verträgt ein UTF-8-BOM am Dateianfang', () => {
     // Genau daran scheitert JSON.parse bei der echten Datei.
@@ -58,8 +83,15 @@ describe('Robustheit', () => {
     expect(() => parseEd269('<html>nope</html>')).toThrow(/JSON/i);
   });
 
-  it('meldet klar, wenn die Struktur nicht passt', () => {
-    expect(() => parseEd269('{"features":[]}')).toThrow(/ED-269/i);
+  it('meldet klar, wenn gar keine Zonenliste erkennbar ist', () => {
+    expect(() => parseEd269('{"irgendwas":1}')).toThrow(/ED-269/i);
+    expect(() => parseEd269('42')).toThrow(/ED-269/i);
+  });
+
+  // Eine leere, aber wohlgeformte Datei ist kein Fehler — nur leer.
+  it('akzeptiert eine leere Zonenliste', () => {
+    expect(parseEd269('{"features":[]}')).toEqual([]);
+    expect(parseEd269('[]')).toEqual([]);
   });
 
   it('überspringt Zonen ohne darstellbare Fläche', () => {

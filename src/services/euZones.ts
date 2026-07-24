@@ -21,8 +21,15 @@ export interface ZonenQuelle {
   landEn: string;
   /** Amtliche Seite mit den Geozonen. */
   url: string;
-  /** Bekannt maschinenlesbar (ED-269 o.ä.) — für einen späteren Direktabruf. */
+  /** Bekannt maschinenlesbar (ED-269 o.ä.). */
   maschinenlesbar: boolean;
+  /** STABILE Adresse der Zonendatei, falls es eine gibt — dann kann die App
+   *  selbst laden. Österreich hat bewusst keine: dort steckt das Datum im
+   *  Dateinamen, jede Woche eine neue Adresse. Da bleibt es beim Import von
+   *  Hand, denn eine geratene URL wäre schlimmer als ein ehrlicher Hinweis. */
+  direktUrl?: string;
+  /** Ungefähre Downloadgröße in MB, damit niemand im Mobilnetz überrascht wird. */
+  groesseMB?: number;
 }
 
 export const ZONEN_QUELLEN: ZonenQuelle[] = [
@@ -38,6 +45,10 @@ export const ZONEN_QUELLEN: ZonenQuelle[] = [
   {
     code: 'CH', land: 'Schweiz', landEn: 'Switzerland',
     url: 'https://map.geo.admin.ch/', maschinenlesbar: true,
+    // Stabile Adresse, sendet Access-Control-Allow-Origin: * (2026-07-24
+    // geprueft) — die App kann direkt laden. Enthaelt auch Liechtenstein.
+    direktUrl: 'https://data.geo.admin.ch/ch.bazl.einschraenkungen-drohnen/einschraenkungen-drohnen/einschraenkungen-drohnen_4326.json',
+    groesseMB: 18,
   },
   {
     code: 'NL', land: 'Niederlande', landEn: 'Netherlands',
@@ -50,6 +61,10 @@ export const ZONEN_QUELLEN: ZonenQuelle[] = [
   {
     code: 'LU', land: 'Luxemburg', landEn: 'Luxembourg',
     url: 'https://g-o.lu/uas', maschinenlesbar: true,
+    // Stabile Adresse, wird laut Portal alle 5 Minuten neu erzeugt.
+    // Ohne CORS-Header, im Web also ueber den Proxy.
+    direktUrl: 'https://drones.geoportail.lu/zones',
+    groesseMB: 1,
   },
   {
     code: 'FR', land: 'Frankreich', landEn: 'France',

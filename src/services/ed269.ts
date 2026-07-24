@@ -70,12 +70,24 @@ export function parseEd269(text: string): Ed269Zone[] {
   } catch {
     throw new Error('Das ist keine gültige JSON-Datei.');
   }
-  if (!Array.isArray(roh)) {
-    throw new Error('Keine ED-269-Datei: erwartet wird eine Liste von Zonen.');
+
+  // Die Länder verpacken denselben Standard unterschiedlich: Österreich
+  // liefert die Zonen als blankes Array, Luxemburg als Objekt mit "features"
+  // (samt Titel und Beschreibung drumherum). Beides am 2026-07-24 gegen die
+  // echten Dateien geprüft. Die Zonen SELBST sind in beiden gleich aufgebaut.
+  let liste: unknown;
+  if (Array.isArray(roh)) {
+    liste = roh;
+  } else if (roh && typeof roh === 'object') {
+    const o = roh as Record<string, unknown>;
+    liste = o.features ?? o.UASZoneVersion ?? o.zones;
+  }
+  if (!Array.isArray(liste)) {
+    throw new Error('Keine ED-269-Datei: weder eine Liste von Zonen noch ein "features"-Feld gefunden.');
   }
 
   const zonen: Ed269Zone[] = [];
-  for (const e of roh as Record<string, any>[]) {
+  for (const e of liste as Record<string, any>[]) {
     if (!e || typeof e !== 'object') continue;
     const geo = Array.isArray(e.geometry) ? e.geometry : [];
     const polygone: [number, number][][] = [];

@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
-import { X, Upload, Trash2, ExternalLink, AlertTriangle, Globe2 } from 'lucide-react';
+import { X, Upload, Trash2, ExternalLink, AlertTriangle, Globe2, RefreshCw } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { dbService, type GespeicherteZonen } from '../services/db';
 import { parseEd269 } from '../services/ed269';
 import { ZONEN_QUELLEN } from '../services/euZones';
@@ -52,6 +53,36 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
       melde(`${zonen.length} Zonen für ${land} übernommen.`, 'Import erfolgreich');
     } catch (err: any) {
       melde(err?.message || 'Die Datei konnte nicht gelesen werden.', 'Import fehlgeschlagen');
+    } finally {
+      setLaeuft(false);
+    }
+  };
+
+  /** Direkt von der amtlichen Quelle laden — nur für Länder mit STABILER
+   *  Adresse. Nativ direkt, im Web über den Proxy (Luxemburg sendet keine
+   *  CORS-Header). So bekommt der Pilot immer den aktuellen Stand, statt eine
+   *  Kopie, die in der App vor sich hin altert. */
+  const direktLaden = async (quelle: (typeof ZONEN_QUELLEN)[number]) => {
+    if (!quelle.direktUrl) return;
+    setLaeuft(true);
+    try {
+      const url = Capacitor.isNativePlatform() ? quelle.direktUrl : `/api/zonen/${quelle.code}`;
+      const antwort = await fetch(url);
+      if (!antwort.ok) throw new Error(`Quelle antwortete mit ${antwort.status}.`);
+      const zonen = parseEd269(await antwort.text());
+      if (zonen.length === 0) {
+        melde('Die Quelle lieferte keine darstellbaren Zonen.', 'Nichts geladen');
+        return;
+      }
+      const land = zonen[0].land || quelle.code;
+      await dbService.saveEuZonen({
+        land, zonen, anzahl: zonen.length, importiertAm: Date.now(), dateiname: quelle.url,
+      });
+      await aktualisieren();
+      onGeaendert();
+      melde(`${zonen.length} Zonen für ${quelle.land} geladen.`, 'Aktualisiert');
+    } catch (err: any) {
+      melde(err?.message || 'Die Quelle war nicht erreichbar.', 'Laden fehlgeschlagen');
     } finally {
       setLaeuft(false);
     }
@@ -116,14 +147,23 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">Amtliche Quellen</p>
             <div className="space-y-1">
               {ZONEN_QUELLEN.filter(q => q.code !== 'DE').map(q => (
-                <a key={q.code} href={q.url} target="_blank" rel="noopener noreferrer"
-                  className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2 hover:bg-slate-50">
+                <div key={q.code} className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2">
                   <span className="text-[11px] font-bold text-slate-700 flex-1">{q.land}</span>
-                  {q.maschinenlesbar && (
-                    <span className="text-[9px] font-black text-brand-green uppercase tracking-wider">Datei</span>
+                  {q.direktUrl ? (
+                    <button onClick={() => direktLaden(q)} disabled={laeuft}
+                      className="bg-brand-blue text-white font-bold px-2.5 py-1 rounded-lg text-[10px] active:scale-95 disabled:opacity-40 flex items-center gap-1">
+                      <RefreshCw className="w-3 h-3" />
+                      Laden{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
+                    </button>
+                  ) : q.maschinenlesbar ? (
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Datei von Hand</span>
+                  ) : (
+                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-wider">nur Karte</span>
                   )}
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
-                </a>
+                  <a href={q.url} target="_blank" rel="noopener noreferrer" aria-label={`${q.land} öffnen`}>
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
+                  </a>
+                </div>
               ))}
             </div>
           </div>
