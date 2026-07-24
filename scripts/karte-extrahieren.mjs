@@ -73,24 +73,38 @@ async function holeCli() {
 }
 
 // --- Neuesten Welt-Build finden -----------------------------------------
+// Die Übersichtsseite maps.protomaps.com/builds ist eine JavaScript-App und
+// enthält im HTML keine Dateinamen — dort zu suchen schlägt fehl. Die Liste
+// steht maschinenlesbar unter build-metadata.protomaps.dev/builds.json, die
+// Dateien liegen unter build.protomaps.com/<key>.
+// Am 2026-07-24 gegen den Live-Dienst geprüft (Range-Abruf liefert 206).
+const BUILD_LISTE = 'https://build-metadata.protomaps.dev/builds.json';
+const BUILD_BASIS = 'https://build.protomaps.com';
+
 async function ermittleQuelle() {
   if (process.env.PMTILES_QUELLE) return process.env.PMTILES_QUELLE;
 
-  // Die Build-Übersicht listet Dateien wie 20260701.pmtiles — die neueste nehmen.
-  const antwort = await fetch('https://maps.protomaps.com/builds/');
+  const antwort = await fetch(BUILD_LISTE);
   if (!antwort.ok) {
     throw new Error(
-      'Konnte die Protomaps-Build-Liste nicht laden. Bitte die Quelle direkt setzen, z.B.\n' +
-      '  PMTILES_QUELLE=https://build.protomaps.com/20260701.pmtiles node scripts/karte-extrahieren.mjs'
+      `Build-Liste nicht erreichbar (HTTP ${antwort.status}). Quelle direkt setzen, z.B.\n` +
+      `  PMTILES_QUELLE=${BUILD_BASIS}/20260724.pmtiles npx vite-node scripts/karten-bauen.ts`
     );
   }
-  const text = await antwort.text();
-  const treffer = [...text.matchAll(/(\d{8})\.pmtiles/g)].map((m) => m[1]).sort();
-  if (treffer.length === 0) {
-    throw new Error('In der Build-Liste war keine .pmtiles-Datei zu finden. PMTILES_QUELLE manuell setzen.');
+  const liste = await antwort.json();
+  if (!Array.isArray(liste) || liste.length === 0) {
+    throw new Error('Build-Liste war leer oder hatte ein unerwartetes Format.');
   }
-  const neueste = treffer[treffer.length - 1];
-  return `https://build.protomaps.com/${neueste}.pmtiles`;
+  // Nach Upload-Zeitpunkt sortieren statt auf die Reihenfolge zu vertrauen.
+  const neueste = [...liste]
+    .filter((e) => typeof e?.key === 'string' && e.key.endsWith('.pmtiles'))
+    .sort((a, b) => String(a.uploaded ?? a.key).localeCompare(String(b.uploaded ?? b.key)))
+    .pop();
+  if (!neueste) throw new Error('Kein .pmtiles-Eintrag in der Build-Liste gefunden.');
+
+  const gb = neueste.size ? ` (Welt-Build ${(neueste.size / 1e9).toFixed(0)} GB)` : '';
+  console.log(`Neuester Build: ${neueste.key}${gb}`);
+  return `${BUILD_BASIS}/${neueste.key}`;
 }
 
 // --- Wiederverwendbar ----------------------------------------------------
