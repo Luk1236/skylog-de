@@ -5,6 +5,7 @@ import {
   punktHinzufuegen, punktEntfernen, punktBearbeiten, verschiebe,
   type ChecklistArt, type ChecklistPunkt,
 } from '../services/checklists';
+import { bestaetige } from '../services/dialog';
 
 interface Props {
   art: ChecklistArt;
@@ -78,7 +79,7 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
             </button>
           </div>
           <button
-            onClick={() => { if (confirm('Diese Liste auf die Standardpunkte zurücksetzen?')) anwenden(setzeZurueck(art)); }}
+            onClick={async () => { if (await bestaetige('Diese Liste auf die Standardpunkte zurücksetzen?')) anwenden(setzeZurueck(art)); }}
             className="w-full flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl py-2"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Auf Standard zurücksetzen

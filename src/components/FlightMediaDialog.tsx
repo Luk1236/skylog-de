@@ -6,6 +6,7 @@ import {
   pruefeDatei, mediaHinzufuegen, mediaEntfernen,
   gesamtGroesse, formatGroesse, MAX_FLUG_BYTES,
 } from '../services/flightMedia';
+import { bestaetige } from '../services/dialog';
 
 interface Props {
   flight: Flight;
@@ -69,7 +70,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
   };
 
   const entfernen = async (id: string) => {
-    if (!confirm('Dieses Bild vom Flug entfernen?')) return;
+    if (!await bestaetige('Dieses Bild vom Flug entfernen?', { gefaehrlich: true })) return;
     await speichern(mediaEntfernen(media, id));
   };
 

@@ -81,6 +81,7 @@ export const TEXTE = {
   'aktion.abbrechen': { de: 'Abbrechen', en: 'Cancel' },
   'aktion.loeschen': { de: 'Löschen', en: 'Delete' },
   'aktion.schliessen': { de: 'Schließen', en: 'Close' },
+  'dialog.ok': { de: 'OK', en: 'OK' },
 
   // Wartung
   'wartung.eintragHinzufuegen': { de: 'Eintrag Hinzufügen', en: 'Add Entry' },

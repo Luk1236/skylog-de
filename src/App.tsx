@@ -86,6 +86,8 @@ import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './service
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
 import { SprachProvider, useSprache } from './lib/sprache';
+import { DialogHost } from './components/DialogHost';
+import { bestaetige, melde } from './services/dialog';
 import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
@@ -527,6 +529,8 @@ export default function App() {
           onClose={() => setShowBehoerdenCheck(false)}
         />
       )}
+
+      <DialogHost />
 
       {showMehr && (
         <MehrSheet
@@ -1055,14 +1059,14 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Drohne wirklich löschen?')) {
+    if (await bestaetige('Drohne wirklich löschen?', { gefaehrlich: true })) {
       await dbService.deleteDrone(id);
       onUpdate();
     }
   };
 
   const handleDeleteBattery = async (id: string) => {
-    if (confirm('Akku wirklich löschen?')) {
+    if (await bestaetige('Akku wirklich löschen?', { gefaehrlich: true })) {
       await dbService.deleteBattery(id);
       onUpdate();
     }
@@ -1999,7 +2003,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      alert('Bitte laden Sie nur PDF-Dateien hoch (z.B. den Fernpilotennachweis).');
+      melde('Bitte laden Sie nur PDF-Dateien hoch (z.B. den Fernpilotennachweis).');
       return;
     }
 
@@ -2014,7 +2018,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
       onUpdate();
     } catch (err) {
       console.error(err);
-      alert('Fehler beim Speichern des Dokuments.');
+      melde('Fehler beim Speichern des Dokuments.');
     }
   };
 
@@ -2070,7 +2074,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('Dokument wirklich löschen?')) {
+    if (await bestaetige('Dokument wirklich löschen?', { gefaehrlich: true })) {
       await dbService.deleteDocument(id);
       onUpdate();
     }
@@ -2083,7 +2087,7 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
       await exportBackup();
     } catch (err) {
       console.error(err);
-      alert('Export fehlgeschlagen.');
+      melde('Export fehlgeschlagen.');
     }
   };
 
@@ -2101,26 +2105,24 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
     const file = backupDatei;
     if (!file) return;
     const warnung = [
-      'Wirklich ersetzen?',
-      '',
-      'Alle aktuell gespeicherten Drohnen, Akkus, Fluege, Piloten, Wartungen',
-      'und Dokumente werden geloescht und durch den Inhalt der Datei ersetzt.',
+      'Alle aktuell gespeicherten Drohnen, Akkus, Flüge, Piloten, Wartungen',
+      'und Dokumente werden gelöscht und durch den Inhalt der Datei ersetzt.',
       'Alles seit dieser Sicherung Erfasste geht verloren.',
     ].join(String.fromCharCode(10));
-    if (modus === 'replace' && !confirm(warnung)) return;
+    if (modus === 'replace' && !await bestaetige(warnung, { titel: 'Wirklich ersetzen?', gefaehrlich: true })) return;
     setBackupDatei(null);
     try {
       const r = await importBackup(file, modus);
-      alert(
-        `Sicherung geladen ✓\n\n` +
+      melde(
         `${r.drones} Drohnen\n${r.batteries} Akkus\n${r.flights} Flüge\n` +
         `${r.pilots} Piloten\n${r.maintenance} Wartungen\n${r.documents} Dokumente\n` +
-        `${r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei'}`
+        `${r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei'}`,
+        'Sicherung geladen ✓'
       );
       onUpdate();
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'Import fehlgeschlagen.');
+      melde(err?.message || 'Import fehlgeschlagen.');
     }
   };
 
@@ -2512,7 +2514,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
 
   const handleManualAdd = async () => {
     if (!newFlight.droneId || !newFlight.date) return;
-    if (!newFlight.duration || newFlight.duration <= 0) { alert('Bitte eine Flugdauer > 0 Minuten eingeben.'); return; }
+    if (!newFlight.duration || newFlight.duration <= 0) { melde('Bitte eine Flugdauer > 0 Minuten eingeben.'); return; }
     await dbService.saveFlight({
       id: crypto.randomUUID(),
       droneId: newFlight.droneId,
@@ -2980,7 +2982,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
           onImported={(anzahl) => {
             setShowImport(false);
             onUpdate();
-            alert(anzahl === 0
+            melde(anzahl === 0
               ? 'Es wurde kein Flug importiert.'
               : `${anzahl} Flug/Flüge ins Logbuch übernommen.`);
           }}
@@ -3009,7 +3011,7 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
               {/* Delete button revealed on swipe */}
               <button
                 onClick={async () => {
-                  if (confirm(`Flug vom ${new Date(flight.date).toLocaleDateString('de-DE')} wirklich löschen?`)) {
+                  if (await bestaetige(`Flug vom ${new Date(flight.date).toLocaleDateString('de-DE')} wirklich löschen?`, { gefaehrlich: true })) {
                     await dbService.deleteFlight(flight.id);
                     setSwipedId(null);
                     onUpdate();

@@ -11,6 +11,7 @@ import {
 } from '../services/flightPlan';
 import { erzeugeRaster, type Rasterrichtung } from '../services/gridPlan';
 import { alsGpx, alsKml, dateiname } from '../services/flightPlanExport';
+import { bestaetige } from '../services/dialog';
 import { useSprache } from '../lib/sprache';
 
 interface Props {
@@ -107,7 +108,7 @@ export function FlightPlannerDialog({ startLat, startLon, onClose }: Props) {
   };
 
   const loeschen = async (id: string) => {
-    if (!confirm(t('planer.loeschenFrage'))) return;
+    if (!await bestaetige(t('planer.loeschenFrage'), { gefaehrlich: true })) return;
     await dbService.deleteFlightPlan(id);
     setPlaene(await dbService.getFlightPlans());
   };
