@@ -93,33 +93,47 @@ async function ermittleQuelle() {
   return `https://build.protomaps.com/${neueste}.pmtiles`;
 }
 
-// --- Hauptlauf -----------------------------------------------------------
-async function main() {
-  mkdirSync(dirname(ZIEL), { recursive: true });
+// --- Wiederverwendbar ----------------------------------------------------
+/** Einen Ausschnitt herausziehen. Wird auch von scripts/karten-bauen.ts
+ *  benutzt, das die Regionen aus dem App-Katalog liest — damit die
+ *  Bounding-Boxen nur an EINER Stelle stehen. */
+export async function extrahiere({ bbox, maxzoom, ziel }) {
+  mkdirSync(dirname(ziel), { recursive: true });
   const cli = await holeCli();
   const quelle = await ermittleQuelle();
 
   console.log(`Quelle:  ${quelle}`);
-  console.log(`Gebiet:  ${BBOX}  (maxzoom ${MAXZOOM})`);
-  console.log(`Ziel:    ${ZIEL}`);
+  console.log(`Gebiet:  ${bbox}  (maxzoom ${maxzoom})`);
+  console.log(`Ziel:    ${ziel}`);
   console.log('Das lädt nur den gewählten Ausschnitt, nicht den ganzen Planeten — dauert trotzdem.');
 
   const lauf = spawnSync(
     cli,
-    ['extract', quelle, ZIEL, `--bbox=${BBOX}`, `--maxzoom=${MAXZOOM}`],
+    ['extract', quelle, ziel, `--bbox=${bbox}`, `--maxzoom=${maxzoom}`],
     { stdio: 'inherit' }
   );
   if (lauf.status !== 0) {
     throw new Error(`pmtiles extract ist fehlgeschlagen (Code ${lauf.status}).`);
   }
 
-  const mb = (statSync(ZIEL).size / (1024 * 1024)).toFixed(1);
-  console.log(`\nFertig: ${ZIEL} (${mb} MB)`);
+  const mb = (statSync(ziel).size / (1024 * 1024)).toFixed(1);
+  console.log(`\nFertig: ${ziel} (${mb} MB)`);
+  return ziel;
 }
 
-main().catch((err) => {
+// --- Hauptlauf (direkter Aufruf) ----------------------------------------
+async function main() {
+  await extrahiere({ bbox: BBOX, maxzoom: MAXZOOM, ziel: ZIEL });
+}
+
+// Nur ausführen, wenn direkt gestartet — nicht beim Import.
+if (process.argv[1] && process.argv[1].endsWith('karte-extrahieren.mjs')) {
+  main().catch(fehlerBehandlung);
+}
+
+export function fehlerBehandlung(err) {
   console.error(`\nOffline-Karte konnte nicht erzeugt werden:\n${err.message}`);
   // Kein harter Abbruch des Gesamtbaus: Die App fällt ohne die Datei auf die
   // Online-Karte zurück. Der Bau soll daran nicht scheitern.
   process.exit(process.env.KARTE_PFLICHT === '1' ? 1 : 0);
-});
+}

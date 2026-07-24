@@ -34,16 +34,11 @@ jobs:
       # keine kaputte APK auf dem Handy.
       - run: npm test
 
-      # Offline-Karte erzeugen (PMTiles-Ausschnitt). Muss VOR dem Build
-      # laufen, damit die Datei aus public/ in dist/ und damit in die APK
-      # wandert. Schlaegt sie fehl, laeuft der Build weiter - die App faellt
-      # dann auf die Online-Karte zurueck (KARTE_PFLICHT=1 wuerde das
-      # erzwingen). Region/Detailgrad hier einstellen:
-      - name: Offline-Karte extrahieren
-        env:
-          KARTE_BBOX: ${{ vars.KARTE_BBOX || '5.87,47.27,15.04,55.06' }}
-          KARTE_MAXZOOM: ${{ vars.KARTE_MAXZOOM || '12' }}
-        run: node scripts/karte-extrahieren.mjs
+      # Bewusst KEIN Einbacken einer Offline-Karte in die APK: Die Regions-
+      # Dateien liegen als GitHub-Release-Assets und werden in der App bei
+      # Bedarf geladen (siehe src/services/mapRegions.ts). Das haelt die APK
+      # klein und laesst die Wahl der Region beim Nutzer.
+      # Erzeugt werden die Dateien mit: npx vite-node scripts/karten-bauen.ts
 
       # Bewusst build:app statt build - der Express-Server gehoert nicht
       # in die APK. DEPLOY_TARGET bleibt ungesetzt, damit die Basis-URL '/'

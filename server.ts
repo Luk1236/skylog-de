@@ -106,6 +106,40 @@ async function startServer() {
     }
   });
 
+  // Karten-Proxy fuer den Browser.
+  //
+  // Die PMTiles-Regionsdateien liegen als GitHub-Release-Assets. GitHub
+  // unterstuetzt HTTP-Range (geprueft: 206 + Accept-Ranges), sendet aber KEINE
+  // CORS-Header - im Browser blockt der Abruf daher. Nativ ist das egal, weil
+  // CapacitorHttp am Browser vorbei geht; fuer die Web-Version proxen wir.
+  //
+  // Der Range-Header MUSS durchgereicht und der 206-Status erhalten bleiben,
+  // sonst laedt PMTiles jedes Mal die ganze Datei statt weniger Kilobytes.
+  app.get("/api/karte/:datei", async (req, res) => {
+    const datei = req.params.datei;
+    if (!/^[a-z0-9-]+\.pmtiles$/i.test(datei)) {
+      return res.status(400).json({ error: "Ungueltiger Dateiname" });
+    }
+    const ziel = `https://github.com/Luk1236/skylog-de/releases/download/karten-v1/${datei}`;
+    try {
+      const kopf: Record<string, string> = {};
+      if (req.headers.range) kopf["Range"] = String(req.headers.range);
+
+      const antwort = await fetch(ziel, { headers: kopf, redirect: "follow" });
+      res.status(antwort.status);
+      for (const name of ["content-type", "content-length", "content-range", "accept-ranges", "etag"]) {
+        const wert = antwort.headers.get(name);
+        if (wert) res.setHeader(name, wert);
+      }
+      if (!antwort.body) return res.end();
+      const puffer = Buffer.from(await antwort.arrayBuffer());
+      res.end(puffer);
+    } catch (error) {
+      console.error("Karten-Proxy Fehler:", error);
+      res.status(502).json({ error: "Karte nicht erreichbar" });
+    }
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
