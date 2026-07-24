@@ -1,0 +1,267 @@
+[
+  {
+    "zoneId": "7789fa81-3e8d-4326-b8a0-fc0b5c23b4ca",
+    "identifier": "acg_626",
+    "country": "AUT",
+    "name": "LO R 1",
+    "type": "COMMON",
+    "restriction": "PROHIBITED",
+    "region": 3,
+    "reason": [
+      "SENSITIVE"
+    ],
+    "regulationExemption": "YES",
+    "message": "Flugbeschränkungsgebiet Seibersdorf (LO R 1)",
+    "geometry": [
+      {
+        "upperLimit": 276,
+        "lowerLimit": 0,
+        "uomDimensions": "M",
+        "upperVerticalReference": "AGL",
+        "lowerVerticalReference": "AGL",
+        "horizontalProjection": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                16.50805556,
+                47.97027778
+              ],
+              [
+                16.51527778,
+                47.97611111
+              ],
+              [
+                16.51,
+                47.97972222
+              ],
+              [
+                16.50138889,
+                47.975
+              ],
+              [
+                16.50805556,
+                47.97027778
+              ]
+            ]
+          ]
+        }
+      }
+    ],
+    "applicability": [
+      {
+        "permanent": "YES"
+      }
+    ],
+    "zoneAuthority": [
+      {
+        "name": "Austro Control GmbH - Drone Competence Center",
+        "siteURL": "https://www.dronespace.at",
+        "email": "dronespace@austrocontrol.at",
+        "purpose": "AUTHORIZATION"
+      }
+    ]
+  },
+  {
+    "zoneId": "30aae4d4-1cfa-49a7-adab-f265efa4d8d2",
+    "identifier": "acg_1",
+    "country": "AUT",
+    "name": "LOAA",
+    "type": "COMMON",
+    "restriction": "REQ_AUTHORISATION",
+    "region": 3,
+    "reason": [
+      "AIR_TRAFFIC"
+    ],
+    "regulationExemption": "YES",
+    "message": "Flugplatz Ottenschlag (LOAA)",
+    "geometry": [
+      {
+        "upperLimit": 99999,
+        "lowerLimit": 0,
+        "uomDimensions": "M",
+        "upperVerticalReference": "AGL",
+        "lowerVerticalReference": "AGL",
+        "horizontalProjection": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                15.24905194,
+                48.41826549
+              ],
+              [
+                15.24891948,
+                48.41630628
+              ],
+              [
+                15.24853099,
+                48.4143625
+              ],
+              [
+                15.24788942,
+                48.41244894
+              ],
+              [
+                15.24699966,
+                48.41058017
+              ],
+              [
+                15.24586847,
+                48.4087704
+              ],
+              [
+                15.24905194,
+                48.41826549
+              ]
+            ]
+          ]
+        }
+      }
+    ],
+    "applicability": [
+      {
+        "permanent": "YES"
+      }
+    ],
+    "zoneAuthority": [
+      {
+        "name": "Austro Control GmbH - Drone Competence Center",
+        "siteURL": "https://www.dronespace.at",
+        "email": "dronespace@austrocontrol.at",
+        "purpose": "AUTHORIZATION"
+      }
+    ]
+  },
+  {
+    "zoneId": "d3fe2100-571f-4b7e-80d4-a973cd27d7ed",
+    "identifier": "acg_339",
+    "country": "AUT",
+    "name": "Flugplatzzone LOWG",
+    "type": "COMMON",
+    "restriction": "CONDITIONAL",
+    "region": 6,
+    "reason": [
+      "AIR_TRAFFIC"
+    ],
+    "regulationExemption": "YES",
+    "message": "Flugplatzzone Flughafen Graz (LOWG)",
+    "geometry": [
+      {
+        "upperLimit": 120,
+        "lowerLimit": 0,
+        "uomDimensions": "M",
+        "upperVerticalReference": "AGL",
+        "lowerVerticalReference": "AGL",
+        "horizontalProjection": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                15.37984978,
+                47.03551584
+              ],
+              [
+                15.47115776,
+                47.04728446
+              ],
+              [
+                15.49882066,
+                46.94647949
+              ],
+              [
+                15.40767948,
+                46.93473313
+              ],
+              [
+                15.37984978,
+                47.03551584
+              ]
+            ]
+          ]
+        }
+      }
+    ],
+    "applicability": [
+      {
+        "permanent": "YES"
+      }
+    ],
+    "zoneAuthority": [
+      {
+        "name": "Austro Control GmbH - Drone Competence Center",
+        "siteURL": "https://www.dronespace.at",
+        "email": "dronespace@austrocontrol.at",
+        "purpose": "AUTHORIZATION"
+      },
+      {
+        "name": "Austro Control GmbH - Flugverkehrskontrolle",
+        "siteURL": "https://www.austrocontrol.at",
+        "purpose": "AUTHORIZATION"
+      }
+    ]
+  },
+  {
+    "zoneId": "c03209ae-4c7b-4914-8950-6a043d1070e6",
+    "identifier": "acg_300",
+    "country": "AUT",
+    "name": "MFC Fraham",
+    "type": "COMMON",
+    "restriction": "NO_RESTRICTION",
+    "region": 4,
+    "reason": [
+      "AIR_TRAFFIC"
+    ],
+    "regulationExemption": "YES",
+    "message": "Modellfluggebiet",
+    "geometry": [
+      {
+        "upperLimit": 150,
+        "lowerLimit": 0,
+        "uomDimensions": "M",
+        "upperVerticalReference": "AGL",
+        "lowerVerticalReference": "AGL",
+        "horizontalProjection": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [
+                14.03246667,
+                48.278525
+              ],
+              [
+                14.04516389,
+                48.27894722
+              ],
+              [
+                14.04805556,
+                48.27416667
+              ],
+              [
+                14.03861111,
+                48.27277778
+              ],
+              [
+                14.03246667,
+                48.278525
+              ]
+            ]
+          ]
+        }
+      }
+    ],
+    "applicability": [
+      {
+        "permanent": "YES"
+      }
+    ],
+    "zoneAuthority": [
+      {
+        "name": "Austro Control GmbH - Drone Competence Center",
+        "siteURL": "https://www.dronespace.at",
+        "email": "dronespace@austrocontrol.at",
+        "purpose": "NOTIFICATION"
+      }
+    ]
+  }
+]
