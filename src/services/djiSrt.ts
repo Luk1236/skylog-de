@@ -14,7 +14,7 @@
 //   neu  … [latitude: 48.12] [longitude: 7.98] [rel_alt: 50.1 abs_alt: 250.3]
 //   alt  … GPS (7.98,48.12,14) BAROMETER: 50.10   (GPS-Reihenfolge: LON,LAT,Sat)
 
-import type { Flight } from './db';
+import type { Flight, TrackPoint } from './db';
 import { istDublette, type ImportVorschau, type ImportKandidat } from './flightImport';
 import { distanzMeter } from './flightTrack';
 
@@ -81,6 +81,33 @@ export function parseSrtProben(text: string): SrtProbe[] {
   }
 
   return proben.sort((a, b) => a.zeitMs - b.zeitMs);
+}
+
+/** Proben in eine Flugaufzeichnung (TrackPoint[]) wandeln. Zeit relativ zum
+ *  Start in Sekunden; Geschwindigkeit aus dem Abstand aufeinanderfolgender
+ *  Punkte berechnet (SRT liefert sie nicht direkt). So kann die Analyse-Ansicht
+ *  Höhen- und Speed-Kurve zeichnen. */
+export function probenZuTrack(proben: SrtProbe[]): TrackPoint[] {
+  if (proben.length === 0) return [];
+  const start = proben[0].zeitMs;
+  return proben.map((p, i) => {
+    let speed: number | undefined;
+    if (i > 0) {
+      const vor = proben[i - 1];
+      const dtSek = (p.zeitMs - vor.zeitMs) / 1000;
+      if (dtSek > 0) {
+        const meter = distanzMeter(vor.lat, vor.lon, p.lat, p.lon);
+        speed = Math.round((meter / dtSek) * 3.6 * 10) / 10; // m/s -> km/h
+      }
+    }
+    return {
+      t: Math.round((p.zeitMs - start) / 1000),
+      lat: p.lat,
+      lon: p.lon,
+      alt: p.altM,
+      speed,
+    };
+  });
 }
 
 export interface SrtZusammenfassung {
@@ -160,6 +187,7 @@ export function baueVorschauAusSrt(
     modellText: undefined,
     maxHoeheM: z.maxHoeheM,
     distanzM: z.maxDistanzM,
+    track: probenZuTrack(proben),
   };
 
   return { zuordnung: {}, nichtZugeordnet: [], kandidaten: [kandidat], fehler: [] };

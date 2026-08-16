@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSrtProben, fasseSrtZusammen, baueVorschauAusSrt, istSrt } from './djiSrt';
+import { parseSrtProben, fasseSrtZusammen, baueVorschauAusSrt, istSrt, probenZuTrack } from './djiSrt';
 
 // Neue DJI-Variante: benannte Felder [latitude]/[longitude]/[rel_alt].
 const SRT_NEU = `1
@@ -86,6 +86,32 @@ describe('baueVorschauAusSrt', () => {
     const v = baueVorschauAusSrt('nur text\n\nohne gps');
     expect(v.kandidaten).toHaveLength(0);
     expect(v.fehler.length).toBeGreaterThan(0);
+  });
+});
+
+describe('probenZuTrack', () => {
+  it('baut TrackPoints mit relativer Zeit, Höhe und berechnetem Speed', () => {
+    const track = probenZuTrack(parseSrtProben(SRT_NEU));
+    expect(track).toHaveLength(2);
+    expect(track[0].t).toBe(0);
+    expect(track[1].t).toBe(1);
+    expect(track[0].alt).toBe(0);
+    expect(track[1].alt).toBe(50);
+    // zweiter Punkt hat berechnete Geschwindigkeit (>0), erster nicht
+    expect(track[0].speed).toBeUndefined();
+    expect(track[1].speed).toBeGreaterThan(0);
+  });
+
+  it('gibt bei leeren Proben eine leere Liste zurück', () => {
+    expect(probenZuTrack([])).toEqual([]);
+  });
+});
+
+describe('baueVorschauAusSrt Track', () => {
+  it('hängt den vollen Track an den Kandidaten', () => {
+    const v = baueVorschauAusSrt(SRT_NEU);
+    expect(v.kandidaten[0].track).toBeDefined();
+    expect(v.kandidaten[0].track!.length).toBe(2);
   });
 });
 

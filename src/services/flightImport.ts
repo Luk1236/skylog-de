@@ -6,7 +6,7 @@
 // dem Kopf gelesen und das Ergebnis dem Nutzer zur Bestätigung vorgelegt,
 // bevor irgendetwas in die Datenbank geht.
 
-import type { Flight, Drone } from './db';
+import type { Flight, Drone, TrackPoint } from './db';
 
 /** Felder, die wir aus einer Zeile gewinnen wollen. */
 export type Feld =
@@ -64,6 +64,9 @@ export interface ImportKandidat {
   /** Höhe/Distanz in Metern — noch ohne eigenes Feld im Flight-Modell. */
   maxHoeheM?: number;
   distanzM?: number;
+  /** Volle Flugaufzeichnung (z. B. aus DJI-SRT), falls vorhanden — speist die
+   *  Analyse-Ansicht mit Höhen-/Speed-/Akku-Kurven. */
+  track?: TrackPoint[];
 }
 
 export interface ImportVorschau {
@@ -368,6 +371,7 @@ export function zuFlug(kandidat: ImportKandidat, droneId: string): Flight {
     locationName: f.locationName ?? '',
     coordinates: koordinaten,
     batteryStatus: f.batteryStatus,
+    track: kandidat.track && kandidat.track.length > 0 ? kandidat.track : undefined,
     notes: notizTeile.join(' · '),
     createdAt: Date.now(),
   };
