@@ -89,41 +89,77 @@ export function parseEd269(text: string): Ed269Zone[] {
   const zonen: Ed269Zone[] = [];
   for (const e of liste as Record<string, any>[]) {
     if (!e || typeof e !== 'object') continue;
-    const geo = Array.isArray(e.geometry) ? e.geometry : [];
     const polygone: [number, number][][] = [];
     let unten: number | undefined;
     let oben: number | undefined;
 
-    for (const g of geo) {
-      const hp = g?.horizontalProjection;
-      if (hp?.type === 'Polygon' && Array.isArray(hp.coordinates)) {
-        for (const ring of hp.coordinates) {
+    const props = e.properties && typeof e.properties === 'object' ? { ...e.properties, ...e } : e;
+
+    const verarbeiteGeometrie = (geom: any) => {
+      if (!geom || typeof geom !== 'object') return;
+      const hp = geom.horizontalProjection ?? geom;
+      const type = hp.type;
+      const coords = hp.coordinates;
+
+      if (type === 'Polygon' && Array.isArray(coords)) {
+        for (const ring of coords) {
           if (!Array.isArray(ring)) continue;
-          // [lon, lat] -> [lat, lon]
           const gedreht = ring
             .filter((p: unknown) => Array.isArray(p) && p.length >= 2)
-            .map((p: number[]) => [p[1], p[0]] as [number, number]);
+            .map((p: number[]) => [Number(p[1]), Number(p[0])] as [number, number])
+            .filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
           if (gedreht.length >= 3) polygone.push(gedreht);
         }
-      } else if (hp?.type === 'Circle' && Array.isArray(hp.center)) {
+      } else if (type === 'MultiPolygon' && Array.isArray(coords)) {
+        for (const poly of coords) {
+          if (!Array.isArray(poly)) continue;
+          for (const ring of poly) {
+            if (!Array.isArray(ring)) continue;
+            const gedreht = ring
+              .filter((p: unknown) => Array.isArray(p) && p.length >= 2)
+              .map((p: number[]) => [Number(p[1]), Number(p[0])] as [number, number])
+              .filter(p => Number.isFinite(p[0]) && Number.isFinite(p[1]));
+            if (gedreht.length >= 3) polygone.push(gedreht);
+          }
+        }
+      } else if (type === 'Circle' && Array.isArray(hp.center)) {
         const r = Number(hp.radius);
-        if (Number.isFinite(r)) polygone.push(kreisAlsRing(hp.center[1], hp.center[0], r));
+        if (Number.isFinite(r)) polygone.push(kreisAlsRing(Number(hp.center[1]), Number(hp.center[0]), r));
       }
-      const u = inMeter(g?.lowerLimit, g?.uomDimensions);
-      const o = inMeter(g?.upperLimit, g?.uomDimensions);
+
+      const u = inMeter(geom.lowerLimit ?? props.lowerLimit, geom.uomDimensions ?? props.uomDimensions);
+      const o = inMeter(geom.upperLimit ?? props.upperLimit, geom.uomDimensions ?? props.uomDimensions);
       if (u !== undefined) unten = unten === undefined ? u : Math.min(unten, u);
       if (o !== undefined) oben = oben === undefined ? o : Math.max(oben, o);
+    };
+
+    if (Array.isArray(e.geometry)) {
+      for (const g of e.geometry) verarbeiteGeometrie(g);
+    } else if (e.geometry) {
+      verarbeiteGeometrie(e.geometry);
+    } else {
+      verarbeiteGeometrie(e);
     }
 
-    if (polygone.length === 0) continue; // ohne Fläche nicht darstellbar
+    if (polygone.length === 0) continue;
+
+    const rawRes = String(props.restriction ?? props.type ?? props.status ?? '').toUpperCase();
+    let beschraenkung: Beschraenkung = 'CONDITIONAL';
+    if (rawRes.includes('PROHIBITED') || rawRes.includes('INTERDITE') || rawRes.includes('VERBOTEN') || rawRes.includes('RED')) {
+      beschraenkung = 'PROHIBITED';
+    } else if (rawRes.includes('AUTHORISATION') || rawRes.includes('PERMIT') || rawRes.includes('ORANGE')) {
+      beschraenkung = 'REQ_AUTHORISATION';
+    } else if (rawRes.includes('NO_RESTRICTION') || rawRes.includes('FREE')) {
+      beschraenkung = 'NO_RESTRICTION';
+    }
 
     zonen.push({
-      id: String(e.zoneId ?? e.identifier ?? `zone-${zonen.length}`),
-      name: String(e.name ?? e.identifier ?? 'Unbenannte Zone'),
-      land: String(e.country ?? '').toUpperCase(),
-      beschraenkung: istBeschraenkung(e.restriction) ? e.restriction : 'CONDITIONAL',
-      gruende: Array.isArray(e.reason) ? e.reason.map(String) : [],
-      hinweis: String(e.message ?? ''),
+      id: String(props.zoneId ?? props.identifier ?? props.id ?? `zone-${zonen.length}`),
+      name: String(props.name ?? props.identifier ?? props.nom ?? props.title ?? 'Unbenannte Zone'),
+      land: String(props.country ?? props.land ?? 'EU').toUpperCase(),
+      beschraenkung,
+      gruende: Array.isArray(props.reason) ? props.reason.map(String) : (props.reason ? [String(props.reason)] : []),
+      hinweis: String(props.message ?? props.description ?? ''),
       polygone,
       untergrenzeM: unten,
       obergrenzeM: oben,

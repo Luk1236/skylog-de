@@ -26,17 +26,17 @@ export type Feld =
  *  Alles kleingeschrieben und ohne Sonderzeichen verglichen — neue Variante
  *  ergänzen heißt: eine Zeichenkette in die passende Liste eintragen. */
 const SYNONYME: Record<Feld, string[]> = {
-  datum:     ['date', 'datum', 'flightdate', 'starttime', 'startzeit', 'timestamp', 'datetime'],
-  startzeit: ['starttime', 'startzeit', 'takeofftime', 'timestamp', 'datetime', 'time'],
-  dauer:     ['duration', 'dauer', 'flighttime', 'flugzeit', 'totaltime', 'totalflighttime'],
-  breite:    ['latitude', 'lat', 'breite', 'breitengrad', 'startlatitude', 'takeofflatitude'],
-  laenge:    ['longitude', 'lon', 'lng', 'laenge', 'langengrad', 'startlongitude', 'takeofflongitude'],
+  datum:     ['date', 'datum', 'flightdate', 'starttime', 'startzeit', 'timestamp', 'datetime', 'customupdatetime', 'osdupdatetime'],
+  startzeit: ['starttime', 'startzeit', 'takeofftime', 'timestamp', 'datetime', 'time', 'customupdatetime'],
+  dauer:     ['duration', 'dauer', 'flighttime', 'flugzeit', 'totaltime', 'totalflighttime', 'osdflytime', 'flytime'],
+  breite:    ['latitude', 'lat', 'breite', 'breitengrad', 'startlatitude', 'takeofflatitude', 'osdlatitude'],
+  laenge:    ['longitude', 'lon', 'lng', 'laenge', 'langengrad', 'startlongitude', 'takeofflongitude', 'osdlongitude'],
   ort:       ['location', 'ort', 'place', 'locationname', 'ortsname', 'city', 'address'],
-  maxHoehe:  ['maxheight', 'maxaltitude', 'maxhoehe', 'hoehe', 'height', 'altitude'],
-  distanz:   ['distance', 'distanz', 'maxdistance', 'totaldistance', 'strecke'],
-  akkuStart: ['batterystart', 'akkustart', 'startbattery', 'batterypercentstart', 'batterybegin'],
-  akkuEnde:  ['batteryend', 'akkuende', 'endbattery', 'batterypercentend'],
-  modell:    ['model', 'modell', 'aircraft', 'aircraftname', 'dronemodel', 'drone'],
+  maxHoehe:  ['maxheight', 'maxaltitude', 'maxhoehe', 'hoehe', 'height', 'altitude', 'osdheight', 'osdaltitude'],
+  distanz:   ['distance', 'distanz', 'maxdistance', 'totaldistance', 'strecke', 'osddistance'],
+  akkuStart: ['batterystart', 'akkustart', 'startbattery', 'batterypercentstart', 'batterybegin', 'osdbattery'],
+  akkuEnde:  ['batteryend', 'akkuende', 'endbattery', 'batterypercentend', 'osdbatterypercent'],
+  modell:    ['model', 'modell', 'aircraft', 'aircraftname', 'dronemodel', 'drone', 'dronetype', 'producttype'],
 };
 
 /** Reihenfolge zählt: 'datum' und 'startzeit' teilen sich Synonyme.

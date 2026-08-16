@@ -113,7 +113,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
               <label className="block border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center cursor-pointer hover:border-brand-blue/40 transition-colors">
                 <Upload className="w-8 h-8 text-slate-300 mx-auto mb-3" />
                 <p className="text-xs font-bold text-slate-700">CSV-Datei auswählen</p>
-                <p className="text-[10px] text-slate-400 mt-1">z. B. Export aus Airdata</p>
+                <p className="text-[10px] text-slate-400 mt-1">z. B. Export aus Airdata UAV, DJI Fly CSV, etc.</p>
                 <input type="file" accept=".csv,text/csv" className="hidden" onChange={dateiGewaehlt} />
               </label>
               {drohnen.length === 0 && (

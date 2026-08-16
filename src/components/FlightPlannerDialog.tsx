@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polyline, Marker, Rectangle, useMapEvents } fr
 import { X, Route, Trash2, ChevronUp, ChevronDown, Save, FolderOpen, AlertTriangle, MapPin, Download, Grid3x3 } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
-import { dbService, type FlightPlan, type Wegpunkt } from '../services/db';
+import { dbService, type FlightPlan, type Wegpunkt, type LocationFavorite } from '../services/db';
 import {
   bewertePlan, formatStrecke, formatZeit,
   wegpunktHinzufuegen, wegpunktEntfernen, wegpunktVerschieben,
@@ -17,6 +17,7 @@ import { useSprache } from '../lib/sprache';
 interface Props {
   startLat: number;
   startLon: number;
+  locationFavorites?: LocationFavorite[];
   onClose: () => void;
 }
 
@@ -47,7 +48,7 @@ function KlickFaenger({ onKlick }: { onKlick: (lat: number, lon: number) => void
   return null;
 }
 
-export function FlightPlannerDialog({ startLat, startLon, onClose }: Props) {
+export function FlightPlannerDialog({ startLat, startLon, locationFavorites = [], onClose }: Props) {
   const { t } = useSprache();
   const [wegpunkte, setWegpunkte] = useState<Wegpunkt[]>([]);
   const [name, setName] = useState('');
@@ -179,6 +180,30 @@ export function FlightPlannerDialog({ startLat, startLon, onClose }: Props) {
             </div>
           ) : (
             <>
+              {locationFavorites && locationFavorites.length > 0 && (
+                <div className="flex items-center gap-2 p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                  <MapPin className="w-4 h-4 text-amber-500 shrink-0" />
+                  <select
+                    className="w-full bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer"
+                    onChange={e => {
+                      const fav = locationFavorites.find(f => f.id === e.target.value);
+                      if (fav) {
+                        setWegpunkte(w => wegpunktHinzufuegen(w, { lat: fav.coordinates[0], lon: fav.coordinates[1] }));
+                        setName(fav.name);
+                      }
+                    }}
+                    defaultValue=""
+                  >
+                    <option value="" disabled>★ Startpunkt aus Favoriten wählen...</option>
+                    {locationFavorites.map(fav => (
+                      <option key={fav.id} value={fav.id}>
+                        {fav.name} ({fav.locationName})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
               {/* Modus: Route von Hand vs. Fläche kartieren */}
               <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
                 <button onClick={() => setModus('route')}
