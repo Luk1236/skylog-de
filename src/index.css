@@ -35,6 +35,16 @@
   --color-slate-900: #f8fafc;  /* Primärtext */
   --color-slate-950: #ffffff;
 
+  /* Brand-/Signalfarben aufhellen. Sonst bleibt Brand-Blau (#1e3a8a) im
+     Dunkelmodus dunkel, während Karten (bg-white) und Text (text-white)
+     dunkel werden — Ergebnis wäre dunkel-auf-dunkel (unlesbare Akzent-Texte
+     und weiße Beschriftungen auf farbigen Buttons/Bannern). Die ~400er-Töne
+     sind auf dunklem Grund UND mit dunklem Text (weiß→dunkel) gut lesbar. */
+  --color-brand-blue:   #60a5fa;
+  --color-brand-red:    #f87171;
+  --color-brand-green:  #34d399;
+  --color-brand-orange: #fb923c;
+
   /* helle Tönungen der Signalfarben abdunkeln */
   --color-blue-50:    #172554;
   --color-blue-100:   #1e3a8a;
