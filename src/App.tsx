@@ -86,9 +86,6 @@ import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
 import { wartungStatus, garantieStatus, gesamtKosten } from './services/maintenance';
 import { effektiveGesundheit } from './services/batteryHealth';
-import { BatteryDetailDialog } from './components/BatteryDetailDialog';
-import { RiskAssessmentDialog } from './components/RiskAssessmentDialog';
-import { ChecklistEditorDialog } from './components/ChecklistEditorDialog';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from './services/checklists';
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
@@ -97,31 +94,23 @@ import { DialogHost } from './components/DialogHost';
 import { bestaetige, melde } from './services/dialog';
 import { OfflineBasemap } from './components/OfflineBasemap';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
-import { OfflineMapsDialog } from './components/OfflineMapsDialog';
-import { EuZonesDialog } from './components/EuZonesDialog';
 import { EuZoneLayer } from './components/EuZoneLayer';
 import { zonenInUmkreis, parseEd269, type Ed269Zone } from './services/ed269';
 import { laenderFuerKoordinate, quelleFuer } from './services/euZones';
 import { regionenFuerStandort } from './services/mapRegions';
 import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
 import type { PMTiles } from 'pmtiles';
-import { FlightPlannerDialog } from './components/FlightPlannerDialog';
 import { AirspaceCheckPanel } from './components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from './components/AviationWeatherPanel';
-import { FlightMediaDialog } from './components/FlightMediaDialog';
-import { FlightImportDialog } from './components/FlightImportDialog';
-import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
-import { IncidentReportDialog } from './components/IncidentReportDialog';
-import { FlightTrackDialog } from './components/FlightTrackDialog';
-import { StatisticsDialog } from './components/StatisticsDialog';
-import { EidDialog } from './components/EidDialog';
-import { LocationFavoritesDialog } from './components/LocationFavoritesDialog';
 import { PinLockDialog } from './components/PinLockDialog';
-import { CustomerManagerDialog } from './components/CustomerManagerDialog';
-import { SoraWizardDialog } from './components/SoraWizardDialog';
-import { CloudBackupDialog } from './components/CloudBackupDialog';
-import { StaffelMatrixDialog } from './components/StaffelMatrixDialog';
-import { PreFlightSafetyDialog } from './components/PreFlightSafetyDialog';
+// Modale Dialoge: lazy geladen, um das Haupt-Bundle klein zu halten (s. lazyDialogs.tsx).
+import {
+  BatteryDetailDialog, RiskAssessmentDialog, ChecklistEditorDialog,
+  OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, FlightMediaDialog,
+  FlightImportDialog, BehoerdenCheckDialog, IncidentReportDialog, FlightTrackDialog,
+  StatisticsDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog,
+  SoraWizardDialog, CloudBackupDialog, StaffelMatrixDialog, PreFlightSafetyDialog,
+} from './components/lazyDialogs';
 import { isPinEnabled } from './services/pinProtection';
 import type { LocationFavorite, Customer } from './services/db';
 import L from 'leaflet';
