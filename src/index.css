@@ -5,6 +5,7 @@
   --color-brand-red: #b91c1c;
   --color-brand-yellow: #f59e0b;
   --color-brand-green: #059669;
+  --color-brand-orange: #ea580c;
 }
 
 /* Dark Mode.
@@ -87,11 +88,52 @@
 
 /* Safe-Area-Abstände für Notch (oben) und Home-Balken (unten).
    Grundabstand (wie vorher py-3 / py-2) plus der jeweilige Geräte-Inset. */
-.pt-safe {
-  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+/* Glassmorphism & Micro-Interactions for Mobile UX */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
 }
-.pb-safe {
-  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+
+:root[data-theme="dark"] .glass-panel {
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(51, 65, 85, 0.6);
+}
+
+.glass-nav {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+:root[data-theme="dark"] .glass-nav {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(51, 65, 85, 0.7);
+}
+
+/* Touch active scale effect */
+.touch-shrink {
+  transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.touch-shrink:active {
+  transform: scale(0.96);
+}
+
+/* Card Glow Effect */
+.card-glow {
+  box-shadow: 0 4px 20px -2px rgba(30, 58, 138, 0.08);
+  transition: all 0.25s ease;
+}
+
+.card-glow:hover {
+  box-shadow: 0 8px 30px -4px rgba(30, 58, 138, 0.16);
 }
 
 @import "leaflet/dist/leaflet.css";

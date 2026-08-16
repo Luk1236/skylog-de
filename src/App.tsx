@@ -58,9 +58,14 @@ import {
   Route,
   LayoutGrid,
   Languages,
+  Building2,
+  Shield,
+  Cloud,
+  Layers,
   DownloadCloud,
   Globe2,
-  X
+  X,
+  PlusCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
@@ -95,7 +100,8 @@ import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap
 import { OfflineMapsDialog } from './components/OfflineMapsDialog';
 import { EuZonesDialog } from './components/EuZonesDialog';
 import { EuZoneLayer } from './components/EuZoneLayer';
-import { zonenInUmkreis, type Ed269Zone } from './services/ed269';
+import { zonenInUmkreis, parseEd269, type Ed269Zone } from './services/ed269';
+import { laenderFuerKoordinate, quelleFuer } from './services/euZones';
 import { regionenFuerStandort } from './services/mapRegions';
 import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
 import type { PMTiles } from 'pmtiles';
@@ -108,6 +114,16 @@ import { BehoerdenCheckDialog } from './components/BehoerdenCheckDialog';
 import { IncidentReportDialog } from './components/IncidentReportDialog';
 import { FlightTrackDialog } from './components/FlightTrackDialog';
 import { StatisticsDialog } from './components/StatisticsDialog';
+import { EidDialog } from './components/EidDialog';
+import { LocationFavoritesDialog } from './components/LocationFavoritesDialog';
+import { PinLockDialog } from './components/PinLockDialog';
+import { CustomerManagerDialog } from './components/CustomerManagerDialog';
+import { SoraWizardDialog } from './components/SoraWizardDialog';
+import { CloudBackupDialog } from './components/CloudBackupDialog';
+import { StaffelMatrixDialog } from './components/StaffelMatrixDialog';
+import { PreFlightSafetyDialog } from './components/PreFlightSafetyDialog';
+import { isPinEnabled } from './services/pinProtection';
+import type { LocationFavorite, Customer } from './services/db';
 import L from 'leaflet';
 
 // Custom Svg Icon for the user location
@@ -125,6 +141,13 @@ const flightHistoryIcon = L.divIcon({
   className: 'custom-div-icon',
   iconSize: [12, 12],
   iconAnchor: [6, 6]
+});
+
+const favoriteLocationIcon = L.divIcon({
+  html: `<div style="background:#f59e0b;width:18px;height:18px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;">★</div>`,
+  className: 'custom-div-icon',
+  iconSize: [18, 18],
+  iconAnchor: [9, 9]
 });
 
 type View = 'map' | 'garage' | 'logbook' | 'profile' | 'knowledge' | 'roadmap' | 'safety' | 'inventory' | 'pilots';
@@ -177,6 +200,17 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
+  const [showEidDialog, setShowEidDialog] = useState(false);
+  const [showLocationFavoritesDialog, setShowLocationFavoritesDialog] = useState(false);
+  const [isAppLocked, setIsAppLocked] = useState(() => isPinEnabled());
+  const [showPinSetup, setShowPinSetup] = useState(false);
+  const [locationFavorites, setLocationFavorites] = useState<LocationFavorite[]>([]);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [showCustomerManager, setShowCustomerManager] = useState(false);
+  const [showSoraWizard, setShowSoraWizard] = useState(false);
+  const [showCloudBackup, setShowCloudBackup] = useState(false);
+  const [showStaffelMatrix, setShowStaffelMatrix] = useState(false);
+  const [showPreFlightSafety, setShowPreFlightSafety] = useState(false);
   const [showMehr, setShowMehr] = useState(false);
   const [showPlaner, setShowPlaner] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => ladeTheme());
@@ -232,18 +266,22 @@ export default function App() {
   }, []);
 
   async function loadData() {
-    const [d, f, doc, b, p] = await Promise.all([
+    const [d, f, doc, b, p, favs, custs] = await Promise.all([
       dbService.getDrones(),
       dbService.getFlights(),
       dbService.getDocuments(),
       dbService.getBatteries(),
       dbService.getProfile(),
+      dbService.getLocationFavorites(),
+      dbService.getCustomers(),
     ]);
     setDrones(d);
     setFlights(f);
     setDocuments(doc);
     setBatteries(b);
     setProfile(p);
+    setLocationFavorites(favs);
+    setCustomers(custs);
     setIsLoading(false);
     if (!p && d.length === 0) setShowOnboarding(true);
   }
@@ -261,6 +299,13 @@ export default function App() {
       { enableHighAccuracy: true, timeout: 8000 }
     );
   };
+
+  // Reminders in Root-Scope: wird für NavBar-Badges benötigt
+  const appReminders = useMemo(
+    () => getReminders(profile, drones, batteries, getLastBackupAt()),
+    [profile, drones, batteries]
+  );
+  const highPrioCount = appReminders.filter(r => r.priority === 'high').length;
 
   if (isLoading) {
     return (
@@ -354,7 +399,7 @@ export default function App() {
               animate={{ opacity: 1 }}
               className="absolute inset-0"
             >
-              <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} onPlaner={() => setShowPlaner(true)} />
+              <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} locationFavorites={locationFavorites} onPlaner={() => setShowPlaner(true)} />
               {gpsError && (
                 <div className="absolute top-4 left-4 right-4 z-[500] bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -395,6 +440,15 @@ export default function App() {
                   </div>
                 );
               })()}
+              {/* Schnell-Log FAB */}
+              <button
+                onClick={() => { setActiveView('logbook'); }}
+                className="absolute bottom-36 right-4 z-[400] flex items-center gap-2 bg-brand-blue text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-brand-blue/40 active:scale-95 transition-all hover:bg-brand-blue/90"
+                aria-label="Schnell-Log: Flug hinzufügen"
+              >
+                <PlusCircle className="w-4 h-4" />
+                Flug loggen
+              </button>
             </motion.div>
           )}
 
@@ -416,7 +470,7 @@ export default function App() {
               animate={{ x: 0, opacity: 1 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
-              <LogbookView flights={flights} drones={drones} batteries={batteries} profile={profile} onUpdate={loadData} currentLocation={location} />
+              <LogbookView flights={flights} drones={drones} batteries={batteries} profile={profile} locationFavorites={locationFavorites} onUpdate={loadData} currentLocation={location} onOpenFavorites={() => setShowLocationFavoritesDialog(true)} />
             </motion.div>
           )}
 
@@ -427,7 +481,7 @@ export default function App() {
               animate={{ x: 0, opacity: 1 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
-              <ProfileView profile={profile} documents={documents} onUpdate={loadData} />
+              <ProfileView profile={profile} documents={documents} onUpdate={loadData} onOpenEid={() => setShowEidDialog(true)} onOpenPinSetup={() => setShowPinSetup(true)} />
             </motion.div>
           )}
 
@@ -460,7 +514,7 @@ export default function App() {
               animate={{ x: 0, opacity: 1 }}
               className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
             >
-              <SafetyView profile={profile} drones={drones} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} />
+              <SafetyView profile={profile} drones={drones} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} onOpenEid={() => setShowEidDialog(true)} />
             </motion.div>
           )}
 
@@ -504,6 +558,7 @@ export default function App() {
           onClick={() => setActiveView('logbook')}
           icon={Book}
           label={t('nav.logbuch')}
+          badge={highPrioCount || undefined}
         />
         <NavButton
           active={activeView === 'garage'}
@@ -522,6 +577,7 @@ export default function App() {
           onClick={() => setShowMehr(true)}
           icon={LayoutGrid}
           label={t('nav.mehr')}
+          badge={highPrioCount || undefined}
         />
       </nav>
 
@@ -529,6 +585,7 @@ export default function App() {
         <FlightPlannerDialog
           startLat={location[0]}
           startLon={location[1]}
+          locationFavorites={locationFavorites}
           onClose={() => setShowPlaner(false)}
         />
       )}
@@ -538,6 +595,99 @@ export default function App() {
           profile={profile}
           drohnen={drones}
           onClose={() => setShowBehoerdenCheck(false)}
+        />
+      )}
+
+      {showEidDialog && (
+        <EidDialog
+          profile={profile}
+          onSaveProfile={async (up) => {
+            await dbService.saveProfile(up);
+            setShowEidDialog(false);
+            loadData();
+          }}
+          onClose={() => setShowEidDialog(false)}
+        />
+      )}
+
+      {showLocationFavoritesDialog && (
+        <LocationFavoritesDialog
+          favorites={locationFavorites}
+          onSaveFavorite={async (fav) => {
+            await dbService.saveLocationFavorite(fav);
+            loadData();
+          }}
+          onDeleteFavorite={async (id) => {
+            await dbService.deleteLocationFavorite(id);
+            loadData();
+          }}
+          onClose={() => setShowLocationFavoritesDialog(false)}
+        />
+      )}
+
+      {isAppLocked && (
+        <PinLockDialog
+          mode="unlock"
+          onUnlocked={() => setIsAppLocked(false)}
+        />
+      )}
+
+      {showPinSetup && (
+        <PinLockDialog
+          mode={isPinEnabled() ? 'settings' : 'setup'}
+          onClose={() => setShowPinSetup(false)}
+        />
+      )}
+
+      {showCustomerManager && (
+        <CustomerManagerDialog
+          customers={customers}
+          flights={flights}
+          drones={drones}
+          profile={profile}
+          onSaveCustomer={async (cust) => {
+            await dbService.saveCustomer(cust);
+            loadData();
+          }}
+          onDeleteCustomer={async (id) => {
+            await dbService.deleteCustomer(id);
+            loadData();
+          }}
+          onClose={() => setShowCustomerManager(false)}
+        />
+      )}
+
+      {showSoraWizard && (
+        <SoraWizardDialog
+          drones={drones}
+          profile={profile}
+          onClose={() => setShowSoraWizard(false)}
+        />
+      )}
+
+      {showCloudBackup && (
+        <CloudBackupDialog
+          onClose={() => setShowCloudBackup(false)}
+        />
+      )}
+
+      {showStaffelMatrix && (
+        <StaffelMatrixDialog
+          drones={drones}
+          batteries={batteries}
+          maintenance={[]}
+          profile={profile}
+          onClose={() => setShowStaffelMatrix(false)}
+        />
+      )}
+
+      {showPreFlightSafety && (
+        <PreFlightSafetyDialog
+          weather={weather}
+          drone={drones[0] || null}
+          battery={batteries[0] || null}
+          profile={profile}
+          onClose={() => setShowPreFlightSafety(false)}
         />
       )}
 
@@ -551,6 +701,11 @@ export default function App() {
           onWaehle={(v) => { setActiveView(v); setShowMehr(false); }}
           onTheme={() => setTheme(toggleTheme(theme))}
           onSprache={spracheWechseln}
+          onOpenCrm={() => { setShowMehr(false); setShowCustomerManager(true); }}
+          onOpenSora={() => { setShowMehr(false); setShowSoraWizard(true); }}
+          onOpenCloudBackup={() => { setShowMehr(false); setShowCloudBackup(true); }}
+          onOpenStaffelMatrix={() => { setShowMehr(false); setShowStaffelMatrix(true); }}
+          onOpenPreFlightSafety={() => { setShowMehr(false); setShowPreFlightSafety(true); }}
           onClose={() => setShowMehr(false)}
         />
       )}
@@ -567,7 +722,18 @@ const MEHR_VIEWS: View[] = ['inventory', 'pilots', 'knowledge', 'roadmap', 'prof
 /** Das „Mehr"-Blatt: die selteneren Ansichten plus die zwei Schnell-
  *  einstellungen (Sprache, Design), die vorher oben im Kopf klebten. */
 function MehrSheet({
-  activeView, theme, sprache, onWaehle, onTheme, onSprache, onClose,
+  activeView,
+  theme,
+  sprache,
+  onWaehle,
+  onTheme,
+  onSprache,
+  onOpenCrm,
+  onOpenSora,
+  onOpenCloudBackup,
+  onOpenStaffelMatrix,
+  onOpenPreFlightSafety,
+  onClose,
 }: {
   activeView: View;
   theme: Theme;
@@ -575,6 +741,11 @@ function MehrSheet({
   onWaehle: (v: View) => void;
   onTheme: () => void;
   onSprache: () => void;
+  onOpenCrm: () => void;
+  onOpenSora: () => void;
+  onOpenCloudBackup: () => void;
+  onOpenStaffelMatrix: () => void;
+  onOpenPreFlightSafety: () => void;
   onClose: () => void;
 }) {
   const { t } = useSprache();
@@ -600,6 +771,57 @@ function MehrSheet({
         </div>
 
         <div className="overflow-y-auto px-4 py-4 space-y-4">
+          {/* Pro Werkzeuge */}
+          <div>
+            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider px-1 mb-1.5">Pro Werkzeuge</p>
+            <div className="space-y-1.5">
+              <button
+                onClick={onOpenPreFlightSafety}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                <ShieldCheck className="w-5 h-5 shrink-0 text-emerald-600" />
+                <span className="text-sm font-bold flex-1 text-slate-800">Pre-Flight Safety Score & Kp-Index</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+
+              <button
+                onClick={onOpenCrm}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                <Building2 className="w-5 h-5 shrink-0 text-blue-600" />
+                <span className="text-sm font-bold flex-1 text-slate-800">CRM & Kundenverwaltung</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+
+              <button
+                onClick={onOpenSora}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                <Shield className="w-5 h-5 shrink-0 text-indigo-600" />
+                <span className="text-sm font-bold flex-1 text-slate-800">EASA SORA 2.5 PDF Assistent</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+
+              <button
+                onClick={onOpenCloudBackup}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                <Cloud className="w-5 h-5 shrink-0 text-cyan-600" />
+                <span className="text-sm font-bold flex-1 text-slate-800">Auto Cloud-Backup & Sync</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+
+              <button
+                onClick={onOpenStaffelMatrix}
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+              >
+                <Layers className="w-5 h-5 shrink-0 text-amber-600" />
+                <span className="text-sm font-bold flex-1 text-slate-800">Staffel- & Flottenmatrix</span>
+                <ChevronRight className="w-4 h-4 text-slate-300" />
+              </button>
+            </div>
+          </div>
+
           {/* Ansichten */}
           <div className="space-y-1.5">
             {eintraege.map(({ view, icon: Icon, label }) => (
@@ -650,27 +872,35 @@ function MehrSheet({
   );
 }
 
-function NavButton({ active, onClick, icon: Icon, label }: { active: boolean, onClick: () => void, icon: any, label: string }) {
+function NavButton({ active, onClick, icon: Icon, label, badge }: { active: boolean, onClick: () => void, icon: any, label: string, badge?: number }) {
   return (
     <button 
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center gap-1 py-1 transition-all",
-        active ? "text-brand-blue" : "text-slate-400 font-normal"
+        "flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-2xl transition-all duration-200 touch-shrink relative",
+        active ? "text-brand-blue" : "text-slate-400 hover:text-slate-600"
       )}
     >
+      {active && (
+        <span className="absolute -top-1 w-6 h-1 bg-brand-blue rounded-full shadow-sm shadow-brand-blue/50" />
+      )}
       <div className={cn(
-        "p-1.5 rounded-xl transition-all",
-        active ? "bg-brand-blue/10 scale-110" : ""
+        "p-1.5 rounded-xl transition-all duration-200 relative",
+        active ? "bg-brand-blue/12 scale-110 shadow-sm" : "bg-transparent"
       )}>
-        <Icon className={cn("w-6 h-6", active ? "stroke-[2.5px]" : "stroke-[1.5px]")} />
+        <Icon className={cn("w-5 h-5 transition-transform", active ? "stroke-[2.5px]" : "stroke-[1.75px]")} />
+        {badge != null && badge > 0 && (
+          <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-[3px] leading-none shadow-md border border-white">
+            {badge > 9 ? '9+' : badge}
+          </span>
+        )}
       </div>
-      <span className={cn("text-[10px] font-bold uppercase tracking-wider", active ? "opacity-100" : "opacity-80")}>{label}</span>
+      <span className={cn("text-[10px] font-bold uppercase tracking-wider transition-opacity", active ? "opacity-100 font-extrabold" : "opacity-70")}>{label}</span>
     </button>
   );
 }
 
-function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], onPlaner: () => void }) {
+function DroneMap({ location, onLocate, isLocating, weather, flights, locationFavorites = [], onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], locationFavorites?: LocationFavorite[], onPlaner: () => void }) {
   const { t } = useSprache();
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
   // Grundkarte waehlen. Reihenfolge: heruntergeladene Region (beste, weil
@@ -689,8 +919,29 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
   // ein ganzes Land waeren mehrere hundert Polygone.
   const [euZonen, setEuZonen] = useState<Ed269Zone[]>([]);
   const [zeigeEuZonen, setZeigeEuZonen] = useState(false);
+  const [zeigePreFlightSafety, setZeigePreFlightSafety] = useState(false);
 
   const ladeEuZonen = async () => {
+    const laender = laenderFuerKoordinate(location[0], location[1]);
+    for (const code of laender) {
+      const quelle = quelleFuer(code);
+      if (quelle?.direktUrl) {
+        try {
+          const vorhanden = await dbService.getEuZonen();
+          if (!vorhanden.some(v => v.land === code)) {
+            const url = `/api/zonen/${code}`;
+            const res = await fetch(url);
+            if (res.ok) {
+              const text = await res.text();
+              const zonen = parseEd269(text);
+              await dbService.saveEuZonen({ land: code, zonen, anzahl: zonen.length, importiertAm: Date.now() });
+            }
+          }
+        } catch (err) {
+          console.warn(`Auto-Fetch für Geozonen ${code} fehlgeschlagen:`, err);
+        }
+      }
+    }
     const eintraege = await dbService.getEuZonen();
     const alle = eintraege.flatMap(e => e.zonen as Ed269Zone[]);
     setEuZonen(zonenInUmkreis(alle, location[0], location[1]));
@@ -793,6 +1044,22 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
           </Marker>
         ))}
 
+        {/* Saved Favorite Locations */}
+        {locationFavorites.map(fav => (
+          <Marker key={fav.id} position={fav.coordinates} icon={favoriteLocationIcon}>
+            <Popup>
+              <div className="p-1 text-xs min-w-[150px]">
+                <div className="flex items-center gap-1 mb-1">
+                  <span className="text-amber-500 font-bold">★</span>
+                  <p className="font-bold text-slate-900">{fav.name}</p>
+                </div>
+                <p className="text-slate-500 font-medium">{fav.locationName}</p>
+                {fav.notes && <p className="text-slate-400 italic text-[10px] mt-1">{fav.notes}</p>}
+              </div>
+            </Popup>
+          </Marker>
+        ))}
+
         <MapEvents />
         <Recenter center={location} />
 
@@ -877,20 +1144,25 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
       </div>
 
       <div className="absolute bottom-6 left-4 right-4 z-[400]">
-        <div className="bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-white/50 flex items-center justify-between">
+        <button 
+          onClick={() => setZeigePreFlightSafety(true)}
+          className="w-full bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-white/50 flex items-center justify-between hover:bg-white active:scale-[0.98] transition-all text-left group"
+        >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-brand-green/20 flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6 text-brand-green" />
+            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ShieldCheck className="w-6 h-6 text-emerald-500" />
             </div>
             <div>
-              <p className="text-xs font-bold text-slate-800">Status: Flugbereit</p>
-              <p className="text-[10px] text-slate-500 font-medium">UAS-Kategorie Open A1/A3</p>
+              <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                Vorflug-Sicherheitsanalyse & Kp-Index
+              </p>
+              <p className="text-[10px] text-slate-500 font-medium">Klick für 0-100% Sicherheits-Check</p>
             </div>
           </div>
-          <button className="bg-brand-blue text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-brand-blue/20">
-            Check OK
-          </button>
-        </div>
+          <span className="bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 group-hover:bg-emerald-600 transition-colors">
+            Score
+          </span>
+        </button>
       </div>
 
       {zeigeKarten && (
@@ -906,6 +1178,16 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, onPlaner }
         <EuZonesDialog
           onClose={() => setZeigeEuZonen(false)}
           onGeaendert={ladeEuZonen}
+        />
+      )}
+
+      {zeigePreFlightSafety && (
+        <PreFlightSafetyDialog
+          weather={weather}
+          drone={null}
+          battery={null}
+          profile={null}
+          onClose={() => setZeigePreFlightSafety(false)}
         />
       )}
     </div>
@@ -1415,8 +1697,8 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
                       </span>
                     )}
                     {wartungsKosten > 0 && (
-                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">
-                        &bull; {wartungsKosten.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 })} € Wartung
+                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex items-center gap-1">
+                        <span className="text-brand-blue">€</span> {wartungsKosten.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     )}
                   </div>
@@ -1724,12 +2006,12 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
 
       <div className="flex items-center justify-between mb-6 pt-4 border-t border-slate-200">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-orange">{t('view.akkus')}</h2>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.akkus')}</h2>
           <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Inventar & Zyklen</p>
         </div>
         <button 
           onClick={() => setShowAddBattery(!showAddBattery)}
-          className="bg-brand-orange text-white p-2.5 rounded-2xl shadow-lg shadow-brand-orange/20 transition-transform active:scale-95"
+          className="bg-brand-blue text-white p-2.5 rounded-2xl shadow-lg shadow-brand-blue/20 transition-transform active:scale-95"
         >
           {showAddBattery ? <XCircle className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
         </button>
@@ -1756,7 +2038,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
               </div>
               <button 
                 onClick={handleAddBattery}
-                className="w-full bg-brand-orange text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-orange/20 active:scale-95 transition-all text-sm"
+                className="w-full bg-brand-blue text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-blue/20 active:scale-95 transition-all text-sm"
               >
                 Akku Registrieren
               </button>
@@ -1842,7 +2124,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   );
 }
 
-function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void }) {
+function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void, onOpenEid?: () => void }) {
   const { t } = useSprache();
   const [showVorfall, setShowVorfall] = useState(false);
   const [showRisiko, setShowRisiko] = useState(false);
@@ -1855,9 +2137,20 @@ function SafetyView({ profile, drones, onBehoerdenCheck }: { profile: UserProfil
 
   return (
     <div className="max-w-md mx-auto pb-20">
-      <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
-        <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Notfall-Leitfaden & LBA Meldung</p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Notfall-Leitfaden & LBA Meldung</p>
+        </div>
+        {onOpenEid && (
+          <button
+            onClick={onOpenEid}
+            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 shadow-sm hover:border-slate-300 active:scale-95 transition-all"
+          >
+            <ShieldCheck className="w-4 h-4 text-sky-500" />
+            <span>e-ID Verwalten</span>
+          </button>
+        )}
       </div>
 
       {/* Behörden-Check: schneller Zugriff für eine Kontrolle unterwegs. */}
@@ -2050,7 +2343,7 @@ function RoadmapView() {
   );
 }
 
-function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | null, documents: AppDocument[], onUpdate: () => void }) {
+function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPinSetup }: { profile: UserProfile | null, documents: AppDocument[], onUpdate: () => void, onOpenEid?: () => void, onOpenPinSetup?: () => void }) {
   const { t } = useSprache();
   const [isEditing, setIsEditing] = useState(!profile);
   const [editedProfile, setEditedProfile] = useState<Partial<UserProfile>>(profile || { id: 'main_profile' });
@@ -2225,6 +2518,15 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
             {profile?.isBOS && (
               <div className="bg-brand-red text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">BOS Pilot</div>
             )}
+            {onOpenPinSetup && (
+              <button
+                onClick={onOpenPinSetup}
+                className="p-2.5 text-slate-400 hover:text-sky-600 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
+                title="PIN-Sperre verwalten"
+              >
+                <Lock className="w-5 h-5" />
+              </button>
+            )}
             {profile && (
               <button
                 onClick={exportPilotBadge}
@@ -2262,9 +2564,14 @@ function ProfileView({ profile, documents, onUpdate }: { profile: UserProfile | 
 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-slate-50 rounded-2xl">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">LBA e-ID</p>
-                  <p className="text-xs font-bold text-slate-800">{profile?.eid || 'Nicht hinterlegt'}</p>
+                <div className="p-3 bg-slate-50 rounded-2xl relative">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">LBA e-ID</p>
+                    {onOpenEid && (
+                      <button onClick={onOpenEid} className="text-[10px] font-bold text-sky-600 hover:underline">Verwalten</button>
+                    )}
+                  </div>
+                  <p className="text-xs font-bold text-slate-800 font-mono">{profile?.eid || 'Nicht hinterlegt'}</p>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-2xl">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Versicherung</p>
@@ -2575,7 +2882,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
   );
 }
 
-function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLocation }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, onUpdate: () => void, currentLocation: [number, number] }) {
+function LogbookView({ flights, drones, batteries, profile, locationFavorites = [], onUpdate, currentLocation, onOpenFavorites }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, locationFavorites?: LocationFavorite[], onUpdate: () => void, currentLocation: [number, number], onOpenFavorites?: () => void }) {
   const { t } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
@@ -2614,6 +2921,8 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
       locationName: newFlight.locationName || 'Unbekannter Ort',
       coordinates: currentLocation,
       purpose: newFlight.purpose || 'Hobby',
+      coPilotName: newFlight.coPilotName || undefined,
+      isNightFlight: !!newFlight.isNightFlight,
       notes: newFlight.notes || '',
       createdAt: Date.now()
     });
@@ -3047,8 +3356,38 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
                 </div>
               </div>
                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Einsatzort</label>
-                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="Berlin Tiergarten" value={newFlight.locationName || ''} onChange={e => setNewFlight({...newFlight, locationName: e.target.value})} />
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">Einsatzort</label>
+                    {onOpenFavorites && (
+                      <button
+                        type="button"
+                        onClick={onOpenFavorites}
+                        className="text-[10px] font-bold text-amber-500 hover:underline flex items-center gap-1"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        <span>Favoriten</span>
+                      </button>
+                    )}
+                  </div>
+                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="z.B. Griesheim, Flugplatz" value={newFlight.locationName || ''} onChange={e => setNewFlight({...newFlight, locationName: e.target.value})} />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Zweiter Fernpilot / Co-Pilot</label>
+                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="Name Co-Pilot / Beobachter" value={newFlight.coPilotName || ''} onChange={e => setNewFlight({...newFlight, coPilotName: e.target.value})} />
+                  </div>
+                  <div className="flex flex-col justify-end">
+                    <label className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer text-xs font-semibold text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={!!newFlight.isNightFlight}
+                        onChange={e => setNewFlight({...newFlight, isNightFlight: e.target.checked})}
+                        className="rounded text-brand-blue"
+                      />
+                      <Moon className="w-4 h-4 text-indigo-500" />
+                      <span>Nachtflug</span>
+                    </label>
+                  </div>
                 </div>
               <button 
                 onClick={handleManualAdd}
@@ -3140,6 +3479,18 @@ function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLoc
                   <div className="flex items-center gap-2 mt-1">
                     <p className="text-[10px] text-slate-500 font-medium">{flight.duration} Minuten</p>
                     <div className="flex gap-1">
+                      {flight.isNightFlight && (
+                        <div className="flex items-center gap-0.5 px-1 bg-indigo-50 rounded border border-indigo-100">
+                          <Moon className="w-2.5 h-2.5 text-indigo-600" />
+                          <span className="text-[8px] font-black text-indigo-600 uppercase">Nachtflug</span>
+                        </div>
+                      )}
+                      {flight.coPilotName && (
+                        <div className="flex items-center gap-0.5 px-1 bg-sky-50 rounded border border-sky-100">
+                          <User className="w-2.5 h-2.5 text-sky-600" />
+                          <span className="text-[8px] font-black text-sky-600 uppercase">Co: {flight.coPilotName}</span>
+                        </div>
+                      )}
                       {flight.weather && (flight.weather.windSpeed > 15 || flight.weather.temp > 30) && (
                         <div className="flex items-center gap-0.5 px-1 bg-amber-50 rounded border border-amber-100">
                           <Wind className="w-2.5 h-2.5 text-amber-500" />
