@@ -40,23 +40,41 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
   }, [vorschau, drohnen, ersatzDrohne]);
 
   const dateiGewaehlt = async (e: ChangeEvent<HTMLInputElement>) => {
-    const datei = e.target.files?.[0];
-    if (!datei) return;
-    setDateiName(datei.name);
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
+    const dateien: File[] = Array.from(fileList);
+    setDateiName(dateien.length === 1 ? dateien[0].name : `${dateien.length} Dateien`);
     setLeseFehler(null);
     try {
-      const text = await datei.text();
-      // DJI-SRT (Videotelemetrie) und CSV teilen sich denselben Vorschau-Weg.
-      const v = istSrt(datei.name, text)
-        ? baueVorschauAusSrt(text, vorhandeneFluege)
-        : baueVorschau(text, vorhandeneFluege);
+      // Jede Datei einzeln parsen (CSV/SRT gemischt möglich) und die Kandidaten
+      // zu einer gemeinsamen Vorschau bündeln. Die Spaltenzuordnung stammt von
+      // der ersten CSV-Datei; bei reinen SRT-Importen bleibt sie leer.
+      const teile = await Promise.all(dateien.map(async d => {
+        const text = await d.text();
+        const v = istSrt(d.name, text)
+          ? baueVorschauAusSrt(text, vorhandeneFluege)
+          : baueVorschau(text, vorhandeneFluege);
+        return { name: d.name, v };
+      }));
+
+      const kandidaten = teile.flatMap(t => t.v.kandidaten);
+      const fehler = teile.flatMap(t =>
+        t.v.fehler.map(f => (dateien.length > 1 ? `${t.name}: ${f}` : f)));
+      const ersteMitSpalten = teile.find(t => Object.keys(t.v.zuordnung).length > 0)?.v;
+
+      const v: ImportVorschau = {
+        kandidaten,
+        fehler,
+        zuordnung: ersteMitSpalten?.zuordnung ?? {},
+        nichtZugeordnet: ersteMitSpalten?.nichtZugeordnet ?? [],
+      };
       setVorschau(v);
       // Dubletten standardmäßig abwählen — der häufigste Fall beim
       // wiederholten Import derselben Datei.
-      setAbgewaehlt(new Set(v.kandidaten.map((k, i) => (k.dubletteVon ? i : -1)).filter(i => i >= 0)));
+      setAbgewaehlt(new Set(kandidaten.map((k, i) => (k.dubletteVon ? i : -1)).filter(i => i >= 0)));
     } catch {
       setVorschau(null);
-      setLeseFehler('Die Datei konnte nicht gelesen werden.');
+      setLeseFehler('Mindestens eine Datei konnte nicht gelesen werden.');
     }
   };
 
@@ -116,9 +134,9 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
             <>
               <label className="block border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center cursor-pointer hover:border-brand-blue/40 transition-colors">
                 <Upload className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                <p className="text-xs font-bold text-slate-700">Datei auswählen</p>
-                <p className="text-[10px] text-slate-400 mt-1">CSV (Airdata UAV, DJI Fly) oder DJI-SRT (Videotelemetrie)</p>
-                <input type="file" accept=".csv,text/csv,.srt,application/x-subrip" className="hidden" onChange={dateiGewaehlt} />
+                <p className="text-xs font-bold text-slate-700">Dateien auswählen</p>
+                <p className="text-[10px] text-slate-400 mt-1">Eine oder mehrere · CSV (Airdata UAV, DJI Fly) oder DJI-SRT</p>
+                <input type="file" multiple accept=".csv,text/csv,.srt,application/x-subrip" className="hidden" onChange={dateiGewaehlt} />
               </label>
               {drohnen.length === 0 && (
                 <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
