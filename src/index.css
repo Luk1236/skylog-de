@@ -45,6 +45,11 @@
   --color-brand-green:  #34d399;
   --color-brand-orange: #fb923c;
 
+  /* red-500 aufhellen: der kleine rote Zähler-Badge trägt weißen Text, der im
+     Dunkelmodus dunkel wird; auf sattem Rot (oklch) käme er sonst nur auf ~3.8
+     Kontrast. Aufgehellt trägt dunkler Text ~5.3 und bleibt klar rot. */
+  --color-red-500:    #f87171;
+
   /* helle Tönungen der Signalfarben abdunkeln */
   --color-blue-50:    #172554;
   --color-blue-100:   #1e3a8a;
