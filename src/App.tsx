@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, ChangeEvent } from 'react';
+import { useState, useEffect, useMemo, useRef, ChangeEvent } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { 
   Plane, 
@@ -110,6 +110,7 @@ import {
   FlightImportDialog, BehoerdenCheckDialog, IncidentReportDialog, FlightTrackDialog,
   StatisticsDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog,
   SoraWizardDialog, CloudBackupDialog, StaffelMatrixDialog, PreFlightSafetyDialog,
+  ManualLocationDialog,
 } from './components/lazyDialogs';
 import { isPinEnabled } from './services/pinProtection';
 import type { LocationFavorite, Customer } from './services/db';
@@ -185,6 +186,12 @@ export default function App() {
   const [location, setLocation] = useState<[number, number]>([52.52, 13.40]);
   const [isLocating, setIsLocating] = useState(false);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [showManualLocation, setShowManualLocation] = useState(false);
+  // Merkt sich, ob der Standort von Hand gesetzt wurde. Dann nervt die
+  // wiederkehrende GPS-Abfrage nicht mehr mit dem Fehler-Banner und
+  // überschreibt den gewählten Ort nicht. Ref statt State, weil die
+  // Tracking-Schleife (useEffect mit []) den aktuellen Wert lesen muss.
+  const manuellerStandort = useRef(false);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -229,6 +236,8 @@ export default function App() {
     const locateAndUpdate = () => {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
+          // Echtes GPS ist verfügbar — es hat Vorrang, der Handbetrieb endet.
+          manuellerStandort.current = false;
           const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
           setLocation(newLoc);
           setGpsError(null);
@@ -241,6 +250,8 @@ export default function App() {
         },
         (err) => {
           setIsLocating(false);
+          // Nach manuell gesetztem Standort nicht weiter mit dem Banner nerven.
+          if (manuellerStandort.current) return;
           if (err.code === 1) setGpsError('GPS-Zugriff verweigert. Bitte Standort in den Browser-Einstellungen erlauben.');
           else if (err.code === 3) setGpsError('GPS-Timeout. Standort konnte nicht ermittelt werden.');
         },
@@ -392,7 +403,13 @@ export default function App() {
               {gpsError && (
                 <div className="absolute top-4 left-4 right-4 z-[500] bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  {gpsError}
+                  <span className="flex-1">{gpsError}</span>
+                  <button
+                    onClick={() => setShowManualLocation(true)}
+                    className="shrink-0 bg-white/25 hover:bg-white/35 rounded-lg px-2 py-1 text-[11px] font-bold"
+                  >
+                    Manuell setzen
+                  </button>
                 </div>
               )}
               {(() => {
@@ -576,6 +593,20 @@ export default function App() {
           startLon={location[1]}
           locationFavorites={locationFavorites}
           onClose={() => setShowPlaner(false)}
+        />
+      )}
+
+      {showManualLocation && (
+        <ManualLocationDialog
+          aktuell={location}
+          onPick={(lat, lon) => {
+            manuellerStandort.current = true;
+            setLocation([lat, lon]);
+            setGpsError(null);
+            fetchWeather(lat, lon).then(setWeather);
+            setShowManualLocation(false);
+          }}
+          onClose={() => setShowManualLocation(false)}
         />
       )}
 

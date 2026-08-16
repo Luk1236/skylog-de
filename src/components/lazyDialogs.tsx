@@ -68,3 +68,5 @@ export const StaffelMatrixDialog = lazyDialog(() =>
   import('./StaffelMatrixDialog').then(m => ({ default: m.StaffelMatrixDialog })));
 export const PreFlightSafetyDialog = lazyDialog(() =>
   import('./PreFlightSafetyDialog').then(m => ({ default: m.PreFlightSafetyDialog })));
+export const ManualLocationDialog = lazyDialog(() =>
+  import('./ManualLocationDialog').then(m => ({ default: m.ManualLocationDialog })));
