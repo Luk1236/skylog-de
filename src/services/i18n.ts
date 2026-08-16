@@ -26,6 +26,7 @@ export const TEXTE = {
   'nav.profil': { de: 'Profil', en: 'Profile' },
   'nav.flotte': { de: 'Flotte', en: 'Fleet' },
   'nav.mehr': { de: 'Mehr', en: 'More' },
+  'nav.roadmap': { de: 'Roadmap', en: 'Roadmap' },
 
   // „Mehr"-Blatt
   'mehr.einstellungen': { de: 'Einstellungen', en: 'Settings' },
