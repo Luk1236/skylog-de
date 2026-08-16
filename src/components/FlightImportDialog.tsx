@@ -9,6 +9,7 @@ import {
   type ImportVorschau,
   type SpaltenTreffer,
 } from '../services/flightImport';
+import { baueVorschauAusSrt, istSrt } from '../services/djiSrt';
 
 interface Props {
   drohnen: Drone[];
@@ -45,7 +46,10 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
     setLeseFehler(null);
     try {
       const text = await datei.text();
-      const v = baueVorschau(text, vorhandeneFluege);
+      // DJI-SRT (Videotelemetrie) und CSV teilen sich denselben Vorschau-Weg.
+      const v = istSrt(datei.name, text)
+        ? baueVorschauAusSrt(text, vorhandeneFluege)
+        : baueVorschau(text, vorhandeneFluege);
       setVorschau(v);
       // Dubletten standardmäßig abwählen — der häufigste Fall beim
       // wiederholten Import derselben Datei.
@@ -99,7 +103,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
         <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
           <div>
             <h3 className="font-black text-slate-900">Flüge importieren</h3>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest">Aus Flugaufzeichnung (CSV)</p>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest">Aus Flugaufzeichnung (CSV oder DJI-SRT)</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100" aria-label="Schließen">
             <X className="w-5 h-5 text-slate-400" />
@@ -112,9 +116,9 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
             <>
               <label className="block border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center cursor-pointer hover:border-brand-blue/40 transition-colors">
                 <Upload className="w-8 h-8 text-slate-300 mx-auto mb-3" />
-                <p className="text-xs font-bold text-slate-700">CSV-Datei auswählen</p>
-                <p className="text-[10px] text-slate-400 mt-1">z. B. Export aus Airdata UAV, DJI Fly CSV, etc.</p>
-                <input type="file" accept=".csv,text/csv" className="hidden" onChange={dateiGewaehlt} />
+                <p className="text-xs font-bold text-slate-700">Datei auswählen</p>
+                <p className="text-[10px] text-slate-400 mt-1">CSV (Airdata UAV, DJI Fly) oder DJI-SRT (Videotelemetrie)</p>
+                <input type="file" accept=".csv,text/csv,.srt,application/x-subrip" className="hidden" onChange={dateiGewaehlt} />
               </label>
               {drohnen.length === 0 && (
                 <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
