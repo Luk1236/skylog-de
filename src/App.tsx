@@ -84,6 +84,7 @@ import {
 import { cn } from './lib/utils';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile, type UASClass, type MaintenanceRecord, type Pilot, type SparePart } from './services/db';
 import { fetchWeather, fetchForecast, minutesUntilSunset, type WeatherData, type ForecastHour } from './services/weather';
+import { bewerteFlugfenster, besteStunde, sonnenuntergangStunde, type FensterBewertung } from './services/flightWindow';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from './services/notam';
 import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
@@ -4143,14 +4144,31 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                   {/* Luftfahrtwetter der nächsten Flugplatz-Station (METAR/TAF) */}
                   <AviationWeatherPanel lat={currentLocation[0]} lon={currentLocation[1]} />
 
-                  {/* 6h Wettervorhersage */}
-                  {forecast.length > 0 && (
+                  {/* 6h Wettervorhersage mit Flugfenster-Bewertung */}
+                  {forecast.length > 0 && (() => {
+                    const fenster = bewerteFlugfenster(
+                      forecast,
+                      selectedDrone?.maxWindSpeed ?? 28,
+                      sonnenuntergangStunde(sunset),
+                    );
+                    const beste = besteStunde(fenster);
+                    const rahmen: Record<FensterBewertung, string> = {
+                      gut: 'border-brand-green/50 bg-brand-green/5',
+                      grenzwertig: 'border-amber-400/60 bg-amber-50',
+                      schlecht: 'border-brand-red/40 bg-brand-red/5',
+                      nacht: 'border-slate-300 bg-slate-100',
+                    };
+                    return (
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 text-center tracking-widest">6h Vorhersage</p>
-                      <p className="text-[9px] text-slate-400 mb-3 text-center">Wind am Boden · ↑ auf 120 m · ⇡ Böen</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 text-center tracking-widest">6h Flugfenster</p>
+                      <p className="text-[9px] text-slate-400 mb-2 text-center">
+                        {beste
+                          ? <>Beste Zeit: <span className="font-black text-brand-green">{beste.time}</span> ({beste.maxWindKmh} km/h)</>
+                          : <span className="font-black text-brand-red">Keine geeignete Stunde in den nächsten 6 h</span>}
+                      </p>
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {forecast.map((h, i) => (
-                          <div key={i} className="flex flex-col items-center gap-1 min-w-[64px] bg-white rounded-xl p-2 border border-slate-100 shrink-0">
+                          <div key={i} className={cn('flex flex-col items-center gap-1 min-w-[64px] rounded-xl p-2 border shrink-0', rahmen[fenster[i].bewertung])}>
                             <span className="text-[9px] font-black text-brand-blue">{h.time}</span>
                             <span className="text-xs font-bold text-slate-800">{h.temp}°</span>
                             {/* Bodenwind / Wind auf Flughöhe — der obere Wert ist der relevante. */}
@@ -4170,7 +4188,8 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
                         ))}
                       </div>
                     </div>
-                  )}
+                    );
+                  })()}
 
                   {/* Live NOTAMs */}
                   {(profile?.notamClientId && profile?.notamClientSecret) ? (
