@@ -93,6 +93,8 @@ export interface Flight {
   startTime: string;
   endTime: string;
   duration: number; // total minutes
+  maxAltitude?: number;
+  distanceKm?: number;
   legs?: FlightLeg[];
   track?: TrackPoint[];  // optionale Flugaufzeichnung (GPS/Höhe/Speed/Akku über Zeit)
   media?: FlightMedia[]; // an den Flug gehängte Bilder
@@ -112,10 +114,34 @@ export interface Flight {
     startVoltage?: number;
     endVoltage?: number;
   };
+  coPilotName?: string;
+  isNightFlight?: boolean;
+  customerId?: string;
+  projectName?: string;
   purpose?: 'Hobby' | 'Gewerblich' | 'Inspektion' | 'Kamerafahrt' | 'Training';
   incidents?: string;
   incidentPhoto?: string;
   notes: string;
+  createdAt: number;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  notes?: string;
+  createdAt: number;
+}
+
+export interface LocationFavorite {
+  id: string;
+  name: string;
+  locationName: string;
+  coordinates: [number, number];
+  notes?: string;
   createdAt: number;
 }
 
@@ -212,8 +238,11 @@ const FLIGHTPLANS_STORE = 'flightplans';
 const MAPREGIONS_STORE = 'mapregions';
 const EUZONES_STORE = 'euzones';
 
+const LOCATION_FAVORITES_STORE = 'location_favorites';
+const CUSTOMERS_STORE = 'customers';
+
 async function getDB(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, 9, {
+  return openDB(DB_NAME, 11, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(DRONES_STORE)) {
         db.createObjectStore(DRONES_STORE, { keyPath: 'id' });
@@ -247,6 +276,14 @@ async function getDB(): Promise<IDBPDatabase> {
       // v9: importierte ED-269-Geozonen fremder Laender, je Land ein Eintrag.
       if (!db.objectStoreNames.contains(EUZONES_STORE)) {
         db.createObjectStore(EUZONES_STORE, { keyPath: 'land' });
+      }
+      // v10: Standort-Favoriten.
+      if (!db.objectStoreNames.contains(LOCATION_FAVORITES_STORE)) {
+        db.createObjectStore(LOCATION_FAVORITES_STORE, { keyPath: 'id' });
+      }
+      // v11: CRM Kundenstamm.
+      if (!db.objectStoreNames.contains(CUSTOMERS_STORE)) {
+        db.createObjectStore(CUSTOMERS_STORE, { keyPath: 'id' });
       }
     },
   });
@@ -449,5 +486,35 @@ export const dbService = {
     for (const doc of payload.documents) tx.objectStore(DOCUMENTS_STORE).put(doc);
     if (payload.profile) tx.objectStore(PROFILE_STORE).put(payload.profile);
     await tx.done;
+  },
+
+  // Standort-Favoriten
+  async getLocationFavorites(): Promise<LocationFavorite[]> {
+    const db = await getDB();
+    const alle = await db.getAll(LOCATION_FAVORITES_STORE);
+    return alle.sort((a, b) => b.createdAt - a.createdAt);
+  },
+  async saveLocationFavorite(fav: LocationFavorite): Promise<void> {
+    const db = await getDB();
+    await db.put(LOCATION_FAVORITES_STORE, fav);
+  },
+  async deleteLocationFavorite(id: string): Promise<void> {
+    const db = await getDB();
+    await db.delete(LOCATION_FAVORITES_STORE, id);
+  },
+
+  // CRM Kundenstamm
+  async getCustomers(): Promise<Customer[]> {
+    const db = await getDB();
+    const alle = await db.getAll(CUSTOMERS_STORE);
+    return alle.sort((a, b) => a.name.localeCompare(b.name));
+  },
+  async saveCustomer(customer: Customer): Promise<void> {
+    const db = await getDB();
+    await db.put(CUSTOMERS_STORE, customer);
+  },
+  async deleteCustomer(id: string): Promise<void> {
+    const db = await getDB();
+    await db.delete(CUSTOMERS_STORE, id);
   }
 };
