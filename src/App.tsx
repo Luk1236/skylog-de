@@ -2916,12 +2916,18 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
   const [trackFlight, setTrackFlight] = useState<Flight | null>(null);
   const [mediaFlight, setMediaFlight] = useState<Flight | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const [exportJahr, setExportJahr] = useState<string>('alle');
   const touchStartX = { current: 0 };
 
   const todayStr = new Date().toISOString().split('T')[0];
   const validFlights = flights
     .filter(f => f.date <= todayStr)
     .sort((a,b) => b.createdAt - a.createdAt);
+
+  // Jahre, aus denen Flüge vorliegen — für den Jahr-Filter beim PDF-Export.
+  const verfuegbareJahre = Array.from(
+    new Set(validFlights.map(f => (f.date || '').slice(0, 4)).filter(Boolean))
+  ).sort().reverse();
 
   // Einmal berechnen statt zweimal pro Render (Bedingung + Liste).
   // getLastBackupAt() liest localStorage, ist also nicht gratis.
@@ -3002,29 +3008,54 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
       import('jspdf-autotable'),
     ]);
     const doc = new jsPDF();
-    
+
+    // Auf das gewählte Jahr eingrenzen (oder alle).
+    const fluege = exportJahr === 'alle'
+      ? validFlights
+      : validFlights.filter(f => (f.date || '').startsWith(exportJahr));
+    const zeitraum = exportJahr === 'alle' ? 'Gesamt' : exportJahr;
+
     // Header
     doc.setFontSize(22);
     doc.setTextColor(0, 56, 123); // Brand Blue
-    doc.text('Fluglogbuch & Dokumentation', 14, 22);
-    
+    doc.text(`Fluglogbuch & Betriebsnachweis ${exportJahr === 'alle' ? '' : exportJahr}`.trim(), 14, 22);
+
     doc.setFontSize(10);
     doc.setTextColor(100);
     doc.text(`Generiert am: ${new Date().toLocaleDateString('de-DE')} ${new Date().toLocaleTimeString('de-DE')}`, 14, 30);
-    
+
     // Pilot Section
     doc.setFontSize(14);
     doc.setTextColor(50);
     doc.text('Piloten-Informationen', 14, 45);
-    
+
     doc.setFontSize(10);
     doc.text(`Name: ${profile?.name || 'Nicht angegeben'}`, 14, 52);
     doc.text(`LBA e-ID: ${profile?.eid || 'Nicht angegeben'}`, 14, 57);
     doc.text(`Lizenz: ${profile?.licenseType || 'Keine'}`, 80, 52);
     doc.text(`Versicherung: ${profile?.insuranceNumber || 'Nicht angegeben'}`, 80, 57);
-    
+
+    // Betriebsnachweis: Summen über den gewählten Zeitraum.
+    const gesMin = fluege.reduce((s, f) => s + (f.duration || 0), 0);
+    const gesStd = Math.floor(gesMin / 60);
+    const restMin = gesMin % 60;
+    const aktiveTage = new Set(fluege.map(f => f.date)).size;
+    const vorfaelle = fluege.filter(f => f.incidents && f.incidents.trim()).length;
+    const genutzteDrohnen = new Set(fluege.map(f => f.droneId)).size;
+
+    doc.setFontSize(14);
+    doc.setTextColor(50);
+    doc.text(`Betriebsnachweis (${zeitraum})`, 14, 70);
+    doc.setFontSize(10);
+    doc.setTextColor(80);
+    doc.text(`Flüge: ${fluege.length}`, 14, 77);
+    doc.text(`Flugzeit: ${gesStd} h ${restMin} min`, 60, 77);
+    doc.text(`Aktive Tage: ${aktiveTage}`, 120, 77);
+    doc.text(`Genutzte Drohnen: ${genutzteDrohnen}`, 14, 83);
+    doc.text(`Vorfälle: ${vorfaelle}`, 60, 83);
+
     // Table
-    const tableData = validFlights.map(f => {
+    const tableData = fluege.map(f => {
       const drone = drones.find(d => d.id === f.droneId);
       return [
         f.date,
@@ -3038,7 +3069,7 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
     });
     
     autoTable(doc, {
-      startY: 65,
+      startY: 90,
       head: [['Datum', 'Drohne', 'Zeitraum', 'Dauer', 'Ort', 'Zweck', 'Bemerkungen']],
       body: tableData,
       theme: 'grid',
@@ -3049,7 +3080,7 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
       }
     });
     
-    doc.save(`skylog_de_logbuch_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`skylog_de_logbuch_${exportJahr === 'alle' ? 'gesamt' : exportJahr}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   const exportToKML = () => {
@@ -3124,10 +3155,21 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
           <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Statistik & Dokumentation</p>
         </div>
         <div className="flex gap-2">
+          {verfuegbareJahre.length > 0 && (
+            <select
+              value={exportJahr}
+              onChange={e => setExportJahr(e.target.value)}
+              title="Zeitraum für den PDF-Export"
+              className="bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold text-slate-600 px-2"
+            >
+              <option value="alle">Alle</option>
+              {verfuegbareJahre.map(j => <option key={j} value={j}>{j}</option>)}
+            </select>
+          )}
           <button
              onClick={exportToPDF}
              className="p-2.5 text-slate-400 hover:text-brand-orange bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Export PDF"
+             title="Export PDF (Betriebsnachweis)"
           >
              <FileDigit className="w-5 h-5" />
           </button>
