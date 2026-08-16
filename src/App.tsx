@@ -64,6 +64,9 @@ import {
   Layers,
   DownloadCloud,
   Globe2,
+  Globe,
+  Landmark,
+  FileText,
   X,
   PlusCircle
 } from 'lucide-react';
@@ -96,7 +99,8 @@ import { OfflineBasemap } from './components/OfflineBasemap';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
 import { EuZoneLayer } from './components/EuZoneLayer';
 import { zonenInUmkreis, parseEd269, type Ed269Zone } from './services/ed269';
-import { laenderFuerKoordinate, quelleFuer } from './services/euZones';
+import { laenderFuerKoordinate, quelleFuer, ZONEN_QUELLEN } from './services/euZones';
+import { DEUTSCHLAND_QUELLEN, EU_QUELLEN, RECHTSGRUNDLAGEN, type Amtslink } from './services/behoerden';
 import { regionenFuerStandort } from './services/mapRegions';
 import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
 import type { PMTiles } from 'pmtiles';
@@ -4601,24 +4605,76 @@ function KnowledgeView() {
         ))}
       </div>
 
-      <div className="mt-10 p-6 bg-slate-900 rounded-3xl text-white">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-white/20 rounded-xl">
-            <ExternalLink className="w-5 h-5" />
+      {/* Behörden- und Rechts-Verzeichnis */}
+      <div className="mt-12 space-y-8">
+        <AmtslinkGruppe titel="Behörden in Deutschland" icon={Landmark} links={DEUTSCHLAND_QUELLEN} />
+        <AmtslinkGruppe titel="EU-Ebene" icon={Scale} links={EU_QUELLEN} />
+        <AmtslinkGruppe titel="Rechtsgrundlagen (EU-Verordnungen)" icon={FileText} links={RECHTSGRUNDLAGEN} />
+
+        <div>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-brand-blue/10 rounded-xl">
+              <Globe className="w-5 h-5 text-brand-blue" />
+            </div>
+            <h3 className="font-bold text-slate-900 uppercase tracking-wider text-xs">Amtliche Geozonen nach Land</h3>
           </div>
-          <h4 className="font-bold">Mehr Details</h4>
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
+            {ZONEN_QUELLEN.map(q => (
+              <a
+                key={q.code}
+                href={q.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-slate-50"
+              >
+                <span className="text-xs font-bold text-slate-700">{q.land}</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-300 shrink-0" />
+              </a>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
+            Links führen zu den amtlichen Geozonen-Quellen der jeweiligen Luftfahrtbehörde.
+          </p>
         </div>
-        <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-          Dies ist eine Zusammenfassung. Detaillierte und rechtlich bindende Informationen finden Sie auf der Webseite des Luftfahrt-Bundesamtes.
-        </p>
-        <a 
-          href="https://www.lba.de/DE/Drohnen/Drohnen_node.html" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-2.5 rounded-xl text-xs font-bold font-sans"
-        >
-          LBA Webseite öffnen <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+      </div>
+
+      <p className="mt-8 text-[10px] text-slate-400 leading-relaxed text-center">
+        Diese Sammlung ist eine Orientierungshilfe. Rechtlich bindend sind allein die amtlichen Quellen.
+      </p>
+    </div>
+  );
+}
+
+/** Eine Gruppe amtlicher Links als Karten-Liste in der Wissens-Ansicht. */
+function AmtslinkGruppe({ titel, icon: Icon, links }: {
+  titel: string;
+  icon: typeof Scale;
+  links: Amtslink[];
+}) {
+  return (
+    <div>
+      <div className="flex items-center gap-3 mb-4">
+        <div className="p-2 bg-brand-blue/10 rounded-xl">
+          <Icon className="w-5 h-5 text-brand-blue" />
+        </div>
+        <h3 className="font-bold text-slate-900 uppercase tracking-wider text-xs">{titel}</h3>
+      </div>
+      <div className="space-y-3">
+        {links.map((l, i) => (
+          <a
+            key={i}
+            href={l.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-start gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-brand-blue/40"
+          >
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-black text-slate-900 leading-snug">{l.name}</p>
+              <p className="text-[11px] text-slate-500 leading-relaxed mt-1">{l.beschreibung}</p>
+            </div>
+            <ExternalLink className="w-4 h-4 text-slate-300 shrink-0 mt-0.5" />
+          </a>
+        ))}
       </div>
     </div>
   );
