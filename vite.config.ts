@@ -47,6 +47,25 @@ export default defineConfig(() => {
     // Kein `define` für GEMINI_API_KEY: das würde den Schlüssel in den
     // Browser-Bundle einbacken. Er wird ausschließlich serverseitig benutzt
     // (server.ts bzw. api/safety-check.ts) und darf den Server nie verlassen.
+    build: {
+      // Schwere Fremdbibliotheken in eigene Vendor-Chunks trennen: kleinerer
+      // Haupt-Chunk (unter der Warnschwelle) und besseres Caching, weil sich
+      // diese Pakete selten ändern. jspdf/html2canvas liegen bereits durch
+      // dynamische Importe (Lazy-Dialoge) getrennt vor.
+      chunkSizeWarningLimit: 900,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) return undefined;
+            if (id.includes('protomaps') || id.includes('pmtiles')) return 'vendor-maps';
+            if (id.includes('react-leaflet') || id.includes('/leaflet/')) return 'vendor-leaflet';
+            if (id.includes('recharts') || id.includes('/d3-') || id.includes('victory')) return 'vendor-charts';
+            if (id.includes('framer-motion')) return 'vendor-motion';
+            return undefined;
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
