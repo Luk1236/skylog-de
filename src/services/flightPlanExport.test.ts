@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { alsGpx, alsKml, dateiname, xmlEscape } from './flightPlanExport';
+import { alsGpx, alsKml, alsLitchiCsv, dateiname, xmlEscape, STANDARD_HOEHE_M } from './flightPlanExport';
 import type { FlightPlan } from './db';
 
 const plan: FlightPlan = {
@@ -16,6 +16,41 @@ const plan: FlightPlan = {
 describe('xmlEscape', () => {
   it('entschärft alle fünf XML-Sonderzeichen', () => {
     expect(xmlEscape(`<a & "b" 'c'>`)).toBe('&lt;a &amp; &quot;b&quot; &apos;c&apos;&gt;');
+  });
+});
+
+describe('alsLitchiCsv', () => {
+  const csv = alsLitchiCsv({
+    id: 'm1', name: 'Mission', createdAt: 0,
+    wegpunkte: [
+      { lat: 48.1, lon: 7.9, alt: 50, speed: 18, aktion: 'foto' },
+      { lat: 48.2, lon: 8.0, aktion: 'hover', hoverSek: 5 },
+    ],
+  });
+  const zeilen = csv.split('\n');
+
+  it('hat die korrekte Litchi-Kopfzeile', () => {
+    expect(zeilen[0]).toBe(
+      'latitude,longitude,altitude(m),heading(deg),curvesize(m),rotationdir,gimbalmode,gimbalpitchangle,actiontype1,actionparam1,altitudemode,speed(m/s),poi_latitude,poi_longitude,poi_altitude(m),poi_altitudemode,photo_timeinterval,photo_distinterval'
+    );
+  });
+
+  it('schreibt Koordinaten, Höhe und Foto-Aktion (actiontype 1)', () => {
+    const f = zeilen[1].split(',');
+    expect(f[0]).toBe('48.100000');
+    expect(f[1]).toBe('7.900000');
+    expect(f[2]).toBe('50');       // Höhe
+    expect(f[8]).toBe('1');        // actiontype1 = Foto
+    expect(f[10]).toBe('0');       // altitudemode = über Start
+    expect(f[11]).toBe('5');       // 18 km/h -> 5 m/s
+  });
+
+  it('mappt Hover auf actiontype 0 mit Dauer in Millisekunden', () => {
+    const f = zeilen[2].split(',');
+    expect(f[8]).toBe('0');        // actiontype1 = Warten
+    expect(f[9]).toBe('5000');     // 5 s -> 5000 ms
+    expect(f[2]).toBe(String(STANDARD_HOEHE_M)); // keine Höhe -> Standard
+    expect(f[11]).toBe('0');       // kein Tempo -> global
   });
 });
 

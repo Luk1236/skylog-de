@@ -177,11 +177,21 @@ export interface Pilot {
   notiz?: string;
 }
 
-/** Ein geplanter Wegpunkt. Höhe optional (m über Grund). */
+/** Aktion an einem Wegpunkt (Teilmenge der Litchi-Aktionen). */
+export type WegpunktAktion = 'foto' | 'video-start' | 'video-stop' | 'hover';
+
+/** Ein geplanter Wegpunkt. Höhe über Startpunkt (m). Für Missions-Export
+ *  optional Tempo und eine Aktion je Punkt. */
 export interface Wegpunkt {
   lat: number;
   lon: number;
   alt?: number;
+  /** Fluggeschwindigkeit zu diesem Punkt in km/h (leer = App-Standard). */
+  speed?: number;
+  /** Aktion beim Erreichen des Punkts. */
+  aktion?: WegpunktAktion;
+  /** Schwebedauer in Sekunden, falls aktion === 'hover'. */
+  hoverSek?: number;
 }
 
 /** Ein benannter Flugplan — Route zum Vorbereiten und Wiederverwenden.

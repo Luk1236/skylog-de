@@ -3,14 +3,14 @@ import { MapContainer, TileLayer, Polyline, Marker, Rectangle, useMapEvents } fr
 import { X, Route, Trash2, ChevronUp, ChevronDown, Save, FolderOpen, AlertTriangle, MapPin, Download, Grid3x3 } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
-import { dbService, type FlightPlan, type Wegpunkt, type LocationFavorite } from '../services/db';
+import { dbService, type FlightPlan, type Wegpunkt, type WegpunktAktion, type LocationFavorite } from '../services/db';
 import {
   bewertePlan, formatStrecke, formatZeit,
   wegpunktHinzufuegen, wegpunktEntfernen, wegpunktVerschieben,
   STANDARD_SPEED_KMH,
 } from '../services/flightPlan';
 import { erzeugeRaster, type Rasterrichtung } from '../services/gridPlan';
-import { alsGpx, alsKml, dateiname } from '../services/flightPlanExport';
+import { alsGpx, alsKml, alsLitchiCsv, dateiname } from '../services/flightPlanExport';
 import { bestaetige } from '../services/dialog';
 import { useSprache } from '../lib/sprache';
 
@@ -84,23 +84,30 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
   /** Aktuelle Route als GPX oder KML herunterladen.
    *  Nutzt den eingegebenen Namen, fällt sonst auf "Flugplan" zurück —
    *  Exportieren soll nicht am fehlenden Namen scheitern. */
-  const exportieren = (endung: 'gpx' | 'kml') => {
+  const exportieren = (endung: 'gpx' | 'kml' | 'csv') => {
     const plan: FlightPlan = {
       id: 'export',
       name: name.trim() || 'Flugplan',
       wegpunkte,
       createdAt: Date.now(),
     };
-    const inhalt = endung === 'gpx' ? alsGpx(plan) : alsKml(plan);
+    const inhalt = endung === 'gpx' ? alsGpx(plan) : endung === 'kml' ? alsKml(plan) : alsLitchiCsv(plan);
     const typ = endung === 'gpx'
       ? 'application/gpx+xml'
-      : 'application/vnd.google-earth.kml+xml';
+      : endung === 'kml'
+        ? 'application/vnd.google-earth.kml+xml'
+        : 'text/csv';
     const url = URL.createObjectURL(new Blob([inhalt], { type: typ }));
     const a = document.createElement('a');
     a.href = url;
     a.download = dateiname(plan, endung);
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  /** Einen Wegpunkt teilweise aktualisieren (Höhe/Tempo/Aktion). */
+  const aktualisiereWegpunkt = (i: number, patch: Partial<Wegpunkt>) => {
+    setWegpunkte(w => w.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
   };
 
   const laden = (plan: FlightPlan) => {
@@ -303,23 +310,58 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     </button>
                   </div>
                   {wegpunkte.map((w, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2">
-                      <MapPin className="w-3.5 h-3.5 text-brand-blue shrink-0" />
-                      <span className="text-[11px] font-mono text-slate-600 flex-1">
-                        {i + 1}. {w.lat.toFixed(5)}, {w.lon.toFixed(5)}
-                      </span>
-                      <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, -1))} disabled={i === 0}
-                        aria-label={t('a11y.nachOben')} className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
-                        <ChevronUp className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, 1))} disabled={i === wegpunkte.length - 1}
-                        aria-label={t('a11y.nachUnten')} className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
-                        <ChevronDown className="w-3.5 h-3.5" />
-                      </button>
-                      <button onClick={() => setWegpunkte(v => wegpunktEntfernen(v, i))}
-                        aria-label={t('a11y.wegpunktEntfernen')} className="p-1 text-slate-300 hover:text-brand-red">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                    <div key={i} className="bg-white rounded-xl border border-slate-200 px-3 py-2 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-3.5 h-3.5 text-brand-blue shrink-0" />
+                        <span className="text-[11px] font-mono text-slate-600 flex-1">
+                          {i + 1}. {w.lat.toFixed(5)}, {w.lon.toFixed(5)}
+                        </span>
+                        <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, -1))} disabled={i === 0}
+                          aria-label={t('a11y.nachOben')} className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
+                          <ChevronUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, 1))} disabled={i === wegpunkte.length - 1}
+                          aria-label={t('a11y.nachUnten')} className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setWegpunkte(v => wegpunktEntfernen(v, i))}
+                          aria-label={t('a11y.wegpunktEntfernen')} className="p-1 text-slate-300 hover:text-brand-red">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {/* Missions-Parameter je Wegpunkt */}
+                      <div className="grid grid-cols-3 gap-1.5">
+                        <label className="flex items-center gap-1 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
+                          <span className="text-[9px] font-bold text-slate-400">H</span>
+                          <input type="number" inputMode="numeric" placeholder="m" aria-label={`Höhe Wegpunkt ${i + 1}`}
+                            value={w.alt ?? ''} onChange={e => aktualisiereWegpunkt(i, { alt: e.target.value ? Number(e.target.value) : undefined })}
+                            className="w-full bg-transparent text-[11px] font-mono focus:outline-none" />
+                        </label>
+                        <label className="flex items-center gap-1 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
+                          <span className="text-[9px] font-bold text-slate-400">km/h</span>
+                          <input type="number" inputMode="numeric" placeholder="Tempo" aria-label={`Tempo Wegpunkt ${i + 1}`}
+                            value={w.speed ?? ''} onChange={e => aktualisiereWegpunkt(i, { speed: e.target.value ? Number(e.target.value) : undefined })}
+                            className="w-full bg-transparent text-[11px] font-mono focus:outline-none" />
+                        </label>
+                        <select aria-label={`Aktion Wegpunkt ${i + 1}`}
+                          value={w.aktion ?? ''} onChange={e => aktualisiereWegpunkt(i, { aktion: (e.target.value || undefined) as WegpunktAktion | undefined })}
+                          className="bg-slate-50 rounded-lg px-2 py-1 border border-slate-100 text-[11px] font-bold text-slate-600 focus:outline-none">
+                          <option value="">—</option>
+                          <option value="foto">Foto</option>
+                          <option value="video-start">Video an</option>
+                          <option value="video-stop">Video aus</option>
+                          <option value="hover">Schweben</option>
+                        </select>
+                      </div>
+                      {w.aktion === 'hover' && (
+                        <label className="flex items-center gap-2 text-[10px] text-slate-500">
+                          Schwebedauer
+                          <input type="number" inputMode="numeric" value={w.hoverSek ?? ''} placeholder="Sek."
+                            onChange={e => aktualisiereWegpunkt(i, { hoverSek: e.target.value ? Number(e.target.value) : undefined })}
+                            className="w-16 bg-slate-50 rounded-lg px-2 py-0.5 border border-slate-100 font-mono focus:outline-none" />
+                          Sek.
+                        </label>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -328,6 +370,11 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
               {wegpunkte.length >= 2 && (
                 <div className="space-y-1.5">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('planer.exportieren')}</p>
+                  {/* Fliegbare Mission: Litchi kann diese Datei importieren und abfliegen. */}
+                  <button onClick={() => exportieren('csv')}
+                    className="w-full flex items-center justify-center gap-1.5 bg-brand-blue text-white rounded-xl py-2.5 text-xs font-bold active:scale-95">
+                    <Download className="w-3.5 h-3.5" /> Mission für Litchi (fliegbar)
+                  </button>
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => exportieren('gpx')}
                       className="flex items-center justify-center gap-1.5 bg-white border border-slate-200 rounded-xl py-2.5 text-xs font-bold text-slate-700 active:scale-95">
@@ -338,6 +385,10 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                       <Download className="w-3.5 h-3.5 text-brand-blue" /> KML
                     </button>
                   </div>
+                  <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-start gap-1.5 leading-relaxed">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                    Litchi-Datei in Litchi importieren, <b>vor dem Start prüfen</b> (Höhen, Hindernisse, Luftraum) und nur in Sichtweite fliegen. SkyLog plant nur — es steuert die Drohne nicht.
+                  </p>
                 </div>
               )}
 
