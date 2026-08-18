@@ -326,7 +326,10 @@ export default function App() {
 
   return (
     <SprachProvider sprache={sprache}>
-    <div className="flex flex-col app-shell overflow-hidden bg-slate-50 font-sans">
+    <div className="flex flex-col lg:flex-row app-shell overflow-hidden bg-slate-50 font-sans">
+      {/* Inhalts-Spalte: auf Desktop rechts neben der Seitenleiste, auf dem
+          Handy der übliche Stapel Header → Inhalt über der unteren Leiste. */}
+      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
       {/* Offline Banner */}
       {!isOnline && (
         <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
@@ -552,12 +555,11 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+      </div>
 
-      {/* Bottom Navigation: fünf feste Punkte, kein Seiten-Scrollen mehr.
-          Die selteneren Ansichten liegen hinter „Mehr". Der Punkt ist aktiv,
-          sobald eine der dort einsortierten Ansichten offen ist — so weiß man,
-          wo man gerade steckt. */}
-      <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      {/* Navigation: unten als Leiste (Handy), links als Seitenleiste (Tablet/
+          Desktop, lg+). Fünf feste Punkte; seltenere Ansichten hinter „Mehr". */}
+      <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:order-first lg:w-60 lg:shrink-0 lg:grid-cols-1 lg:content-start lg:border-t-0 lg:border-r lg:pt-6 lg:px-3 lg:gap-1 lg:shadow-none">
         <NavButton
           active={activeView === 'map'}
           onClick={() => setActiveView('map')}
@@ -903,11 +905,12 @@ function NavButton({ active, onClick, icon: Icon, label, badge }: { active: bool
       onClick={onClick}
       className={cn(
         "flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-2xl transition-all duration-200 touch-shrink relative",
-        active ? "text-brand-blue" : "text-slate-400 hover:text-slate-600"
+        "lg:flex-row lg:justify-start lg:gap-3 lg:w-full lg:px-4 lg:py-2.5 lg:rounded-xl",
+        active ? "text-brand-blue lg:bg-brand-blue/10" : "text-slate-400 hover:text-slate-600 lg:hover:bg-slate-50"
       )}
     >
       {active && (
-        <span className="absolute -top-1 w-6 h-1 bg-brand-blue rounded-full shadow-sm shadow-brand-blue/50" />
+        <span className="absolute -top-1 w-6 h-1 bg-brand-blue rounded-full shadow-sm shadow-brand-blue/50 lg:top-1/2 lg:-translate-y-1/2 lg:left-0 lg:w-1 lg:h-7" />
       )}
       <div className={cn(
         "p-1.5 rounded-xl transition-all duration-200 relative",
@@ -920,7 +923,7 @@ function NavButton({ active, onClick, icon: Icon, label, badge }: { active: bool
           </span>
         )}
       </div>
-      <span className={cn("text-[10px] font-bold uppercase tracking-wider transition-opacity", active ? "opacity-100 font-extrabold" : "opacity-70")}>{label}</span>
+      <span className={cn("text-[10px] lg:text-[13px] font-bold uppercase tracking-wider transition-opacity", active ? "opacity-100 font-extrabold" : "opacity-70")}>{label}</span>
     </button>
   );
 }
@@ -1467,7 +1470,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   };
 
   return (
-    <div className="max-w-md mx-auto pb-20">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.flotte')}</h2>
@@ -2161,7 +2164,7 @@ function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { profile:
   ];
 
   return (
-    <div className="max-w-md mx-auto pb-20">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
@@ -2332,7 +2335,7 @@ function RoadmapView() {
   ];
 
   return (
-    <div className="max-w-md mx-auto pb-8">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-8">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.roadmap')}</h2>
         <p className="text-slate-500 text-sm font-medium">Unsere Vision für SkyLog DE</p>
@@ -2532,7 +2535,7 @@ function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPinSetup }
   };
 
   return (
-    <div className="max-w-md mx-auto pb-20">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
@@ -3149,7 +3152,7 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
   const maxMins = Math.max(...yearlyData.map(m => m.minutes), 1);
 
   return (
-    <div className="max-w-md mx-auto pb-20">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.logbuch')}</h2>

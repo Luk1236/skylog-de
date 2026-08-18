@@ -46,7 +46,7 @@ export function KnowledgeView() {
   ];
 
   return (
-    <div className="max-w-md mx-auto pb-12">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.lbaWissen')}</h2>
         <p className="text-slate-500 text-sm font-medium">Offizielle Regeln & Informationen</p>
@@ -160,7 +160,7 @@ export function InventoryView() {
   const [bambuStatus] = useState({ state: 'Idle', progress: 0, model: '-' });
 
   return (
-    <div className="max-w-md mx-auto pb-12">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.ersatzteile')}</h2>
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">3D-Druck & Hardware Verwaltung</p>
@@ -254,7 +254,7 @@ export function PilotsView() {
   };
 
   return (
-    <div className="max-w-md mx-auto pb-12">
+    <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.pilotenManagement')}</h2>
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">LBA Registrierungen & Gast-Zugänge</p>
