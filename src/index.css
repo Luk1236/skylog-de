@@ -75,6 +75,25 @@
   }
 }
 
+/* Bedienung: sichtbarer Tastatur-Fokus (Windows/Mac mit Tab-Navigation).
+   :focus-visible zeigt den Ring nur bei Tastatur, nicht bei Maus/Touch. */
+:focus-visible {
+  outline: 2px solid var(--color-brand-blue);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* „Bewegung reduzieren" respektieren: Nutzer mit dieser System-Einstellung
+   (z. B. wegen Reisekrankheit) bekommen keine Skalier-/Übergangs-Animationen. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* Custom Marker Styles */
 .custom-div-icon {
   background: none;

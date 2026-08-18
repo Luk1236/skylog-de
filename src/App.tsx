@@ -270,6 +270,29 @@ export default function App() {
     return () => clearInterval(trackingInterval);
   }, []);
 
+  // Escape schließt offene Overlays — auf Desktop (Windows/Mac) die erwartete
+  // Geste. Die App-Sperre (isAppLocked) bleibt bewusst außen vor, damit Esc den
+  // PIN-Schutz nicht umgeht. Setter sind stabil, daher leere Abhängigkeiten.
+  useEffect(() => {
+    const beiTaste = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return;
+      setShowManualLocation(false);
+      setShowBehoerdenCheck(false);
+      setShowEidDialog(false);
+      setShowLocationFavoritesDialog(false);
+      setShowPinSetup(false);
+      setShowCustomerManager(false);
+      setShowSoraWizard(false);
+      setShowCloudBackup(false);
+      setShowStaffelMatrix(false);
+      setShowPreFlightSafety(false);
+      setShowMehr(false);
+      setShowPlaner(false);
+    };
+    window.addEventListener('keydown', beiTaste);
+    return () => window.removeEventListener('keydown', beiTaste);
+  }, []);
+
   async function loadData() {
     const [d, f, doc, b, p, favs, custs] = await Promise.all([
       dbService.getDrones(),
@@ -560,6 +583,16 @@ export default function App() {
       {/* Navigation: unten als Leiste (Handy), links als Seitenleiste (Tablet/
           Desktop, lg+). Fünf feste Punkte; seltenere Ansichten hinter „Mehr". */}
       <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:order-first lg:w-60 lg:shrink-0 lg:grid-cols-1 lg:content-start lg:border-t-0 lg:border-r lg:pt-6 lg:px-3 lg:gap-1 lg:shadow-none">
+        {/* Marke: nur in der Desktop-Seitenleiste, zur Orientierung. */}
+        <div className="hidden lg:flex items-center gap-2.5 px-3 pb-4 mb-2 border-b border-slate-100">
+          <div className="bg-brand-blue p-2 rounded-xl shrink-0">
+            <Plane className="w-5 h-5 text-white" />
+          </div>
+          <div className="min-w-0">
+            <p className="font-black text-slate-900 leading-none truncate">SkyLog DE</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Flugbuch</p>
+          </div>
+        </div>
         <NavButton
           active={activeView === 'map'}
           onClick={() => setActiveView('map')}
