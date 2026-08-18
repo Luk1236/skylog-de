@@ -67,6 +67,7 @@ import {
   Globe,
   Landmark,
   FileText,
+  Lock,
   X,
   PlusCircle
 } from 'lucide-react';
