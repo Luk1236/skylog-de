@@ -99,7 +99,7 @@ export function erkenneTrennzeichen(kopfzeile: string): string {
 /** CSV nach RFC 4180: Anführungszeichen schützen Trennzeichen und Zeilen-
  *  umbrüche, "" innerhalb eines Feldes ist ein echtes Anführungszeichen. */
 export function parseCsv(text: string, trennzeichen?: string): string[][] {
-  const sauber = text.replace(/^﻿/, ''); // BOM aus Excel-Exporten
+  const sauber = text.replace(/^\uFEFF/, ''); // BOM aus Excel-Exporten
   const ersteZeile = sauber.split(/\r?\n/)[0] ?? '';
   const t = trennzeichen ?? erkenneTrennzeichen(ersteZeile);
 
@@ -188,7 +188,7 @@ export function ordneSpaltenZu(kopfzeile: string[]): {
 /** Zahl lesen und dabei deutsche Dezimalkommas vertragen. */
 export function leseZahl(roh: string): number | null {
   if (!roh) return null;
-  const bereinigt = roh.trim().replace(/[^\d,.\-]/g, '');
+  const bereinigt = roh.trim().replace(/[^\d,.-]/g, '');
   if (!bereinigt) return null;
   // "1.234,56" -> deutsch;  "1,234.56" -> englisch
   const letztesKomma = bereinigt.lastIndexOf(',');

@@ -63,7 +63,7 @@ function kreisAlsRing(lat: number, lon: number, radiusM: number, punkte = 24): [
 /** Liest eine ED-269-Datei. Wirft mit klarer Meldung, wenn es keine ist. */
 export function parseEd269(text: string): Ed269Zone[] {
   // BOM entfernen — die österreichische Datei hat eines, JSON.parse stolpert.
-  const sauber = text.replace(/^﻿/, '').trim();
+  const sauber = text.replace(/^\uFEFF/, '').trim();
   let roh: unknown;
   try {
     roh = JSON.parse(sauber);

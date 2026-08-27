@@ -68,7 +68,7 @@ function leseHoehe(block: string): number | undefined {
  *  Leerzeilen getrennt (SRT-Standard); jeder Block liefert höchstens eine
  *  Probe, und nur wenn eine Position darin steht. */
 export function parseSrtProben(text: string): SrtProbe[] {
-  const sauber = text.replace(/^﻿/, '');
+  const sauber = text.replace(/^\uFEFF/, '');
   const bloecke = sauber.split(/\r?\n\s*\r?\n/);
   const proben: SrtProbe[] = [];
 

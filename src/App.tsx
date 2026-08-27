@@ -3781,7 +3781,7 @@ function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentL
         setSunset(w.sunset);
       }
       setLocationName(`${currentLocation[0].toFixed(4)}, ${currentLocation[1].toFixed(4)}`);
-    } catch (e) {}
+    } catch { /* Reverse-Geocoding optional — Koordinaten reichen als Anzeige */ }
   };
 
   useEffect(() => {
