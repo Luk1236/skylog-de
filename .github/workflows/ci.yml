@@ -1,0 +1,36 @@
+name: CI
+
+# Qualitäts-Gate: hält die grüne Basis grün. Läuft bei jedem Push auf
+# main/master und bei Pull Requests dorthin. Fängt genau die Fehlerklassen,
+# die tsc allein nicht sieht (z. B. der Profil-Crash durch ein nicht
+# importiertes Icon) — über ESLint und die View-Smoke-Tests.
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # --legacy-peer-deps: ESLint 9 und einige Plugins haben (noch) leicht
+      # abweichende Peer-Ranges; die Auflösung ist unkritisch für Dev-Tools.
+      - run: npm ci --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Tests
+        run: npm test
