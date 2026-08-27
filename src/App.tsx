@@ -1257,7 +1257,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
   );
 }
 
-function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[], flights: Flight[], batteries: Battery[], onUpdate: () => void }) {
+export function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[], flights: Flight[], batteries: Battery[], onUpdate: () => void }) {
   const { t } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [editingDroneId, setEditingDroneId] = useState<string | null>(null);
@@ -2187,7 +2187,7 @@ function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[],
   );
 }
 
-function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void, onOpenEid?: () => void }) {
+export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void, onOpenEid?: () => void }) {
   const { t } = useSprache();
   const [showVorfall, setShowVorfall] = useState(false);
   const [showRisiko, setShowRisiko] = useState(false);
@@ -2337,7 +2337,7 @@ function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { profile:
   );
 }
 
-function RoadmapView() {
+export function RoadmapView() {
   const { t } = useSprache();
   // Ehrlicher Stand: Was fertig ist, steht auf „Live". Nur was wirklich noch
   // fehlt, ist „Geplant". Vorher standen gebaute Funktionen hier als „geplant"
@@ -2406,7 +2406,7 @@ function RoadmapView() {
   );
 }
 
-function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPinSetup }: { profile: UserProfile | null, documents: AppDocument[], onUpdate: () => void, onOpenEid?: () => void, onOpenPinSetup?: () => void }) {
+export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPinSetup }: { profile: UserProfile | null, documents: AppDocument[], onUpdate: () => void, onOpenEid?: () => void, onOpenPinSetup?: () => void }) {
   const { t } = useSprache();
   const [isEditing, setIsEditing] = useState(!profile);
   const [editedProfile, setEditedProfile] = useState<Partial<UserProfile>>(profile || { id: 'main_profile' });
@@ -2945,7 +2945,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
   );
 }
 
-function LogbookView({ flights, drones, batteries, profile, locationFavorites = [], onUpdate, currentLocation, onOpenFavorites }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, locationFavorites?: LocationFavorite[], onUpdate: () => void, currentLocation: [number, number], onOpenFavorites?: () => void }) {
+export function LogbookView({ flights, drones, batteries, profile, locationFavorites = [], onUpdate, currentLocation, onOpenFavorites }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, locationFavorites?: LocationFavorite[], onUpdate: () => void, currentLocation: [number, number], onOpenFavorites?: () => void }) {
   const { t } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
