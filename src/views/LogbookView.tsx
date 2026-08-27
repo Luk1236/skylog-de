@@ -11,7 +11,7 @@ import {
 import {
   dbService, type Flight, type Drone, type Battery, type UserProfile, type LocationFavorite,
 } from '../services/db';
-import { analysiereTrack } from '../services/flightTrack';
+import { fluegeImZeitraum, betriebsnachweis, pdfTabellenzeilen, baueCsv, baueKml } from '../services/reportExport';
 import { bestaetige, melde } from '../services/dialog';
 import { getLastBackupAt } from '../services/backup';
 import { getReminders } from '../services/reminders';
@@ -91,26 +91,7 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
   // Im Logbuch bleiben nur die flug-spezifischen Exporte (PDF, CSV, KML).
 
   const exportToCSV = () => {
-    const headers = ['Datum', 'Drohne', 'Pilot', 'Start', 'Ende', 'Dauer (Min)', 'Ort', 'Zweck', 'Wetter', 'Notizen', 'Vorkommnisse'];
-    const rows = validFlights.map(f => {
-      const drone = drones.find(d => d.id === f.droneId);
-      return [
-        f.date,
-        drone?.model || 'Unbekannt',
-        f.pilotName || profile?.name || 'Hauptpilot',
-        f.startTime,
-        f.endTime,
-        f.duration,
-        f.locationName,
-        f.purpose || 'Hobby',
-        f.weather ? `${f.weather.temp}°C, ${f.weather.windSpeed}km/h` : '',
-        f.notes.replace(/,/g, ';'),
-        f.incidents?.replace(/,/g, ';') || ''
-      ].join(',');
-    });
-
-    const csvContent = '﻿' + [headers.join(','), ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([baueCsv(validFlights, drones, profile?.name)], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `skylog_export_${new Date().toISOString().split('T')[0]}.csv`;
@@ -126,10 +107,9 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
     const doc = new jsPDF();
 
     // Auf das gewählte Jahr eingrenzen (oder alle).
-    const fluege = exportJahr === 'alle'
-      ? validFlights
-      : validFlights.filter(f => (f.date || '').startsWith(exportJahr));
+    const fluege = fluegeImZeitraum(validFlights, exportJahr);
     const zeitraum = exportJahr === 'alle' ? 'Gesamt' : exportJahr;
+    const b = betriebsnachweis(fluege);
 
     // Header
     doc.setFontSize(22);
@@ -151,46 +131,21 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
     doc.text(`Lizenz: ${profile?.licenseType || 'Keine'}`, 80, 52);
     doc.text(`Versicherung: ${profile?.insuranceNumber || 'Nicht angegeben'}`, 80, 57);
 
-    // Betriebsnachweis: Summen über den gewählten Zeitraum.
-    const gesMin = fluege.reduce((s, f) => s + (f.duration || 0), 0);
-    const gesStd = Math.floor(gesMin / 60);
-    const restMin = gesMin % 60;
-    const aktiveTage = new Set(fluege.map(f => f.date)).size;
-    const vorfaelle = fluege.filter(f => f.incidents && f.incidents.trim()).length;
-    const genutzteDrohnen = new Set(fluege.map(f => f.droneId)).size;
-
-    // Auto-Auswertung der Aufzeichnungen: Warnungen je Flug einmal berechnen.
-    const warnMap = new Map(fluege.map(f => [f.id, f.track ? analysiereTrack(f.track) : []]));
-    const fluegeMitAuff = fluege.filter(f => (warnMap.get(f.id) || []).length > 0).length;
-
+    // Betriebsnachweis: Summen über den gewählten Zeitraum (aus dem Service).
     doc.setFontSize(14);
     doc.setTextColor(50);
     doc.text(`Betriebsnachweis (${zeitraum})`, 14, 70);
     doc.setFontSize(10);
     doc.setTextColor(80);
-    doc.text(`Flüge: ${fluege.length}`, 14, 77);
-    doc.text(`Flugzeit: ${gesStd} h ${restMin} min`, 60, 77);
-    doc.text(`Aktive Tage: ${aktiveTage}`, 120, 77);
-    doc.text(`Genutzte Drohnen: ${genutzteDrohnen}`, 14, 83);
-    doc.text(`Vorfälle: ${vorfaelle}`, 60, 83);
-    doc.text(`Flüge mit Auffälligkeiten: ${fluegeMitAuff}`, 120, 83);
+    doc.text(`Flüge: ${b.anzahl}`, 14, 77);
+    doc.text(`Flugzeit: ${b.stunden} h ${b.restMin} min`, 60, 77);
+    doc.text(`Aktive Tage: ${b.aktiveTage}`, 120, 77);
+    doc.text(`Genutzte Drohnen: ${b.genutzteDrohnen}`, 14, 83);
+    doc.text(`Vorfälle: ${b.vorfaelle}`, 60, 83);
+    doc.text(`Flüge mit Auffälligkeiten: ${b.fluegeMitAuffaelligkeiten}`, 120, 83);
 
-    // Table
-    const tableData = fluege.map(f => {
-      const drone = drones.find(d => d.id === f.droneId);
-      const warns = warnMap.get(f.id) || [];
-      const warnText = warns.length > 0 ? `\n⚠ ${warns.map(w => w.text).join(' ')}` : '';
-      return [
-        f.date,
-        drone?.model || 'Unbekannt',
-        `${f.startTime} - ${f.endTime}`,
-        `${f.duration} Min`,
-        f.locationName,
-        f.purpose || 'Hobby',
-        `${f.notes}${f.incidents ? `\nVORFALL: ${f.incidents}` : ''}${warnText}`
-      ];
-    });
-    
+    const tableData = pdfTabellenzeilen(fluege, drones);
+
     autoTable(doc, {
       startY: 90,
       head: [['Datum', 'Drohne', 'Zeitraum', 'Dauer', 'Ort', 'Zweck', 'Bemerkungen']],
@@ -207,15 +162,7 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
   };
 
   const exportToKML = () => {
-    const placemarks = validFlights
-      .filter(f => f.coordinates)
-      .map(f => `  <Placemark>
-    <name>${f.locationName || 'Flug'}</name>
-    <description>${f.date} · ${f.duration} min · ${f.purpose || 'Hobby'}</description>
-    <Point><coordinates>${f.coordinates[1]},${f.coordinates[0]},0</coordinates></Point>
-  </Placemark>`).join('\n');
-    const kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n  <name>SkyLog DE Fluggebiete</name>\n${placemarks}\n</Document>\n</kml>`;
-    const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+    const blob = new Blob([baueKml(validFlights)], { type: 'application/vnd.google-earth.kml+xml' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `skylog_fluggebiete_${new Date().toISOString().split('T')[0]}.kml`;
