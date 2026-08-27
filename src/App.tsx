@@ -86,6 +86,7 @@ import { cn } from './lib/utils';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile, type UASClass, type MaintenanceRecord, type Pilot, type SparePart } from './services/db';
 import { fetchWeather, fetchForecast, minutesUntilSunset, type WeatherData, type ForecastHour } from './services/weather';
 import { bewerteFlugfenster, besteStunde, sonnenuntergangStunde, type FensterBewertung } from './services/flightWindow';
+import { analysiereTrack } from './services/flightTrack';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from './services/notam';
 import { exportBackup, importBackup, getLastBackupAt } from './services/backup';
 import { getReminders } from './services/reminders';
@@ -3081,6 +3082,10 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
     const vorfaelle = fluege.filter(f => f.incidents && f.incidents.trim()).length;
     const genutzteDrohnen = new Set(fluege.map(f => f.droneId)).size;
 
+    // Auto-Auswertung der Aufzeichnungen: Warnungen je Flug einmal berechnen.
+    const warnMap = new Map(fluege.map(f => [f.id, f.track ? analysiereTrack(f.track) : []]));
+    const fluegeMitAuff = fluege.filter(f => (warnMap.get(f.id) || []).length > 0).length;
+
     doc.setFontSize(14);
     doc.setTextColor(50);
     doc.text(`Betriebsnachweis (${zeitraum})`, 14, 70);
@@ -3091,10 +3096,13 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
     doc.text(`Aktive Tage: ${aktiveTage}`, 120, 77);
     doc.text(`Genutzte Drohnen: ${genutzteDrohnen}`, 14, 83);
     doc.text(`Vorfälle: ${vorfaelle}`, 60, 83);
+    doc.text(`Flüge mit Auffälligkeiten: ${fluegeMitAuff}`, 120, 83);
 
     // Table
     const tableData = fluege.map(f => {
       const drone = drones.find(d => d.id === f.droneId);
+      const warns = warnMap.get(f.id) || [];
+      const warnText = warns.length > 0 ? `\n⚠ ${warns.map(w => w.text).join(' ')}` : '';
       return [
         f.date,
         drone?.model || 'Unbekannt',
@@ -3102,7 +3110,7 @@ function LogbookView({ flights, drones, batteries, profile, locationFavorites = 
         `${f.duration} Min`,
         f.locationName,
         f.purpose || 'Hobby',
-        `${f.notes}${f.incidents ? `\nVORFALL: ${f.incidents}` : ''}`
+        `${f.notes}${f.incidents ? `\nVORFALL: ${f.incidents}` : ''}${warnText}`
       ];
     });
     
