@@ -44,8 +44,11 @@ vi.mock('./services/db', async (orig) => {
 
 import { SprachProvider } from './lib/sprache';
 import {
-  GarageView, SafetyView, RoadmapView, ProfileView, LogbookView,
+  GarageView, LogbookView,
 } from './App';
+import { RoadmapView } from './views/RoadmapView';
+import { SafetyView } from './views/SafetyView';
+import { ProfileView } from './views/ProfileView';
 import { KnowledgeView, InventoryView, PilotsView } from './views/InfoViews';
 
 const wrap = (ui: React.ReactElement) => render(<SprachProvider sprache="de">{ui}</SprachProvider>);
