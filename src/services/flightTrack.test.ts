@@ -1,6 +1,45 @@
 import { describe, it, expect } from 'vitest';
-import { parseTrackCsv, berechneTrackStats, distanzMeter, inKmh } from './flightTrack';
+import { parseTrackCsv, berechneTrackStats, distanzMeter, inKmh, analysiereTrack } from './flightTrack';
 import type { TrackPoint } from './db';
+
+describe('analysiereTrack', () => {
+  // Punkte in ~111 m Schritten pro 0.001° Breite; hier klein gehalten.
+  const basis = (over: Partial<TrackPoint>[]): TrackPoint[] =>
+    over.map((o, i) => ({ t: i, lat: 48.1, lon: 7.9, ...o }));
+
+  it('warnt bei Höhe über 120 m', () => {
+    const w = analysiereTrack(basis([{ alt: 10 }, { alt: 130 }]));
+    expect(w.some(x => x.stufe === 'warnung' && /120/.test(x.text))).toBe(true);
+  });
+
+  it('meldet kritisch niedrigen Akku', () => {
+    const w = analysiereTrack(basis([{ battery: 60 }, { battery: 8 }]));
+    expect(w.some(x => x.stufe === 'kritisch' && /Akku/.test(x.text))).toBe(true);
+  });
+
+  it('warnt bei niedrigem Akku bei Landung (aber nicht kritisch)', () => {
+    const w = analysiereTrack(basis([{ battery: 60 }, { battery: 20 }]));
+    expect(w.some(x => x.stufe === 'warnung' && /Landung/.test(x.text))).toBe(true);
+    expect(w.some(x => x.stufe === 'kritisch')).toBe(false);
+  });
+
+  it('warnt bei großer Entfernung (VLOS)', () => {
+    const w = analysiereTrack([
+      { t: 0, lat: 48.1, lon: 7.9 },
+      { t: 10, lat: 48.11, lon: 7.9 }, // ~1,1 km
+    ]);
+    expect(w.some(x => /VLOS|Entfernung/.test(x.text))).toBe(true);
+  });
+
+  it('gibt keine Warnungen bei einem sauberen, niedrigen Kurzflug', () => {
+    const w = analysiereTrack(basis([{ alt: 30, battery: 90 }, { alt: 35, battery: 85 }]));
+    expect(w).toHaveLength(0);
+  });
+
+  it('liefert nichts bei zu wenigen Punkten', () => {
+    expect(analysiereTrack([{ t: 0, lat: 48.1, lon: 7.9 }])).toEqual([]);
+  });
+});
 
 describe('inKmh', () => {
   it('rechnet mph und m/s um', () => {

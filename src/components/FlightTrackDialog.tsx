@@ -5,7 +5,7 @@ import { X, Upload, Route, Mountain, Gauge, BatteryMedium, AlertTriangle } from 
 import L from 'leaflet';
 import { cn } from '../lib/utils';
 import { dbService, type Flight, type TrackPoint } from '../services/db';
-import { parseTrackCsv, berechneTrackStats } from '../services/flightTrack';
+import { parseTrackCsv, berechneTrackStats, analysiereTrack, type WarnStufe } from '../services/flightTrack';
 
 interface Props {
   flight: Flight;
@@ -64,6 +64,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
   const hatHoehe = track.some(p => typeof p.alt === 'number');
   const hatSpeed = track.some(p => typeof p.speed === 'number');
   const hatAkku = track.some(p => typeof p.battery === 'number');
+  const warnungen = useMemo(() => analysiereTrack(track), [track]);
 
   const importieren = async (e: ChangeEvent<HTMLInputElement>) => {
     const datei = e.target.files?.[0];
@@ -126,6 +127,30 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
                 <Stat icon={Route} label="Max. Dist." wert={`${stats.maxDistanzM} m`} />
                 <Stat icon={BatteryMedium} label="Dauer" wert={mmss(stats.dauerS)} />
               </div>
+
+              {/* Auto-Auswertung: Warnungen aus der Aufzeichnung */}
+              {warnungen.length > 0 ? (
+                <div className="space-y-1.5">
+                  {warnungen.map((w, i) => {
+                    const stil: Record<WarnStufe, string> = {
+                      kritisch: 'bg-brand-red/10 border-brand-red/30 text-brand-red',
+                      warnung: 'bg-amber-50 border-amber-200 text-amber-800',
+                      info: 'bg-slate-50 border-slate-200 text-slate-600',
+                    };
+                    return (
+                      <div key={i} className={cn('flex items-start gap-2 px-3 py-2 rounded-xl border text-[11px] font-medium leading-relaxed', stil[w.stufe])}>
+                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                        <span>{w.text}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-green/20 bg-brand-green/5 text-brand-green text-[11px] font-bold">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  Keine Auffälligkeiten in der Aufzeichnung.
+                </div>
+              )}
 
               <div className="h-56 rounded-2xl overflow-hidden border border-slate-200">
                 <MapContainer center={linie[0]} zoom={15} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>

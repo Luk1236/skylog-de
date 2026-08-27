@@ -159,3 +159,97 @@ export function berechneTrackStats(track: TrackPoint[]): TrackStats {
     maxDistanzM: Math.round(maxDist),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Track-Analyse: Warnungen und Auffälligkeiten aus der Aufzeichnung
+// ---------------------------------------------------------------------------
+
+export type WarnStufe = 'info' | 'warnung' | 'kritisch';
+
+export interface TrackWarnung {
+  stufe: WarnStufe;
+  text: string;
+}
+
+export interface AnalyseGrenzen {
+  /** Höhengrenze über Start (m). EU-Offene-Kategorie: 120. */
+  maxHoeheM?: number;
+  /** Akkustand bei Landung, ab dem gewarnt wird (%). */
+  akkuLandungProzent?: number;
+  /** Kritischer Akkustand irgendwo im Flug (%). */
+  akkuKritischProzent?: number;
+  /** Entfernung vom Start, ab der VLOS heikel wird (m). */
+  vlosM?: number;
+  /** Vertikale Geschwindigkeit, ab der es auffällig ist (m/s). */
+  steigRateMs?: number;
+}
+
+const STANDARD: Required<AnalyseGrenzen> = {
+  maxHoeheM: 120,
+  akkuLandungProzent: 25,
+  akkuKritischProzent: 10,
+  vlosM: 500,
+  steigRateMs: 12,
+};
+
+/** Letzter vorhandener Akkuwert (Landung). */
+function akkuBeiLandung(track: TrackPoint[]): number | null {
+  for (let i = track.length - 1; i >= 0; i--) {
+    if (typeof track[i].battery === 'number') return track[i].battery!;
+  }
+  return null;
+}
+
+/** Aus einer Flugaufzeichnung Warnungen ableiten. Reine Auswertung, damit sie
+ *  testbar bleibt und überall (Analyse-Ansicht, Bericht) wiederverwendbar ist. */
+export function analysiereTrack(track: TrackPoint[], grenzen: AnalyseGrenzen = {}): TrackWarnung[] {
+  const g = { ...STANDARD, ...grenzen };
+  const warnungen: TrackWarnung[] = [];
+  if (track.length < 2) return warnungen;
+
+  const stats = berechneTrackStats(track);
+
+  // Höhengrenze (regulatorisch)
+  if (stats.maxHoeheM !== null && stats.maxHoeheM > g.maxHoeheM) {
+    warnungen.push({
+      stufe: 'warnung',
+      text: `Maximale Höhe ${stats.maxHoeheM} m überschreitet die ${g.maxHoeheM}-m-Grenze der Offenen Kategorie.`,
+    });
+  }
+
+  // Akku
+  const akkuMin = track.reduce<number | null>((m, p) =>
+    typeof p.battery === 'number' ? (m === null ? p.battery : Math.min(m, p.battery)) : m, null);
+  const akkuLande = akkuBeiLandung(track);
+  if (akkuMin !== null && akkuMin <= g.akkuKritischProzent) {
+    warnungen.push({ stufe: 'kritisch', text: `Akku fiel auf ${akkuMin} % — kritisch niedrig.` });
+  } else if (akkuLande !== null && akkuLande < g.akkuLandungProzent) {
+    warnungen.push({ stufe: 'warnung', text: `Akku bei Landung nur ${akkuLande} %.` });
+  }
+
+  // Entfernung / VLOS
+  if (stats.maxDistanzM > g.vlosM) {
+    warnungen.push({
+      stufe: 'warnung',
+      text: `Größte Entfernung ${stats.maxDistanzM} m — Sichtverbindung (VLOS) kann schwierig werden.`,
+    });
+  }
+
+  // Schnelle Höhenänderung (mögl. Signalverlust / aggressives Manöver)
+  let maxRate = 0;
+  for (let i = 1; i < track.length; i++) {
+    const a = track[i - 1], b = track[i];
+    if (typeof a.alt === 'number' && typeof b.alt === 'number') {
+      const dt = b.t - a.t;
+      if (dt > 0) maxRate = Math.max(maxRate, Math.abs(b.alt - a.alt) / dt);
+    }
+  }
+  if (maxRate > g.steigRateMs) {
+    warnungen.push({
+      stufe: 'info',
+      text: `Schnelle Höhenänderung (${Math.round(maxRate)} m/s) aufgezeichnet.`,
+    });
+  }
+
+  return warnungen;
+}
