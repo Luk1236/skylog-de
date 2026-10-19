@@ -14,16 +14,19 @@
 // erscheinen), DialogHost und die Karten-Layer/Panels (auf dem ersten
 // Bildschirm sichtbar).
 
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, Suspense, type ComponentProps, type ComponentType, type JSX } from 'react';
 
 /** Aus einem benannten Export einen lazy geladenen, in Suspense gehüllten
  *  Dialog machen. Fallback ist bewusst null: der Dialog ist ein Overlay,
- *  ein kurzes Nichts ist unauffälliger als ein Platzhalter. */
-function lazyDialog<P extends object>(
-  loader: () => Promise<{ default: ComponentType<P> }>,
-): ComponentType<P> {
+ *  ein kurzes Nichts ist unauffälliger als ein Platzhalter.
+ *  Generisch über die Komponente selbst (nicht über P): so leitet TypeScript
+ *  im strict-Modus die Props sauber ab, statt auf `never` zu fallen. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- Props-Typ wird ueber ComponentProps<C> wiederhergestellt
+function lazyDialog<C extends (props: any) => JSX.Element | null>(
+  loader: () => Promise<{ default: C }>,
+): ComponentType<ComponentProps<C>> {
   const Geladen = lazy(loader);
-  return (props: P) => (
+  return (props: ComponentProps<C>) => (
     <Suspense fallback={null}>
       <Geladen {...props} />
     </Suspense>

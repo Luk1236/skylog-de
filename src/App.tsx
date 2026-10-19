@@ -217,7 +217,9 @@ export default function App() {
     () => getReminders(profile, drones, batteries, getLastBackupAt()),
     [profile, drones, batteries]
   );
-  const highPrioCount = appReminders.filter(r => r.priority === 'high').length;
+  // Dringende Erinnerungen (level 'alert') als roter Zaehler in der Navigation.
+  // Frueher stand hier r.priority === 'high' - das Feld gibt es nicht, der Zaehler blieb immer leer.
+  const highPrioCount = appReminders.filter(r => r.level === 'alert').length;
 
   if (isLoading) {
     return (
@@ -1019,7 +1021,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
         <Recenter center={location} />
 
         {infoPoint && (
-          <Popup position={infoPoint} onClose={() => setInfoPoint(null)}>
+          <Popup position={infoPoint} eventHandlers={{ remove: () => setInfoPoint(null) }}>
             <div className="p-1 min-w-[200px]">
               <div className="flex items-center gap-2 mb-2">
                 <Info className="w-4 h-4 text-brand-blue" />

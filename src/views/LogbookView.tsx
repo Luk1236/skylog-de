@@ -636,7 +636,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                           <span className="text-[8px] font-black text-amber-500 uppercase">Wetter-Warnung</span>
                         </div>
                       )}
-                      {flight.batteryStatus && flight.batteryStatus.endPercent < 15 && (
+                      {flight.batteryStatus?.endPercent != null && flight.batteryStatus.endPercent < 15 && (
                         <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
                           <ShieldAlert className="w-2.5 h-2.5 text-brand-red" />
                           <span className="text-[8px] font-black text-brand-red uppercase">Tiefentladungs-Risiko</span>
