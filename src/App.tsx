@@ -29,13 +29,10 @@ import type { PMTiles } from 'pmtiles';
 import { PinLockDialog } from './components/PinLockDialog';
 // Modale Dialoge: lazy geladen, um das Haupt-Bundle klein zu halten (s. lazyDialogs.tsx).
 import { OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog, SoraWizardDialog, DatensicherungDialog, StaffelMatrixDialog, PreFlightSafetyDialog, ManualLocationDialog } from './components/lazyDialogs';
-import { KnowledgeView, InventoryView, PilotsView } from './views/InfoViews';
-import { RoadmapView } from './views/RoadmapView';
-import { SafetyView } from './views/SafetyView';
-import { ProfileView } from './views/ProfileView';
-import { GarageView } from './views/GarageView';
-
-import { LogbookView } from './views/LogbookView';
+// Ansichten ausser der Startkarte: lazy geladen (s. lazyViews.tsx).
+import {
+  KnowledgeView, InventoryView, PilotsView, RoadmapView, SafetyView, ProfileView, GarageView, LogbookView,
+} from './views/lazyViews';
 import { isPinEnabled } from './services/pinProtection';
 import type { LocationFavorite, Customer } from './services/db';
 import L from 'leaflet';
