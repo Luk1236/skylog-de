@@ -188,7 +188,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
               <button
                 onClick={onOpenPinSetup}
                 className="p-2.5 text-slate-400 hover:text-sky-600 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-                title="PIN-Sperre verwalten"
+                title="Bildschirmsperre (PIN) verwalten"
               >
                 <Lock className="w-5 h-5" />
               </button>

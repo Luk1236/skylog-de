@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Lock, Unlock, X, AlertCircle, Check } from 'lucide-react';
-import { setPin, verifyPin, removePin, isPinEnabled } from '../services/pinProtection';
+import { setPin, verifyPin, removePin, isPinEnabled, sperreRestSekunden } from '../services/pinProtection';
 
 interface Props {
   mode: 'unlock' | 'setup' | 'settings';
@@ -14,21 +14,52 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
   const [step, setStep] = useState<'enter' | 'confirm'>(mode === 'setup' ? 'enter' : 'enter');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  // PBKDF2 braucht auf dem Handy einen Moment - solange keine Eingaben annehmen.
+  const [pruefe, setPruefe] = useState(false);
+  const [gesperrt, setGesperrt] = useState(() => sperreRestSekunden());
 
   const isEnabled = isPinEnabled();
 
+  // Countdown, solange nach Fehlversuchen gesperrt ist.
+  useEffect(() => {
+    if (gesperrt <= 0) return;
+    const t = setTimeout(() => setGesperrt(sperreRestSekunden()), 1000);
+    return () => clearTimeout(t);
+  }, [gesperrt]);
+
+  const pruefeEntsperren = async (eingabe: string) => {
+    setPruefe(true);
+    const r = await verifyPin(eingabe);
+    setPruefe(false);
+    if (r.ok) {
+      onUnlocked?.();
+      return;
+    }
+    setPinInput('');
+    setGesperrt(r.gesperrtSekunden);
+    setErrorMsg(r.gesperrtSekunden > 0
+      ? 'Zu viele Fehlversuche. Bitte kurz warten.'
+      : 'Falscher PIN. Bitte erneut versuchen.');
+  };
+
+  const speichereNeuePin = async (eingabe: string) => {
+    setPruefe(true);
+    await setPin(eingabe);
+    setPruefe(false);
+    setSuccessMsg('PIN erfolgreich eingerichtet!');
+    setTimeout(() => {
+      onClose?.();
+    }, 1000);
+  };
+
   const handleDigit = (digit: string) => {
+    if (pruefe || gesperrt > 0) return;
     if (errorMsg) setErrorMsg('');
     if (step === 'enter' && pin.length < 4) {
       const next = pin + digit;
       setPinInput(next);
       if (mode === 'unlock' && next.length === 4) {
-        if (verifyPin(next)) {
-          onUnlocked?.();
-        } else {
-          setErrorMsg('Falscher PIN. Bitte erneut versuchen.');
-          setPinInput('');
-        }
+        void pruefeEntsperren(next);
       } else if (mode === 'setup' && next.length === 4) {
         setStep('confirm');
       }
@@ -37,11 +68,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
       setConfirmPin(next);
       if (next.length === 4) {
         if (next === pin) {
-          setPin(next);
-          setSuccessMsg('PIN erfolgreich eingerichtet!');
-          setTimeout(() => {
-            onClose?.();
-          }, 1000);
+          void speichereNeuePin(next);
         } else {
           setErrorMsg('PINs stimmen nicht überein. Erneut versuchen.');
           setPinInput('');
@@ -81,10 +108,14 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
             </div>
             <div>
               <h2 className="font-bold text-base">
-                {mode === 'unlock' ? 'SkyLog DE Entsperren' : mode === 'setup' ? 'PIN-Schutz Einrichten' : 'PIN-Einstellungen'}
+                {mode === 'unlock' ? 'SkyLog DE Entsperren' : mode === 'setup' ? 'Bildschirmsperre einrichten' : 'Bildschirmsperre (PIN)'}
               </h2>
               <p className="text-xs text-slate-400">
-                {mode === 'unlock' ? 'Gib deinen 4-stelligen PIN ein' : step === 'enter' ? 'Gib 4 Ziffern ein' : 'PIN zur Bestätigung wiederholen'}
+                {gesperrt > 0
+                  ? `Gesperrt – noch ${gesperrt} s`
+                  : pruefe
+                    ? 'Wird geprüft …'
+                    : mode === 'unlock' ? 'Gib deinen 4-stelligen PIN ein' : step === 'enter' ? 'Gib 4 Ziffern ein' : 'PIN zur Bestätigung wiederholen'}
               </p>
             </div>
           </div>
@@ -107,6 +138,13 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
             <Check className="w-4 h-4 shrink-0" />
             <span>{successMsg}</span>
           </div>
+        )}
+
+        {mode !== 'unlock' && (
+          <p className="text-[11px] leading-relaxed text-slate-400">
+            Schützt die App vor neugierigen Blicken. Die Flugdaten selbst werden dadurch
+            nicht verschlüsselt – für echten Schutz die Gerätesperre des Handys nutzen.
+          </p>
         )}
 
         {/* PIN Indicators */}
