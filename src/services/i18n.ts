@@ -37,7 +37,8 @@ export const TEXTE = {
 
   // Kopfzeile
   'app.untertitel': { de: 'LBA Info & Flight Log', en: 'Regulations & Flight Log' },
-  'app.konform': { de: 'LBA Konform', en: 'Compliant' },
+  // Bewusst keine Konformitaets-Behauptung ("LBA Konform") - das kann eine App nicht zusichern.
+  'app.lokal': { de: 'Daten nur lokal', en: 'Data stays local' },
 
   // Überschriften der Ansichten
   'view.flotte': { de: 'Flotte', en: 'Fleet' },

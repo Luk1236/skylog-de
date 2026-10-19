@@ -7,7 +7,13 @@ import {
   type MaintenanceRecord,
   type Pilot,
   type AppDocument,
+  type FlightPlan,
+  type LocationFavorite,
+  type Customer,
+  type SparePart,
 } from './db';
+import { verschluessele, entschluessele, istVerschluesselt } from './backupCrypto';
+import { speichereDatei } from '../lib/dateiAusgabe';
 
 // Serialised backup file format. Documents store their binary as base64,
 // because Blobs cannot be represented directly in JSON.
@@ -22,6 +28,19 @@ export interface BackupData {
   pilots: Pilot[];
   profile: UserProfile | null;
   documents: { id: string; name: string; type: string; createdAt: number; dataBase64: string }[];
+  // ab Format 2
+  flightPlans?: FlightPlan[];
+  locationFavorites?: LocationFavorite[];
+  customers?: Customer[];
+  spareParts?: SparePart[];
+}
+
+/** Die Datei ist verschlüsselt und es wurde (noch) kein Passwort angegeben. */
+export class PasswortNoetigFehler extends Error {
+  constructor() {
+    super('Diese Sicherung ist mit einem Passwort verschlüsselt.');
+    this.name = 'PasswortNoetigFehler';
+  }
 }
 
 export interface ImportResult {
@@ -32,6 +51,7 @@ export interface ImportResult {
   pilots: number;
   documents: number;
   profile: boolean;
+  weitere: number;
 }
 
 // Wann zuletzt exportiert wurde. Bewusst in localStorage und NICHT in der
@@ -42,7 +62,8 @@ const LAST_BACKUP_KEY = 'skylog_last_backup_at';
 
 // Formatversion der Sicherungsdatei. Hochzählen, sobald sich die Struktur
 // so ändert, dass ältere App-Versionen sie nicht mehr korrekt lesen können.
-export const BACKUP_VERSION = 1;
+// 2: zusaetzlich Flugplaene, Standort-Favoriten, Kunden und Ersatzteile.
+export const BACKUP_VERSION = 2;
 
 export function getLastBackupAt(): number | null {
   const raw = localStorage.getItem(LAST_BACKUP_KEY);
@@ -82,9 +103,10 @@ function base64ToBlob(base64: string, type: string): Blob {
   return new Blob([bytes], { type });
 }
 
-// Reads every store and downloads a single .json backup file.
-export async function exportBackup(): Promise<void> {
-  const [drones, flights, batteries, maintenance, pilots, profile, documents] = await Promise.all([
+// Liest alle Speicher und baut den Inhalt der Sicherungsdatei.
+export async function erstelleBackupText(passwort?: string): Promise<{ text: string; dateiname: string }> {
+  const [drones, flights, batteries, maintenance, pilots, profile, documents,
+    flightPlans, locationFavorites, customers, spareParts] = await Promise.all([
     dbService.getDrones(),
     dbService.getFlights(),
     dbService.getBatteries(),
@@ -92,6 +114,10 @@ export async function exportBackup(): Promise<void> {
     dbService.getPilots(),
     dbService.getProfile(),
     dbService.getDocuments(),
+    dbService.getFlightPlans(),
+    dbService.getLocationFavorites(),
+    dbService.getCustomers(),
+    dbService.getSpareParts(),
   ]);
 
   const serialisedDocs = await Promise.all(
@@ -115,32 +141,50 @@ export async function exportBackup(): Promise<void> {
     pilots,
     profile: ohneZugangsdaten(profile ?? null),
     documents: serialisedDocs,
+    flightPlans,
+    locationFavorites,
+    customers,
+    spareParts,
   };
 
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `skylog_backup_${new Date().toISOString().split('T')[0]}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
+  const datum = new Date().toISOString().split('T')[0];
+  const klar = JSON.stringify(data, null, 2);
+  if (!passwort) return { text: klar, dateiname: `skylog_backup_${datum}.json` };
+  const verschluesselt = await verschluessele(klar, passwort);
+  return { text: JSON.stringify(verschluesselt), dateiname: `skylog_backup_${datum}_verschluesselt.json` };
+}
 
+// Erstellt die Sicherung und gibt sie aus: im Browser als Download, in der
+// Android-App ueber das Teilen-Menue (Drive, Nextcloud, Dateien, Mail …).
+export async function exportBackup(passwort?: string): Promise<void> {
+  const { text, dateiname } = await erstelleBackupText(passwort);
+  await speichereDatei(dateiname, text);
   markBackupDone();
+}
+
+/** Liest den Dateiinhalt; entschluesselt bei Bedarf. Wirft PasswortNoetigFehler,
+ *  wenn die Datei verschluesselt ist und kein Passwort angegeben wurde. */
+export async function leseBackupText(text: string, passwort?: string): Promise<BackupData> {
+  let roh: unknown;
+  try {
+    roh = JSON.parse(text);
+  } catch {
+    throw new Error('Diese Datei ist keine gültige Sicherung (kein JSON).');
+  }
+  if (istVerschluesselt(roh)) {
+    if (!passwort) throw new PasswortNoetigFehler();
+    roh = JSON.parse(await entschluessele(roh, passwort));
+  }
+  return roh as BackupData;
 }
 
 // Reads a backup file and merges its contents back into the DB (put by id).
 export async function importBackup(
   file: File,
-  modus: 'merge' | 'replace' = 'merge'
+  modus: 'merge' | 'replace' = 'merge',
+  passwort?: string,
 ): Promise<ImportResult> {
-  let data: BackupData;
-  try {
-    data = JSON.parse(await file.text());
-  } catch {
-    throw new Error('Diese Datei ist keine gültige Sicherung (kein JSON).');
-  }
+  const data = await leseBackupText(await file.text(), passwort);
 
   if (data.app !== 'SkyLog DE' || !Array.isArray(data.drones)) {
     throw new Error('Das ist keine SkyLog-DE-Sicherungsdatei.');
@@ -172,6 +216,10 @@ export async function importBackup(
     pilots: data.pilots ?? [],
     profile: data.profile ?? null,
     documents,
+    flightPlans: data.flightPlans,
+    locationFavorites: data.locationFavorites,
+    customers: data.customers,
+    spareParts: data.spareParts,
   }, modus);
 
   return {
@@ -182,5 +230,7 @@ export async function importBackup(
     pilots: data.pilots?.length ?? 0,
     documents: documents.length,
     profile: !!data.profile,
+    weitere: (data.flightPlans?.length ?? 0) + (data.locationFavorites?.length ?? 0)
+      + (data.customers?.length ?? 0) + (data.spareParts?.length ?? 0),
   };
 }

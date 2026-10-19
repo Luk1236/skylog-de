@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis,
 } from 'recharts';
@@ -14,6 +14,7 @@ import {
 import { fluegeImZeitraum, betriebsnachweis, pdfTabellenzeilen, baueCsv, baueKml } from '../services/reportExport';
 import { bestaetige, melde } from '../services/dialog';
 import { getLastBackupAt } from '../services/backup';
+import { getSicherungsIntervall } from '../services/sicherungsErinnerung';
 import { getReminders } from '../services/reminders';
 import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
@@ -48,7 +49,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
   // Einmal berechnen statt zweimal pro Render (Bedingung + Liste).
   // getLastBackupAt() liest localStorage, ist also nicht gratis.
   const reminders = useMemo(
-    () => getReminders(profile, drones, batteries, getLastBackupAt()),
+    () => getReminders(profile, drones, batteries, getLastBackupAt(), Date.now(), getSicherungsIntervall()),
     // flights absichtlich dabei: nach Import/Aenderung (onUpdate) auch den
     // Sicherungs-Zeitstempel aus localStorage neu lesen.
     // eslint-disable-next-line react-hooks/exhaustive-deps

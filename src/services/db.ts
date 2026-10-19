@@ -228,12 +228,19 @@ export interface GespeicherteKarte {
   geladenAm: number;
 }
 
+/** Ersatzteil im Inventar (Propeller, Landegestell, gedrucktes Teil …). */
 export interface SparePart {
   id: string;
   name: string;
-  description: string;
-  stlUrl: string;
-  printable: boolean;
+  beschreibung?: string;
+  anzahl: number;
+  /** Ab dieser Menge gilt das Teil als knapp (optional). */
+  mindestAnzahl?: number;
+  /** Link zur STL-Datei oder zum Shop. */
+  link?: string;
+  /** Optional einer Drohne zugeordnet. */
+  droneId?: string;
+  createdAt: number;
 }
 
 const DB_NAME = 'skylog_db_v3';
@@ -250,9 +257,10 @@ const EUZONES_STORE = 'euzones';
 
 const LOCATION_FAVORITES_STORE = 'location_favorites';
 const CUSTOMERS_STORE = 'customers';
+const SPARE_PARTS_STORE = 'spare_parts';
 
 async function getDB(): Promise<IDBPDatabase> {
-  return openDB(DB_NAME, 11, {
+  return openDB(DB_NAME, 12, {
     upgrade(db) {
       if (!db.objectStoreNames.contains(DRONES_STORE)) {
         db.createObjectStore(DRONES_STORE, { keyPath: 'id' });
@@ -294,6 +302,10 @@ async function getDB(): Promise<IDBPDatabase> {
       // v11: CRM Kundenstamm.
       if (!db.objectStoreNames.contains(CUSTOMERS_STORE)) {
         db.createObjectStore(CUSTOMERS_STORE, { keyPath: 'id' });
+      }
+      // v12: Ersatzteil-Inventar.
+      if (!db.objectStoreNames.contains(SPARE_PARTS_STORE)) {
+        db.createObjectStore(SPARE_PARTS_STORE, { keyPath: 'id' });
       }
     },
   });
@@ -477,17 +489,33 @@ export const dbService = {
     pilots: Pilot[];
     profile: UserProfile | null;
     documents: AppDocument[];
+    // Ab Sicherungsformat 2 - aeltere Dateien haben sie nicht.
+    flightPlans?: FlightPlan[];
+    locationFavorites?: LocationFavorite[];
+    customers?: Customer[];
+    spareParts?: SparePart[];
   }, modus: 'merge' | 'replace' = 'merge'): Promise<void> {
     const db = await getDB();
-    const tx = db.transaction(
-      [DRONES_STORE, FLIGHTS_STORE, BATTERIES_STORE, MAINTENANCE_STORE, PILOTS_STORE, PROFILE_STORE, DOCUMENTS_STORE],
-      'readwrite'
-    );
+    const stores = [
+      DRONES_STORE, FLIGHTS_STORE, BATTERIES_STORE, MAINTENANCE_STORE, PILOTS_STORE, PROFILE_STORE, DOCUMENTS_STORE,
+      FLIGHTPLANS_STORE, LOCATION_FAVORITES_STORE, CUSTOMERS_STORE, SPARE_PARTS_STORE,
+    ];
+    const tx = db.transaction(stores, 'readwrite');
     if (modus === 'replace') {
-      for (const store of [DRONES_STORE, FLIGHTS_STORE, BATTERIES_STORE, MAINTENANCE_STORE, PILOTS_STORE, PROFILE_STORE, DOCUMENTS_STORE]) {
-        tx.objectStore(store).clear();
-      }
+      // Speicher, die eine aeltere Sicherung (Format 1) gar nicht enthaelt, bleiben
+      // stehen - sonst loeschte das Einspielen eines alten Backups z.B. alle Flugplaene.
+      const nichtInDatei = new Set<string>([
+        payload.flightPlans ? '' : FLIGHTPLANS_STORE,
+        payload.locationFavorites ? '' : LOCATION_FAVORITES_STORE,
+        payload.customers ? '' : CUSTOMERS_STORE,
+        payload.spareParts ? '' : SPARE_PARTS_STORE,
+      ]);
+      for (const store of stores) if (!nichtInDatei.has(store)) tx.objectStore(store).clear();
     }
+    for (const x of payload.flightPlans ?? []) tx.objectStore(FLIGHTPLANS_STORE).put(x);
+    for (const x of payload.locationFavorites ?? []) tx.objectStore(LOCATION_FAVORITES_STORE).put(x);
+    for (const x of payload.customers ?? []) tx.objectStore(CUSTOMERS_STORE).put(x);
+    for (const x of payload.spareParts ?? []) tx.objectStore(SPARE_PARTS_STORE).put(x);
     for (const d of payload.drones) tx.objectStore(DRONES_STORE).put(d);
     for (const f of payload.flights) tx.objectStore(FLIGHTS_STORE).put(f);
     for (const b of payload.batteries) tx.objectStore(BATTERIES_STORE).put(b);
@@ -526,5 +554,20 @@ export const dbService = {
   async deleteCustomer(id: string): Promise<void> {
     const db = await getDB();
     await db.delete(CUSTOMERS_STORE, id);
-  }
+  },
+
+  // Ersatzteil-Inventar
+  async getSpareParts(): Promise<SparePart[]> {
+    const db = await getDB();
+    const alle = await db.getAll(SPARE_PARTS_STORE);
+    return alle.sort((a, b) => a.name.localeCompare(b.name));
+  },
+  async saveSparePart(teil: SparePart): Promise<void> {
+    const db = await getDB();
+    await db.put(SPARE_PARTS_STORE, teil);
+  },
+  async deleteSparePart(id: string): Promise<void> {
+    const db = await getDB();
+    await db.delete(SPARE_PARTS_STORE, id);
+  },
 };

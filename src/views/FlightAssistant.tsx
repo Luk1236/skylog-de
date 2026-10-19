@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import {
   AlertTriangle, BrainCircuit, Camera, CheckCircle, CheckCircle2, ClipboardCheck,
   Clock, History, Info, ListChecks, MapPin, Plane, Play, Rocket, Settings2,

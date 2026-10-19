@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Printer, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Cloud, Layers, DownloadCloud, Globe2, X, PlusCircle, type LucideIcon } from 'lucide-react';
+import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Printer, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Layers, DownloadCloud, Globe2, X, PlusCircle, DatabaseBackup, type LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { cn } from './lib/utils';
@@ -8,6 +8,7 @@ import { dbService, type Drone, type Flight, type AppDocument, type Battery, typ
 import { fetchWeather, type WeatherData } from './services/weather';
 
 import { getLastBackupAt } from './services/backup';
+import { getSicherungsIntervall } from './services/sicherungsErinnerung';
 import { getReminders } from './services/reminders';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
@@ -27,7 +28,7 @@ import type { PMTiles } from 'pmtiles';
 
 import { PinLockDialog } from './components/PinLockDialog';
 // Modale Dialoge: lazy geladen, um das Haupt-Bundle klein zu halten (s. lazyDialogs.tsx).
-import { OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog, SoraWizardDialog, CloudBackupDialog, StaffelMatrixDialog, PreFlightSafetyDialog, ManualLocationDialog } from './components/lazyDialogs';
+import { OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog, SoraWizardDialog, DatensicherungDialog, StaffelMatrixDialog, PreFlightSafetyDialog, ManualLocationDialog } from './components/lazyDialogs';
 import { KnowledgeView, InventoryView, PilotsView } from './views/InfoViews';
 import { RoadmapView } from './views/RoadmapView';
 import { SafetyView } from './views/SafetyView';
@@ -214,7 +215,7 @@ export default function App() {
 
   // Reminders in Root-Scope: wird für NavBar-Badges benötigt
   const appReminders = useMemo(
-    () => getReminders(profile, drones, batteries, getLastBackupAt()),
+    () => getReminders(profile, drones, batteries, getLastBackupAt(), Date.now(), getSicherungsIntervall()),
     [profile, drones, batteries]
   );
   // Dringende Erinnerungen (level 'alert') als roter Zaehler in der Navigation.
@@ -287,7 +288,7 @@ export default function App() {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-white/10 rounded-full text-xs font-medium border border-white/5">
             <ShieldCheck className="w-3 h-3 text-green-400" />
-            <span>{t('app.konform')}</span>
+            <span>{t('app.lokal')}</span>
           </div>
           {/* Behörden-Check: einziger Kopf-Knopf, für eine Kontrolle unterwegs
               schnell erreichbar. Sprache, Design und die selteneren Ansichten
@@ -612,7 +613,7 @@ export default function App() {
       )}
 
       {showCloudBackup && (
-        <CloudBackupDialog
+        <DatensicherungDialog
           onClose={() => setShowCloudBackup(false)}
         />
       )}
@@ -752,8 +753,8 @@ function MehrSheet({
                 onClick={onOpenCloudBackup}
                 className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
               >
-                <Cloud className="w-5 h-5 shrink-0 text-cyan-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">Auto Cloud-Backup & Sync</span>
+                <DatabaseBackup className="w-5 h-5 shrink-0 text-cyan-600" />
+                <span className="text-sm font-bold flex-1 text-slate-800">Datensicherung & Erinnerung</span>
                 <ChevronRight className="w-4 h-4 text-slate-300" />
               </button>
 

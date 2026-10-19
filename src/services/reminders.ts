@@ -17,7 +17,9 @@ export function getReminders(
   drones: Drone[],
   batteries: Battery[],
   lastBackupAt: number | null = null,
-  now: number = Date.now()
+  now: number = Date.now(),
+  /** Nach so vielen Tagen ist eine Sicherung faellig (Einstellung im Datensicherungs-Dialog). */
+  sicherungsIntervallTage = 30,
 ): Reminder[] {
   const reminders: Reminder[] = [];
 
@@ -83,12 +85,12 @@ export function getReminders(
       });
     } else {
       const tage = Math.floor((now - lastBackupAt) / DAY);
-      if (tage >= 90) {
+      if (tage >= Math.max(90, sicherungsIntervallTage * 3)) {
         reminders.push({
           level: 'alert',
           text: `Letzte Sicherung vor ${tage} Tagen. Höchste Zeit für einen Export.`,
         });
-      } else if (tage >= 30) {
+      } else if (tage >= sicherungsIntervallTage) {
         reminders.push({
           level: 'warn',
           text: `Letzte Sicherung vor ${tage} Tagen. Ein Export wäre wieder fällig.`,

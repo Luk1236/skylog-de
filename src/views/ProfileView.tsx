@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { dbService, type UserProfile, type AppDocument } from '../services/db';
 import { melde, bestaetige } from '../services/dialog';
-import { exportBackup, importBackup } from '../services/backup';
+import { exportBackup, importBackup, PasswortNoetigFehler } from '../services/backup';
 import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
 
@@ -127,6 +127,9 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
   };
 
   const [backupDatei, setBackupDatei] = useState<File | null>(null);
+  // Verschluesselte Sicherung: erst nach dem Passwort fragen, dann erneut versuchen.
+  const [passwortFuer, setPasswortFuer] = useState<{ datei: File; modus: 'merge' | 'replace' } | null>(null);
+  const [importPasswort, setImportPasswort] = useState('');
 
   const handleExportBackup = async () => {
     try {
@@ -147,26 +150,33 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
     e.target.value = '';
   };
 
-  const fuehreImportAus = async (modus: 'merge' | 'replace') => {
-    const file = backupDatei;
+  const fuehreImportAus = async (modus: 'merge' | 'replace', passwort?: string, datei?: File) => {
+    const file = datei ?? backupDatei;
     if (!file) return;
     const warnung = [
       'Alle aktuell gespeicherten Drohnen, Akkus, Flüge, Piloten, Wartungen',
       'und Dokumente werden gelöscht und durch den Inhalt der Datei ersetzt.',
       'Alles seit dieser Sicherung Erfasste geht verloren.',
     ].join(String.fromCharCode(10));
-    if (modus === 'replace' && !await bestaetige(warnung, { titel: 'Wirklich ersetzen?', gefaehrlich: true })) return;
+    if (!passwort && modus === 'replace' && !await bestaetige(warnung, { titel: 'Wirklich ersetzen?', gefaehrlich: true })) return;
     setBackupDatei(null);
     try {
-      const r = await importBackup(file, modus);
+      const r = await importBackup(file, modus, passwort);
+      setPasswortFuer(null);
+      setImportPasswort('');
       melde(
         `${r.drones} Drohnen\n${r.batteries} Akkus\n${r.flights} Flüge\n` +
         `${r.pilots} Piloten\n${r.maintenance} Wartungen\n${r.documents} Dokumente\n` +
+        (r.weitere ? `${r.weitere} Flugpläne, Favoriten, Kunden, Ersatzteile\n` : '') +
         `${r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei'}`,
         'Sicherung geladen ✓'
       );
       onUpdate();
     } catch (err) {
+      if (err instanceof PasswortNoetigFehler) {
+        setPasswortFuer({ datei: file, modus });
+        return;
+      }
       console.error(err);
       melde((err instanceof Error && err.message) || 'Import fehlgeschlagen.');
     }
@@ -395,7 +405,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
           <h3 className="font-bold text-slate-900 text-sm">Datensicherung</h3>
         </div>
         <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
-          Sichere alle deine Drohnen, Akkus, Flüge, Piloten und Dokumente in eine Datei — und lade sie bei Handywechsel oder Datenverlust wieder ein.
+          Sichere alle deine Daten in eine Datei — und lade sie bei Handywechsel oder Datenverlust wieder ein. Mit Passwort verschlüsselt: „Mehr → Datensicherung“.
         </p>
         <div className="flex gap-2">
           <button
@@ -414,6 +424,37 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
           Die musst du nach einer Wiederherstellung einmal neu eintragen.
         </p>
       </div>
+
+      {/* Passwort fuer eine verschluesselte Sicherung */}
+      {passwortFuer && (
+        <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <form
+            className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6 space-y-3"
+            onSubmit={e => { e.preventDefault(); void fuehreImportAus(passwortFuer.modus, importPasswort, passwortFuer.datei); }}
+          >
+            <h3 className="font-black text-slate-900">Verschlüsselte Sicherung</h3>
+            <p className="text-xs text-slate-600">Gib das Passwort ein, mit dem die Sicherung erstellt wurde.</p>
+            <input
+              type="password"
+              autoFocus
+              autoComplete="current-password"
+              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+              value={importPasswort}
+              onChange={e => setImportPasswort(e.target.value)}
+            />
+            <div className="flex gap-2">
+              <button type="button" onClick={() => { setPasswortFuer(null); setImportPasswort(''); }}
+                className="flex-1 py-3 text-xs font-bold text-slate-600 bg-slate-100 rounded-2xl">
+                {t('aktion.abbrechen')}
+              </button>
+              <button type="submit" disabled={!importPasswort}
+                className="flex-1 py-3 text-xs font-bold text-white bg-brand-blue rounded-2xl disabled:opacity-50">
+                Entschlüsseln & laden
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* Auswahl: Zusammenfuehren oder Ersetzen */}
       {backupDatei && (
@@ -457,7 +498,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
       <div className="mt-6 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
         <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
         <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
-          Ihre Daten werden sicher und lokal in Ihrem Browser gespeichert. SkyLog DE sendet keine Informationen an Cloud-Server.
+          Ihre Daten werden nur lokal auf diesem Gerät gespeichert. SkyLog DE sendet keine Flugdaten an Cloud-Server.
         </p>
       </div>
 

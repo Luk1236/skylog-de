@@ -60,7 +60,7 @@ export default defineConfig(() => {
             if (id.includes('protomaps') || id.includes('pmtiles')) return 'vendor-maps';
             if (id.includes('react-leaflet') || id.includes('/leaflet/')) return 'vendor-leaflet';
             if (id.includes('recharts') || id.includes('/d3-') || id.includes('victory')) return 'vendor-charts';
-            if (id.includes('framer-motion')) return 'vendor-motion';
+            if (id.includes('framer-motion') || id.includes('/motion/')) return 'vendor-motion';
             return undefined;
           },
         },

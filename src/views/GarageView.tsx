@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   BadgeAlert, Calendar, Camera, Clock, Plane, Plus, Settings2,
   ShieldAlert, Sparkles, Trash2, Wrench, XCircle, Zap,

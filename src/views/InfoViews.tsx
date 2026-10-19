@@ -1,15 +1,16 @@
 // Präsentationsnahe Ansichten aus App.tsx ausgelagert, um die Hauptdatei zu
-// entzerren: Wissen/LBA-Info, Inventar (3D-Druck) und Piloten-Verwaltung.
+// entzerren: Wissen/LBA-Info, Ersatzteil-Inventar und Piloten-Verwaltung.
 // Reine View-Komponenten ohne App-weiten Zustand — sie holen sich alles selbst.
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Scale, BadgeAlert, XCircle, Landmark, FileText, Globe, ExternalLink,
-  Printer, Cpu, Download, Plus, User, ShieldCheck, ShieldAlert, Info,
+  Plus, User, ShieldCheck, ShieldAlert, Info, Package, Trash2,
 } from 'lucide-react';
 import { useSprache } from '../lib/sprache';
-import { dbService, type Pilot, type SparePart } from '../services/db';
+import { dbService, type Pilot, type SparePart, type Drone } from '../services/db';
+import { bestaetige } from '../services/dialog';
 import { DEUTSCHLAND_QUELLEN, EU_QUELLEN, RECHTSGRUNDLAGEN, type Amtslink } from '../services/behoerden';
 import { ZONEN_QUELLEN } from '../services/euZones';
 
@@ -151,70 +152,170 @@ function AmtslinkGruppe({ titel, icon: Icon, links }: {
 
 export function InventoryView() {
   const { t } = useSprache();
-  const [parts] = useState<SparePart[]>([
-    { id: '1', name: 'Landegestell DJI Mini 3', description: '3D-gedrucktes Landegestell für hohe Gräser.', stlUrl: '#', printable: true },
-    { id: '2', name: 'Kameraschutz Sonnenblende', description: 'Reduziert Lens-Flare bei tiefstehender Sonne.', stlUrl: '#', printable: true },
-    { id: '3', name: 'e-ID Halterung', description: 'Clip-on Halterung für die LBA Plakette.', stlUrl: '#', printable: true }
-  ]);
+  const [teile, setTeile] = useState<SparePart[]>([]);
+  const [drohnen, setDrohnen] = useState<Drone[]>([]);
+  const [zeigeForm, setZeigeForm] = useState(false);
+  const [neu, setNeu] = useState<Partial<SparePart>>({ anzahl: 1 });
+
+  const laden = async () => {
+    const [t1, d1] = await Promise.all([dbService.getSpareParts(), dbService.getDrones()]);
+    setTeile(t1);
+    setDrohnen(d1);
+  };
+
+  useEffect(() => {
+    laden();
+  }, []);
+
+  const speichern = async () => {
+    if (!neu.name?.trim()) return;
+    const link = neu.link?.trim();
+    await dbService.saveSparePart({
+      id: crypto.randomUUID(),
+      name: neu.name.trim(),
+      beschreibung: neu.beschreibung?.trim() || undefined,
+      anzahl: Math.max(0, Math.floor(neu.anzahl ?? 0)),
+      mindestAnzahl: neu.mindestAnzahl ? Math.max(0, Math.floor(neu.mindestAnzahl)) : undefined,
+      // Nur echte Web-Links zulassen (kein javascript: o.ae.)
+      link: link && /^https?:\/\//i.test(link) ? link : undefined,
+      droneId: neu.droneId || undefined,
+      createdAt: Date.now(),
+    });
+    setNeu({ anzahl: 1 });
+    setZeigeForm(false);
+    laden();
+  };
+
+  const aendereAnzahl = async (teil: SparePart, delta: number) => {
+    await dbService.saveSparePart({ ...teil, anzahl: Math.max(0, teil.anzahl + delta) });
+    laden();
+  };
+
+  const loeschen = async (teil: SparePart) => {
+    if (!await bestaetige(`„${teil.name}" aus dem Inventar löschen?`, { gefaehrlich: true })) return;
+    await dbService.deleteSparePart(teil.id);
+    laden();
+  };
+
+  const knapp = (teil: SparePart) => teil.mindestAnzahl !== undefined && teil.anzahl <= teil.mindestAnzahl;
+  const drohnenName = (id?: string) => drohnen.find(d => d.id === id)?.name;
 
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
-      <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.ersatzteile')}</h2>
-        <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">3D-Druck & Hardware Verwaltung</p>
+      <div className="mb-6 flex items-end justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-black tracking-tight text-brand-blue">{t('view.ersatzteile')}</h2>
+          <p className="text-slate-500 font-medium uppercase tracking-widest text-[10px]">Ersatzteile, Bestand & Links</p>
+        </div>
+        <button
+          onClick={() => setZeigeForm(v => !v)}
+          className="flex items-center gap-1.5 bg-brand-blue text-white text-xs font-bold px-3 py-2 rounded-xl shadow-lg shadow-brand-blue/20"
+        >
+          <Plus className="w-4 h-4" /> Teil
+        </button>
       </div>
 
-      {/* Bewusst dunkles Panel: Text als text-white/70 statt slate-400/500, damit
-          es auch im Dunkelmodus (slate-900 wird dort hell) lesbar bleibt. */}
-      <div className="bg-slate-900 text-white p-6 rounded-[32px] mb-8 shadow-xl shadow-slate-200">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center">
-              <Printer className="w-6 h-6 text-brand-green" />
-            </div>
-            <div>
-              <p className="text-xs font-black uppercase tracking-widest text-white/70 leading-none mb-1">Bambu Lab A1</p>
-              <h4 className="font-bold">Heim-Werkstatt</h4>
-            </div>
+      {zeigeForm && (
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-6 space-y-3">
+          <input
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+            placeholder="Name, z.B. Propeller-Satz Mini 4 Pro"
+            value={neu.name ?? ''}
+            onChange={e => setNeu({ ...neu, name: e.target.value })}
+          />
+          <input
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+            placeholder="Beschreibung (optional)"
+            value={neu.beschreibung ?? ''}
+            onChange={e => setNeu({ ...neu, beschreibung: e.target.value })}
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <label className="text-[11px] font-bold text-slate-600">
+              Anzahl
+              <input type="number" min={0}
+                className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+                value={neu.anzahl ?? 0}
+                onChange={e => setNeu({ ...neu, anzahl: Number(e.target.value) })}
+              />
+            </label>
+            <label className="text-[11px] font-bold text-slate-600">
+              Warnen ab (optional)
+              <input type="number" min={0}
+                className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+                value={neu.mindestAnzahl ?? ''}
+                onChange={e => setNeu({ ...neu, mindestAnzahl: e.target.value === '' ? undefined : Number(e.target.value) })}
+              />
+            </label>
           </div>
-          <span className="px-2 py-0.5 bg-white/10 text-white/70 rounded-full text-[9px] font-black uppercase tracking-widest">Nicht verbunden</span>
-        </div>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tight text-white/70">
-            <span>Status</span>
-            <span className="text-white/70 font-mono">Offline</span>
-          </div>
-          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-             <div className="h-full bg-slate-600 transition-all" style={{ width: `0%` }} />
-          </div>
-          <p className="text-[10px] text-white/70 italic">Bambu API-Token in den Einstellungen hinterlegen, um den Drucker zu verbinden.</p>
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Verfügbare STL-Dateien</h3>
-        {parts.map(part => (
-          <div key={part.id} className="bg-white p-5 rounded-[32px] border border-slate-200 shadow-sm flex items-center justify-between group hover:border-brand-blue/30 transition-all">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:bg-brand-blue/5 transition-colors">
-                <Cpu className="w-6 h-6 text-slate-400 group-hover:text-brand-blue transition-colors" />
-              </div>
-              <div>
-                <h4 className="font-bold text-slate-900 text-sm">{part.name}</h4>
-                <p className="text-[10px] text-slate-500 font-medium">{part.description}</p>
-              </div>
-            </div>
-            <button className="p-3 bg-brand-blue/5 text-brand-blue rounded-2xl hover:bg-brand-blue hover:text-white transition-all shadow-sm">
-              <Download className="w-5 h-5" />
+          <input
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+            placeholder="Link zu STL-Datei oder Shop (https://…)"
+            value={neu.link ?? ''}
+            onChange={e => setNeu({ ...neu, link: e.target.value })}
+          />
+          <select
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
+            value={neu.droneId ?? ''}
+            onChange={e => setNeu({ ...neu, droneId: e.target.value })}
+          >
+            <option value="">Keiner Drohne zugeordnet</option>
+            {drohnen.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+          </select>
+          <div className="flex gap-2">
+            <button onClick={() => setZeigeForm(false)} className="flex-1 py-2.5 text-xs font-bold text-slate-600 bg-slate-100 rounded-xl">
+              {t('aktion.abbrechen')}
+            </button>
+            <button onClick={speichern} disabled={!neu.name?.trim()}
+              className="flex-1 py-2.5 text-xs font-bold text-white bg-brand-blue rounded-xl disabled:opacity-50">
+              Speichern
             </button>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
 
-      <div className="mt-10 p-10 bg-white border border-slate-200 rounded-[32px] text-center border-dashed group hover:bg-slate-50 transition-colors cursor-pointer">
-         <Plus className="w-8 h-8 text-slate-300 mx-auto mb-2 group-hover:text-brand-blue transition-colors" />
-         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed group-hover:text-slate-600 transition-colors">Eigene CAD-Daten verknüpfen</p>
-      </div>
+      {teile.length === 0 && !zeigeForm ? (
+        <div className="p-10 bg-white border border-dashed border-slate-200 rounded-[32px] text-center">
+          <Package className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+          <p className="text-xs font-bold text-slate-600">Noch keine Ersatzteile erfasst.</p>
+          <p className="text-[11px] text-slate-500 mt-1">Propeller, Akku-Ersatz, gedruckte Teile – mit Bestand und Link.</p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {teile.map(teil => (
+            <div key={teil.id} className={`bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-3 ${knapp(teil) ? 'border-amber-300' : 'border-slate-200'}`}>
+              <div className="min-w-0 flex-1">
+                <h4 className="font-bold text-slate-900 text-sm truncate">{teil.name}</h4>
+                {teil.beschreibung && <p className="text-[11px] text-slate-500 truncate">{teil.beschreibung}</p>}
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {drohnenName(teil.droneId) && (
+                    <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{drohnenName(teil.droneId)}</span>
+                  )}
+                  {knapp(teil) && (
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full">Bestand knapp</span>
+                  )}
+                  {teil.link && (
+                    <a href={teil.link} target="_blank" rel="noopener noreferrer"
+                      className="text-[10px] font-bold text-brand-blue inline-flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> Link
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <button onClick={() => aendereAnzahl(teil, -1)} aria-label="Eins weniger"
+                  className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-black">−</button>
+                <span className="w-8 text-center font-black text-slate-900 tabular-nums">{teil.anzahl}</span>
+                <button onClick={() => aendereAnzahl(teil, 1)} aria-label="Eins mehr"
+                  className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-black">+</button>
+                <button onClick={() => loeschen(teil)} aria-label="Löschen"
+                  className="w-8 h-8 rounded-xl text-slate-500 hover:text-brand-red flex items-center justify-center">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

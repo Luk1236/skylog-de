@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { importBackup, BACKUP_VERSION, ohneZugangsdaten } from './backup';
+import { importBackup, BACKUP_VERSION, ohneZugangsdaten, leseBackupText, PasswortNoetigFehler } from './backup';
+import { verschluessele, FalschesPasswortFehler } from './backupCrypto';
 import type { UserProfile } from './db';
 
 // importBackup prüft die Datei, bevor es die Datenbank anfasst. Diese
@@ -63,5 +64,20 @@ describe('ohneZugangsdaten', () => {
 
   it('kommt mit null zurecht', () => {
     expect(ohneZugangsdaten(null)).toBeNull();
+  });
+});
+
+describe('leseBackupText — verschlüsselte Sicherungen', () => {
+  const klar = JSON.stringify({ app: 'SkyLog DE', version: BACKUP_VERSION, drones: [{ id: 'd1' }] });
+
+  it('liest unverschlüsselte Dateien direkt', async () => {
+    expect((await leseBackupText(klar)).drones).toHaveLength(1);
+  });
+
+  it('verlangt bei verschlüsselten Dateien ein Passwort', async () => {
+    const datei = JSON.stringify(await verschluessele(klar, 'sicheres-passwort', 1000));
+    await expect(leseBackupText(datei)).rejects.toBeInstanceOf(PasswortNoetigFehler);
+    await expect(leseBackupText(datei, 'falsches-passwort')).rejects.toBeInstanceOf(FalschesPasswortFehler);
+    expect((await leseBackupText(datei, 'sicheres-passwort')).drones).toEqual([{ id: 'd1' }]);
   });
 });
