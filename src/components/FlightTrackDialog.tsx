@@ -1,7 +1,7 @@
 import { useState, useMemo, type ChangeEvent } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { X, Upload, Route, Mountain, Gauge, BatteryMedium, AlertTriangle } from 'lucide-react';
+import { X, Upload, Route, Mountain, Gauge, BatteryMedium, AlertTriangle, type LucideIcon } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
 import { dbService, type Flight, type TrackPoint } from '../services/db';
@@ -40,7 +40,7 @@ function ausduennen<T>(arr: T[], max = 400): T[] {
   return arr.filter((_, i) => i % schritt === 0);
 }
 
-function Stat({ icon: Icon, label, wert }: { icon: any, label: string, wert: string }) {
+function Stat({ icon: Icon, label, wert }: { icon: LucideIcon, label: string, wert: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col items-center gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
@@ -175,7 +175,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
   );
 }
 
-function Diagramm({ titel, farbe, daten, feld }: { titel: string, farbe: string, daten: any[], feld: string }) {
+function Diagramm({ titel, farbe, daten, feld }: { titel: string, farbe: string, daten: object[], feld: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3">
       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{titel}</p>

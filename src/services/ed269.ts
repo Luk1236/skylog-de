@@ -44,10 +44,6 @@ function inMeter(wert: unknown, einheit: unknown): number | undefined {
   return String(einheit).toUpperCase() === 'FT' ? Math.round(z * 0.3048) : z;
 }
 
-function istBeschraenkung(w: unknown): w is Beschraenkung {
-  return w === 'PROHIBITED' || w === 'REQ_AUTHORISATION' || w === 'CONDITIONAL' || w === 'NO_RESTRICTION';
-}
-
 /** Kreis zu einem Ring annähern — ED-269 erlaubt neben Polygon auch Circle. */
 function kreisAlsRing(lat: number, lon: number, radiusM: number, punkte = 24): [number, number][] {
   const ring: [number, number][] = [];
@@ -87,6 +83,7 @@ export function parseEd269(text: string): Ed269Zone[] {
   }
 
   const zonen: Ed269Zone[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rohes ED-269-JSON, Felder werden einzeln geprueft
   for (const e of liste as Record<string, any>[]) {
     if (!e || typeof e !== 'object') continue;
     const polygone: [number, number][][] = [];
@@ -95,6 +92,7 @@ export function parseEd269(text: string): Ed269Zone[] {
 
     const props = e.properties && typeof e.properties === 'object' ? { ...e.properties, ...e } : e;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rohes ED-269-JSON, Felder werden einzeln geprueft
     const verarbeiteGeometrie = (geom: any) => {
       if (!geom || typeof geom !== 'object') return;
       const hp = geom.horizontalProjection ?? geom;
@@ -145,7 +143,8 @@ export function parseEd269(text: string): Ed269Zone[] {
 
     const rawRes = String(props.restriction ?? props.type ?? props.status ?? '').toUpperCase();
     let beschraenkung: Beschraenkung = 'CONDITIONAL';
-    if (rawRes.includes('PROHIBITED') || rawRes.includes('INTERDITE') || rawRes.includes('VERBOTEN') || rawRes.includes('RED')) {
+    if (rawRes.includes('PROHIBITED') || rawRes.includes('INTERDITE') || rawRes.includes('VERBOTEN') || /\bRED\b/.test(rawRes)) {
+      // \b: 'RED' als eigenes Wort - sonst wuerde z.B. 'AUTHORISATION_REQUIRED' zur Verbotszone.
       beschraenkung = 'PROHIBITED';
     } else if (rawRes.includes('AUTHORISATION') || rawRes.includes('PERMIT') || rawRes.includes('ORANGE')) {
       beschraenkung = 'REQ_AUTHORISATION';

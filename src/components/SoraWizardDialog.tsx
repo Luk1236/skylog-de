@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, FileCheck, Shield, CheckCircle2, FileText, ChevronRight, HelpCircle } from 'lucide-react';
+import { X, Shield, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
 import type { Drone, UserProfile } from '../services/db';
 import { evaluateSora, generateSoraPdf, type SoraInput } from '../services/sora25';
 
@@ -108,7 +108,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                   <select
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                     value={input.environment}
-                    onChange={e => setInput({ ...input, environment: e.target.value as any })}
+                    onChange={e => setInput({ ...input, environment: e.target.value as SoraInput['environment'] })}
                   >
                     <option value="controlled">Kontrollierter Bereich am Boden (Controlled Ground)</option>
                     <option value="sparse">Dünn besiedeltes Gebiet (Sparsely Populated Area)</option>
@@ -122,7 +122,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                   <select
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                     value={input.airspace}
-                    onChange={e => setInput({ ...input, airspace: e.target.value as any })}
+                    onChange={e => setInput({ ...input, airspace: e.target.value as SoraInput['airspace'] })}
                   >
                     <option value="uncontrolled">Unkontrollierter Luftraum (G / E)</option>
                     <option value="controlled">Kontrollierter Luftraum (CTR / C / D)</option>

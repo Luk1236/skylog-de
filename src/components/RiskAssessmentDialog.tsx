@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { X, Scale, CheckCircle2, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { Drone } from '../services/db';
@@ -35,7 +35,8 @@ export function RiskAssessmentDialog({ drohnen, onClose }: Props) {
     szenario, menschenansammlung, inBebautemGebiet,
     hoehe: Number(hoehe) || 0, vlos,
   };
-  const ergebnis = useMemo(() => bewerteBetrieb(eingabe), [drohnenId, szenario, menschenansammlung, inBebautemGebiet, hoehe, vlos]);
+  // Direkt berechnen: billig, und die alte useMemo-Liste vergass Aenderungen an der Drohnenliste.
+  const ergebnis = bewerteBetrieb(eingabe);
   const farbe = KAT_FARBE[ergebnis.kategorie];
 
   return (

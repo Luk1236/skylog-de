@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Layers, Plane, BatteryCharging, Wrench, ShieldAlert, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';
+import { X, Layers, Plane, BatteryCharging, Wrench, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';
 import type { Drone, Battery, UserProfile, MaintenanceRecord } from '../services/db';
 
 interface Props {

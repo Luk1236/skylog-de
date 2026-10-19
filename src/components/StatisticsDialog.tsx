@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { X, Clock, Plane, CalendarDays, TrendingUp, MapPin, AlertTriangle } from 'lucide-react';
+import { X, Clock, Plane, CalendarDays, TrendingUp, MapPin, AlertTriangle, type LucideIcon } from 'lucide-react';
 import type { Flight, Drone } from '../services/db';
 import { berechneStatistik, formatDauer } from '../services/flightStats';
 
@@ -10,7 +10,7 @@ interface Props {
   onClose: () => void;
 }
 
-function Kennzahl({ icon: Icon, wert, label }: { icon: any, wert: string, label: string }) {
+function Kennzahl({ icon: Icon, wert, label }: { icon: LucideIcon, wert: string, label: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
@@ -22,7 +22,6 @@ function Kennzahl({ icon: Icon, wert, label }: { icon: any, wert: string, label:
 
 export function StatisticsDialog({ flights, drones, onClose }: Props) {
   const s = useMemo(() => berechneStatistik(flights, drones), [flights, drones]);
-  const maxMonatMin = Math.max(1, ...s.proMonat.map(m => m.minuten));
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center">
@@ -71,7 +70,7 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
                     <BarChart data={s.proMonat} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
                       <XAxis dataKey="label" tick={{ fontSize: 8 }} interval={1} />
                       <YAxis tick={{ fontSize: 9 }} allowDecimals={false} width={32} />
-                      <Tooltip formatter={(v: any, n: any) => n === 'minuten' ? [formatDauer(v), 'Flugzeit'] : [v, 'Flüge']} />
+                      <Tooltip formatter={(v, n) => n === 'minuten' ? [formatDauer(Number(v)), 'Flugzeit'] : [v, 'Flüge']} />
                       <Bar dataKey="fluege" fill="#1e3a8a" radius={[3, 3, 0, 0]} isAnimationActive={false} />
                     </BarChart>
                   </ResponsiveContainer>

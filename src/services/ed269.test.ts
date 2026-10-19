@@ -94,6 +94,18 @@ describe('Robustheit', () => {
     expect(parseEd269('[]')).toEqual([]);
   });
 
+  // 'REQUIRED' enthält 'RED' - darf trotzdem keine Verbotszone werden.
+  it('liest Farbcodes nur als ganzes Wort', () => {
+    const ring = [[13.4, 52.5], [13.5, 52.5], [13.5, 52.6], [13.4, 52.5]];
+    const zone = (restriction: string) => ({
+      zoneId: restriction, name: restriction, country: 'DEU', restriction,
+      geometry: [{ horizontalProjection: { type: 'Polygon', coordinates: [ring] } }],
+    });
+    const [benoetigt, rot] = parseEd269(JSON.stringify([zone('AUTHORISATION_REQUIRED'), zone('RED')]));
+    expect(benoetigt.beschraenkung).toBe('REQ_AUTHORISATION');
+    expect(rot.beschraenkung).toBe('PROHIBITED');
+  });
+
   it('überspringt Zonen ohne darstellbare Fläche', () => {
     const ohne = JSON.stringify([{ zoneId: 'x', name: 'leer', country: 'AUT', restriction: 'PROHIBITED', geometry: [] }]);
     expect(parseEd269(ohne)).toEqual([]);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Printer, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Cloud, Layers, DownloadCloud, Globe2, X, PlusCircle } from 'lucide-react';
+import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Printer, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Cloud, Layers, DownloadCloud, Globe2, X, PlusCircle, type LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { cn } from './lib/utils';
@@ -238,7 +238,7 @@ export default function App() {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
       {/* Offline Banner */}
       {!isOnline && (
-        <div className="bg-amber-500 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
+        <div className="bg-amber-700 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
           <AlertTriangle className="w-4 h-4 shrink-0" />
           Kein Internet — Wetter &amp; NOTAM nicht verfügbar. Logbuch funktioniert offline.
         </div>
@@ -315,12 +315,12 @@ export default function App() {
             >
               <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} locationFavorites={locationFavorites} onPlaner={() => setShowPlaner(true)} />
               {gpsError && (
-                <div className="absolute top-4 left-4 right-4 z-[500] bg-amber-500 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
+                <div className="absolute top-4 left-4 right-4 z-[500] bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span className="flex-1">{gpsError}</span>
                   <button
                     onClick={() => setShowManualLocation(true)}
-                    className="shrink-0 bg-white/25 hover:bg-white/35 rounded-lg px-2 py-1 text-[11px] font-bold"
+                    className="shrink-0 bg-black/15 hover:bg-black/25 rounded-lg px-2 py-1 text-[11px] font-bold"
                   >
                     Manuell setzen
                   </button>
@@ -692,7 +692,7 @@ function MehrSheet({
   onClose: () => void;
 }) {
   const { t } = useSprache();
-  const eintraege: { view: View; icon: any; label: string }[] = [
+  const eintraege: { view: View; icon: LucideIcon; label: string }[] = [
     { view: 'inventory', icon: Printer, label: t('nav.inventar') },
     { view: 'pilots', icon: User, label: t('nav.piloten') },
     { view: 'knowledge', icon: Library, label: t('nav.lbaInfo') },
@@ -815,7 +815,7 @@ function MehrSheet({
   );
 }
 
-function NavButton({ active, onClick, icon: Icon, label, badge }: { active: boolean, onClick: () => void, icon: any, label: string, badge?: number }) {
+function NavButton({ active, onClick, icon: Icon, label, badge }: { active: boolean, onClick: () => void, icon: LucideIcon, label: string, badge?: number }) {
   return (
     <button 
       onClick={onClick}
@@ -892,8 +892,13 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
   };
 
   useEffect(() => { pruefeOfflineKarte().then(setOfflineKarte); }, []);
-  useEffect(() => { pruefeKarten(); }, [location[0], location[1]]);
-  useEffect(() => { ladeEuZonen(); }, [location[0], location[1]]);
+  // Bewusst nur bei Positionswechsel: pruefeKarten/ladeEuZonen sind pro Render neu
+  // erzeugte Funktionen und wuerden sonst bei jedem Render erneut laden.
+  const [lat, lon] = location;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { pruefeKarten(); }, [lat, lon]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { ladeEuZonen(); }, [lat, lon]);
 
   function MapEvents() {
     useMapEvents({
@@ -908,7 +913,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
     const map = useMap();
     useEffect(() => {
       map.setView(center, 13);
-    }, [center]);
+    }, [map, center]);
     return null;
   }
 
@@ -1103,7 +1108,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
               <p className="text-[10px] text-slate-500 font-medium">Klick für 0-100% Sicherheits-Check</p>
             </div>
           </div>
-          <span className="bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 group-hover:bg-emerald-600 transition-colors">
+          <span className="bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 group-hover:bg-emerald-800 transition-colors">
             Score
           </span>
         </button>

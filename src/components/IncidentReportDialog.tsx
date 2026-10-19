@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { X, AlertTriangle, Copy, Check, ExternalLink, ClipboardCheck } from 'lucide-react';
 import { cn } from '../lib/utils';
 import type { UserProfile, Drone } from '../services/db';
@@ -47,8 +47,9 @@ export function IncidentReportDialog({ profile, drohnen, onClose }: Props) {
     zeugen, massnahmen,
   };
 
-  const fehlt = useMemo(() => fehlendePflichtfelder(eingabe), [eingabe]);
-  const bericht = useMemo(() => baueVorfallBericht(eingabe), [eingabe]);
+  // Reine, billige Funktionen - ein useMemo auf das jedes Mal neue eingabe-Objekt brachte nichts.
+  const fehlt = fehlendePflichtfelder(eingabe);
+  const bericht = baueVorfallBericht(eingabe);
 
   const kopieren = async () => {
     try {

@@ -40,6 +40,7 @@ export async function fetchNotams(
     if (!res.ok) return [];
     const data = await res.json();
     return (data.items ?? [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rohes JSON eines externen Dienstes, Felder werden einzeln geprueft
       .map((item: any) => {
         const n = item.properties?.coreNOTAMData?.notam;
         if (!n?.id) return null;

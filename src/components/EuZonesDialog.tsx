@@ -51,8 +51,8 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
       await aktualisieren();
       onGeaendert();
       melde(`${zonen.length} Zonen für ${land} übernommen.`, 'Import erfolgreich');
-    } catch (err: any) {
-      melde(err?.message || 'Die Datei konnte nicht gelesen werden.', 'Import fehlgeschlagen');
+    } catch (err) {
+      melde((err instanceof Error && err.message) || 'Die Datei konnte nicht gelesen werden.', 'Import fehlgeschlagen');
     } finally {
       setLaeuft(false);
     }
@@ -81,8 +81,8 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
       await aktualisieren();
       onGeaendert();
       melde(`${zonen.length} Zonen für ${quelle.land} geladen.`, 'Aktualisiert');
-    } catch (err: any) {
-      melde(err?.message || 'Die Quelle war nicht erreichbar.', 'Laden fehlgeschlagen');
+    } catch (err) {
+      melde((err instanceof Error && err.message) || 'Die Quelle war nicht erreichbar.', 'Laden fehlgeschlagen');
     } finally {
       setLaeuft(false);
     }

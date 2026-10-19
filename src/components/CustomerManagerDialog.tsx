@@ -24,7 +24,6 @@ export function CustomerManagerDialog({
 }: Props) {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCust, setNewCust] = useState<Partial<Customer>>({});
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,8 +44,6 @@ export function CustomerManagerDialog({
     setNewCust({});
     setShowAddForm(false);
   };
-
-  const selectedCustomer = customers.find(c => c.id === selectedCustomerId);
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 overflow-y-auto">
@@ -153,16 +150,11 @@ export function CustomerManagerDialog({
             <div className="grid grid-cols-1 gap-3">
               {customers.map(c => {
                 const stats = calculateCustomerStats(c.id, flights);
-                const isSelected = selectedCustomerId === c.id;
 
                 return (
                   <div
                     key={c.id}
-                    className={`p-4 rounded-2xl border transition-all ${
-                      isSelected
-                        ? 'bg-slate-800/90 border-sky-500/50 shadow-lg shadow-sky-500/10'
-                        : 'bg-slate-800/40 border-slate-800 hover:bg-slate-800/60'
-                    }`}
+                    className="p-4 rounded-2xl border transition-all bg-slate-800/40 border-slate-800 hover:bg-slate-800/60"
                   >
                     <div className="flex items-start justify-between">
                       <div>

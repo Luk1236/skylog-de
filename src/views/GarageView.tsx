@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, type ChangeEvent } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   BadgeAlert, Calendar, Camera, Clock, Plane, Plus, Settings2,
@@ -153,7 +153,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
       id: crypto.randomUUID(),
       droneId: selectedDroneId,
       date: new Date().toISOString().split('T')[0],
-      type: newMaint.type as any,
+      type: newMaint.type ?? 'General',
       description: newMaint.description,
       hoursAtMaintenance: stats?.hours || 0,
       cost: newMaint.cost,
@@ -555,13 +555,13 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                         <Wrench className="w-12 h-12" />
                       </div>
                       <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-lg bg-amber-500 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
+                        <div className="w-6 h-6 rounded-lg bg-amber-700 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
                           <BadgeAlert className="w-3.5 h-3.5" />
                         </div>
                         <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">Sicherheits-Check fällig</span>
                       </div>
                       <div className="space-y-2">
-                        {getMaintenanceAlerts(drone.id).map((alert: any, idx) => (
+                        {getMaintenanceAlerts(drone.id).map((alert, idx) => (
                           <div key={idx} className="flex flex-col gap-1 bg-amber-50/50 p-2 rounded-xl border border-amber-100/30">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
@@ -699,7 +699,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                       <select 
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
                         value={newMaint.type}
-                        onChange={e => setNewMaint({...newMaint, type: e.target.value as any})}
+                        onChange={e => setNewMaint({...newMaint, type: e.target.value as MaintenanceRecord['type']})}
                       >
                         <option value="Propeller">Propeller</option>
                         <option value="Firmware">Firmware</option>
@@ -742,7 +742,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 {['All', 'Propeller', 'Firmware', 'Motor', 'Sensor', 'General'].map((type) => (
                   <button
                     key={type}
-                    onClick={() => setMaintFilter(type as any)}
+                    onClick={() => setMaintFilter(type as MaintenanceRecord['type'] | 'All')}
                     className={cn(
                       "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all",
                       maintFilter === type 
@@ -764,7 +764,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 ].map((range) => (
                   <button
                     key={range.id}
-                    onClick={() => setDateFilter(range.id as any)}
+                    onClick={() => setDateFilter(range.id as typeof dateFilter)}
                     className={cn(
                       "px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-1.5",
                       dateFilter === range.id 

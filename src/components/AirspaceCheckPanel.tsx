@@ -42,6 +42,8 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
 
   useEffect(() => {
     if (Number.isFinite(lat) && Number.isFinite(lon)) laden();
+    // Bewusst nur bei Positionswechsel neu laden (laden ist pro Render neu).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat, lon]);
 
   // Wenn eine Flughöhe bekannt ist, nur die vertikal betroffenen Zonen zeigen.

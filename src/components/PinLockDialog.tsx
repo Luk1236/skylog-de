@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, Unlock, X, KeyRound, AlertCircle, Check } from 'lucide-react';
+import { Lock, Unlock, X, AlertCircle, Check } from 'lucide-react';
 import { setPin, verifyPin, removePin, isPinEnabled } from '../services/pinProtection';
 
 interface Props {

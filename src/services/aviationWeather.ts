@@ -105,6 +105,7 @@ function zuZahl(v: unknown): number | null {
 }
 
 /** Rohantwort der API in unsere Form bringen. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- rohes JSON eines externen Dienstes, Felder werden einzeln geprueft
 export function zuStation(roh: any): MetarStation {
   return {
     icaoId: String(roh?.icaoId ?? ''),

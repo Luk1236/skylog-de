@@ -6,12 +6,11 @@ import {
   ShieldCheck, Sparkles, Square, Thermometer, Timer, Wind, XCircle, Zap,
 } from 'lucide-react';
 import { dbService, type Flight, type Drone, type Battery, type UserProfile, type Pilot } from '../services/db';
-import { fetchWeather, fetchForecast, minutesUntilSunset, type WeatherData, type ForecastHour } from '../services/weather';
+import { fetchWeather, fetchForecast, minutesUntilSunset, type ForecastHour } from '../services/weather';
 import { bewerteFlugfenster, besteStunde, sonnenuntergangStunde, type FensterBewertung } from '../services/flightWindow';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from '../services/notam';
 import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from '../services/checklists';
 import { cn } from '../lib/utils';
-import { useSprache } from '../lib/sprache';
 import { AirspaceCheckPanel } from '../components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from '../components/AviationWeatherPanel';
 import { ChecklistEditorDialog } from '../components/lazyDialogs';
@@ -67,7 +66,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
           <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{titel}</h3>
         </div>
         <div className="flex items-center gap-2">
-          <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-500")}>
+          <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-500")}>
             {done}/{items.length}
           </span>
           <button onClick={() => setEditor(true)} aria-label="Checkliste bearbeiten" className="p-1 text-slate-300 hover:text-brand-blue">
@@ -165,6 +164,10 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
         setSafetyAnalysis(data);
       } else if (response.status === 404) {
         setSafetyError('Die KI-Analyse ist in dieser Version nicht verfügbar (kein Server). Nutze die Online-Version von SkyLog DE.');
+      } else if (response.status === 503) {
+        setSafetyError('Die KI-Analyse ist auf diesem Server nicht eingerichtet (kein API-Schlüssel hinterlegt).');
+      } else if (response.status === 429) {
+        setSafetyError('Zu viele KI-Analysen in kurzer Zeit. Bitte in einer Weile erneut versuchen.');
       } else {
         setSafetyError('Die KI-Analyse hat gerade nicht geklappt. Bitte später erneut versuchen.');
       }
@@ -210,10 +213,13 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
           .finally(() => setNotamLoading(false));
       }
     }
+    // Bewusst nur beim Wechsel in den Setup-Schritt laden, nicht bei jeder
+    // Positions- oder Profilaenderung (sonst NOTAM-/Wetter-Abrufe am laufenden Band).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
 
   useEffect(() => {
-    let interval: any;
+    let interval: ReturnType<typeof setInterval> | undefined;
     if (timerState === 'running') {
       interval = setInterval(() => {
         setElapsedTime(prev => prev + 1);
@@ -397,7 +403,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                       <select 
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
                         value={purpose}
-                        onChange={e => setPurpose(e.target.value as any)}
+                        onChange={e => setPurpose(e.target.value as Flight['purpose'])}
                       >
                         <option value="Hobby">Hobby</option>
                         <option value="Gewerblich">Gewerblich</option>
@@ -794,8 +800,8 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 )}>
                   <div className={cn(
                     "w-10 h-10 rounded-2xl flex items-center justify-center shrink-0",
-                    safetyAnalysis.overall_safety_score > 70 ? "bg-emerald-500 text-white" :
-                    safetyAnalysis.overall_safety_score > 40 ? "bg-amber-500 text-white" : "bg-brand-red text-white"
+                    safetyAnalysis.overall_safety_score > 70 ? "bg-emerald-700 text-white" :
+                    safetyAnalysis.overall_safety_score > 40 ? "bg-amber-700 text-white" : "bg-brand-red text-white"
                   )}>
                     <BrainCircuit className="w-5 h-5" />
                   </div>

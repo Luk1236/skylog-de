@@ -48,6 +48,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
   useEffect(() => {
     if (Number.isFinite(lat) && Number.isFinite(lon)) laden();
     // absichtlich nur bei Positionswechsel neu laden
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lat, lon]);
 
   const bewertung = bewerteFltCat(station?.fltCat ?? null);

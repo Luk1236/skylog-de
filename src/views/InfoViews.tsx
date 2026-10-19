@@ -157,8 +157,6 @@ export function InventoryView() {
     { id: '3', name: 'e-ID Halterung', description: 'Clip-on Halterung für die LBA Plakette.', stlUrl: '#', printable: true }
   ]);
 
-  const [bambuStatus] = useState({ state: 'Idle', progress: 0, model: '-' });
-
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
@@ -166,6 +164,8 @@ export function InventoryView() {
         <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">3D-Druck & Hardware Verwaltung</p>
       </div>
 
+      {/* Bewusst dunkles Panel: Text als text-white/70 statt slate-400/500, damit
+          es auch im Dunkelmodus (slate-900 wird dort hell) lesbar bleibt. */}
       <div className="bg-slate-900 text-white p-6 rounded-[32px] mb-8 shadow-xl shadow-slate-200">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
@@ -173,21 +173,21 @@ export function InventoryView() {
               <Printer className="w-6 h-6 text-brand-green" />
             </div>
             <div>
-              <p className="text-xs font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Bambu Lab A1</p>
+              <p className="text-xs font-black uppercase tracking-widest text-white/70 leading-none mb-1">Bambu Lab A1</p>
               <h4 className="font-bold">Heim-Werkstatt</h4>
             </div>
           </div>
-          <span className="px-2 py-0.5 bg-slate-700 text-slate-400 rounded-full text-[9px] font-black uppercase tracking-widest">Nicht verbunden</span>
+          <span className="px-2 py-0.5 bg-white/10 text-white/70 rounded-full text-[9px] font-black uppercase tracking-widest">Nicht verbunden</span>
         </div>
         <div className="space-y-3">
-          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tight text-slate-400">
+          <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tight text-white/70">
             <span>Status</span>
-            <span className="text-slate-500 font-mono">Offline</span>
+            <span className="text-white/70 font-mono">Offline</span>
           </div>
           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
              <div className="h-full bg-slate-600 transition-all" style={{ width: `0%` }} />
           </div>
-          <p className="text-[10px] text-slate-500 italic">Bambu API-Token in den Einstellungen hinterlegen, um den Drucker zu verbinden.</p>
+          <p className="text-[10px] text-white/70 italic">Bambu API-Token in den Einstellungen hinterlegen, um den Drucker zu verbinden.</p>
         </div>
       </div>
 
@@ -270,7 +270,7 @@ export function PilotsView() {
         {pilots.map(pilot => (
           <div key={pilot.id} className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-lg transition-all">
              {pilot.isGuest && (
-               <div className="absolute top-0 right-0 px-3 py-1 bg-amber-500 text-white text-[8px] font-black uppercase tracking-widest rounded-bl-xl">
+               <div className="absolute top-0 right-0 px-3 py-1 bg-amber-700 text-white text-[8px] font-black uppercase tracking-widest rounded-bl-xl">
                  Gast
                </div>
              )}

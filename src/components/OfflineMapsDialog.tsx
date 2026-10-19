@@ -34,8 +34,8 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
       await ladeRegion(region, Capacitor.isNativePlatform(), setFortschritt);
       await aktualisieren();
       onGeaendert();
-    } catch (err: any) {
-      melde(err?.message || 'Download fehlgeschlagen.', 'Karte nicht geladen');
+    } catch (err) {
+      melde((err instanceof Error && err.message) || 'Download fehlgeschlagen.', 'Karte nicht geladen');
     } finally {
       setLaeuft(null);
       setFortschritt(null);

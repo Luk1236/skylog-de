@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { X, Zap, Plus, TrendingDown, Gauge } from 'lucide-react';
-import { cn } from '../lib/utils';
 import { dbService, type Battery, type BatteryReading } from '../services/db';
 import {
   effektiveGesundheit, restZyklen, lebensdauerBewertung, gesundheitsProjektion,

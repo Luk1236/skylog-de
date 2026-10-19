@@ -76,7 +76,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
         <div className="space-y-4">
           {emergencySteps.map((step, idx) => (
             <div key={idx} className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center shrink-0 text-[10px] font-black">
+              <div className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center shrink-0 text-[10px] font-black">
                 {idx + 1}
               </div>
               <div>

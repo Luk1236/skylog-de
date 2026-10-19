@@ -4,8 +4,18 @@
   --color-brand-blue: #1e3a8a;
   --color-brand-red: #b91c1c;
   --color-brand-yellow: #f59e0b;
-  --color-brand-green: #059669;
-  --color-brand-orange: #ea580c;
+  /* emerald-700 statt -600: als Text auf Weiß ~5.5 statt ~3.8 Kontrast. */
+  --color-brand-green: #047857;
+  /* orange-700 statt -600: weiße Schrift darauf ~5.2 statt ~3.6 Kontrast. */
+  --color-brand-orange: #c2410c;
+
+  /* Gedämpfter Text: Tailwinds slate-400 kommt auf Weiß nur auf ~2.5 Kontrast.
+     slate-400 steht in der App ausschließlich als Textfarbe (text-slate-400) -
+     meist auf hellen Flächen, in einigen Dialogen aber auf dunklem slate-800/900.
+     Ein Wert kann nicht auf beidem 4.5 schaffen; dieser Kompromiss liegt auf
+     Weiß bei ~4.1 und auf slate-900 bei ~4.4 (vorher 2.5 / 7.0).
+     Der Dunkelmodus setzt unten eigene Werte. */
+  --color-slate-400: #717f96;
 }
 
 /* Dark Mode.
@@ -49,6 +59,22 @@
      Dunkelmodus dunkel wird; auf sattem Rot (oklch) käme er sonst nur auf ~3.8
      Kontrast. Aufgehellt trägt dunkler Text ~5.3 und bleibt klar rot. */
   --color-red-500:    #f87171;
+
+  /* blue-200/-300 stehen nur als Untertitel-Text auf Brand-Blau-Flächen
+     (Kopfzeile, Willkommen, Statistik-Kacheln). Brand-Blau wird oben hell;
+     das helle Blau darauf käme nur auf ~1.8 Kontrast. Dunkel: ~5.8. */
+  --color-blue-200:   #172554;
+  --color-blue-300:   #172554;
+  /* dasselbe für den Untertitel auf der Brand-Orange-Kachel (text-orange-100) */
+  --color-orange-100: #431407;
+
+  /* Satte Signaltöne, die im hellen Modus weiße Schrift tragen (Banner,
+     Score-Knopf) oder als dunkler Text auf -50-Tönungen stehen. Im Dunkelmodus
+     wird weiß zu dunkel und die -50-Tönung dunkel - daher hier aufhellen. */
+  --color-amber-700:   #fbbf24;
+  --color-amber-800:   #fcd34d;
+  --color-emerald-700: #34d399;
+  --color-emerald-800: #6ee7b7;
 
   /* helle Tönungen der Signalfarben abdunkeln */
   --color-blue-50:    #172554;

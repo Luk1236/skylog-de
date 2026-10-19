@@ -68,6 +68,7 @@ function zahlOderNull(v: unknown): number | null {
 }
 
 /** Ein WFS-Feature in unsere Form bringen. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- rohes JSON eines externen Dienstes, Felder werden einzeln geprueft
 export function zuZone(feature: any, def: LayerDef): Zone {
   const p = feature?.properties ?? {};
   return {
@@ -150,6 +151,7 @@ export async function holeZonen(lat: number, lon: number, radiusM = 500): Promis
     if (!antwort.ok) throw new Error(`${def.layer}: HTTP ${antwort.status}`);
     const daten = await antwort.json();
     const features = Array.isArray(daten?.features) ? daten.features : [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- rohes JSON eines externen Dienstes, Felder werden einzeln geprueft
     return features.map((f: any) => zuZone(f, def));
   });
 

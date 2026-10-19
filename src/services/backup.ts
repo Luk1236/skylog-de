@@ -62,7 +62,7 @@ function markBackupDone(): void {
  *  werden. Das ist der guenstigere Tausch. */
 export function ohneZugangsdaten(profile: UserProfile | null): UserProfile | null {
   if (!profile) return null;
-  const { notamClientId, notamClientSecret, ...rest } = profile;
+  const { notamClientId: _id, notamClientSecret: _secret, ...rest } = profile;
   return rest as UserProfile;
 }
 

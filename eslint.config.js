@@ -49,4 +49,9 @@ export default tseslint.config(
       }],
     },
   },
+  {
+    // In Tests sind Mocks von Browser-Globals (localStorage, Leaflet) mit any ok.
+    files: ['**/*.test.{ts,tsx}'],
+    rules: { '@typescript-eslint/no-explicit-any': 'off' },
+  },
 );

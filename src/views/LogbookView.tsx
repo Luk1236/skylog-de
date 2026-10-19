@@ -22,7 +22,7 @@ import {
 } from '../components/lazyDialogs';
 import { FlightAssistant } from './FlightAssistant';
 
-export function LogbookView({ flights, drones, batteries, profile, locationFavorites = [], onUpdate, currentLocation, onOpenFavorites }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, locationFavorites?: LocationFavorite[], onUpdate: () => void, currentLocation: [number, number], onOpenFavorites?: () => void }) {
+export function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLocation, onOpenFavorites }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, locationFavorites?: LocationFavorite[], onUpdate: () => void, currentLocation: [number, number], onOpenFavorites?: () => void }) {
   const { t } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
@@ -49,6 +49,9 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
   // getLastBackupAt() liest localStorage, ist also nicht gratis.
   const reminders = useMemo(
     () => getReminders(profile, drones, batteries, getLastBackupAt()),
+    // flights absichtlich dabei: nach Import/Aenderung (onUpdate) auch den
+    // Sicherungs-Zeitstempel aus localStorage neu lesen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [profile, drones, batteries, flights]
   );
 
@@ -311,7 +314,7 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
         <div className="grid grid-cols-3 gap-2">
           <div className="bg-slate-900 text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
             <History className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 rotate-12" />
-            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-[8px] font-bold text-white/70 uppercase tracking-widest mb-1 flex items-center gap-1">
               <Clock className="w-2 h-2" /> Gesamt
             </p>
             <p className="text-sm font-black whitespace-nowrap">{hours}h {mins}m</p>
@@ -325,7 +328,7 @@ export function LogbookView({ flights, drones, batteries, profile, locationFavor
           </div>
           <div className="bg-brand-orange text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
             <Timer className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 rotate-12" />
-            <p className="text-[8px] font-bold text-orange-200 uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-[8px] font-bold text-orange-100 uppercase tracking-widest mb-1 flex items-center gap-1">
               <Clock className="w-2 h-2" /> Schnitt
             </p>
             <p className="text-sm font-black">{avgDuration}m</p>

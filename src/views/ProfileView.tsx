@@ -166,9 +166,9 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         'Sicherung geladen ✓'
       );
       onUpdate();
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
-      melde(err?.message || 'Import fehlgeschlagen.');
+      melde((err instanceof Error && err.message) || 'Import fehlgeschlagen.');
     }
   };
 
@@ -280,7 +280,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Lizenz Typ</label>
-                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.licenseType || ''} onChange={e => setEditedProfile({...editedProfile, licenseType: e.target.value as any})}>
+                <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.licenseType || ''} onChange={e => setEditedProfile({...editedProfile, licenseType: e.target.value as UserProfile['licenseType']})}>
                   <option value="None">Keine</option>
                   <option value="A1/A3">A1/A3</option>
                   <option value="A2">A2 (Fernpiloten-Zeugnis)</option>
@@ -383,7 +383,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         {documents.length === 0 && (
           <div className="text-center py-8 bg-white rounded-3xl border-2 border-dashed border-slate-100">
             <FileDigit className="w-8 h-8 text-slate-100 mx-auto mb-2" />
-            <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Keine PDF-Dokumente</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Keine PDF-Dokumente</p>
           </div>
         )}
       </div>
