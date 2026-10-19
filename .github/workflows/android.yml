@@ -26,7 +26,12 @@ jobs:
           distribution: temurin
           java-version: 21
 
+      # Standard waere "tools platform-tools" - das Paket "tools" gibt es mit den
+      # cmdline-tools 16.0 auf dem Runner nicht mehr, sdkmanager bricht dann ab.
+      # Plattform/Build-Tools laedt Gradle bei Bedarf selbst nach.
       - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - run: npm ci
 
