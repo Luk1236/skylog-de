@@ -3,6 +3,7 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { createDefaultRateLimiter, handleSafetyCheck } from "./api/_lib/safetyCheck";
+import { ZONEN_QUELLEN } from "./src/services/euZones";
 
 dotenv.config();
 
@@ -56,73 +57,32 @@ async function startServer() {
   //
   // Die Schweiz sendet Access-Control-Allow-Origin: * und braucht ihn nicht;
   // Luxemburg schickt keine CORS-Header. Nativ ist beides egal (CapacitorHttp).
-  // Die erlaubten Ziele stehen fest im Code - eine frei waehlbare Ziel-URL
-  // waere ein offener Weiterleitungsdienst.
-  const ZONEN_ZIELE: Record<string, string> = {
-    CH: "https://data.geo.admin.ch/ch.bazl.einschraenkungen-drohnen/einschraenkungen-drohnen/einschraenkungen-drohnen_4326.json",
-    LU: "https://drones.geoportail.lu/zones",
-    FR: "https://www.geoportail.gouv.fr/depot/fichiers/restrictions-uas.json",
-    AT: "https://www.austrocontrol.at/drohnen/geografische_zonen.json",
-    NL: "https://www.godrone.nl/api/geozones.json",
-    BE: "https://map.droneguide.be/api/v1/zones.json",
-    DK: "https://www.droneluftrum.dk/api/zones.json",
-    PL: "https://airspace.pansa.pl/api/ed269.json",
-    CZ: "https://dronview.rlp.cz/api/geozones.json",
-    ES: "https://drones.enaire.es/api/ed269.json",
-    IT: "https://www.d-flight.it/api/zones.json",
-    PT: "https://www.anac.pt/api/geozones.json",
-    SE: "https://aro.lfv.se/api/ed269.json",
-    FI: "https://aviamaps.com/api/ed269.json",
-    IE: "https://www.iaa.ie/api/zones.json",
-    HR: "https://amc.crocontrol.hr/api/zones.json",
-    SK: "https://mamdron.sk/api/zones.json",
-    HU: "https://www.hungarocontrol.hu/api/zones.json",
-    RO: "https://www.romatsa.ro/api/zones.json",
-    BG: "https://www.bulatsa.com/api/zones.json",
-    GR: "https://dagr.hcaa.gr/api/zones.json",
-    CY: "https://www.dca.gov.cy/api/zones.json",
-    MT: "https://www.transport.gov.mt/api/zones.json",
-    SI: "https://www.sloveniacontrol.si/api/zones.json",
-    EE: "https://eans.ee/api/zones.json",
-    LV: "https://www.lgs.lv/api/zones.json",
-    LT: "https://www.ans.lt/api/zones.json",
-    NO: "https://www.safetofly.no/api/zones.json",
-  };
+  // Die erlaubten Ziele kommen aus ZONEN_QUELLEN (nur gepruefte Adressen) - eine
+  // frei waehlbare Ziel-URL waere ein offener Weiterleitungsdienst.
+  //
+  // Antwortet die Quelle nicht mit JSON, gibt es einen ehrlichen Fehler. Frueher
+  // wurde hier eine "amtliche" Ersatzzone erfunden - das darf nie wieder passieren.
   app.get("/api/zonen/:land", async (req, res) => {
     const code = String(req.params.land).toUpperCase();
-    const ziel = ZONEN_ZIELE[code];
+    const ziel = ZONEN_QUELLEN.find(q => q.code === code)?.direktUrl;
     if (!ziel) return res.status(404).json({ error: "Fuer dieses Land ist keine Direktquelle hinterlegt" });
     try {
-      const antwort = await fetch(ziel, { redirect: "follow", signal: AbortSignal.timeout(6000) });
-      if (antwort.ok) {
-        res.setHeader("content-type", "application/json");
-        return res.send(await antwort.text());
+      const antwort = await fetch(ziel, { redirect: "follow", signal: AbortSignal.timeout(15000) });
+      if (!antwort.ok) {
+        return res.status(502).json({ error: `Quelle antwortete mit ${antwort.status}` });
       }
+      const text = await antwort.text();
+      try {
+        JSON.parse(text.replace(/^\uFEFF/, ""));
+      } catch {
+        return res.status(502).json({ error: "Quelle lieferte keine JSON-Daten" });
+      }
+      res.setHeader("content-type", "application/json");
+      res.send(text);
     } catch (error) {
-      console.warn(`Zonen-Proxy Fallback fuer ${code}:`, error);
+      console.warn(`Zonen-Proxy: Quelle fuer ${code} nicht erreichbar:`, error);
+      res.status(502).json({ error: "Quelle nicht erreichbar" });
     }
-
-    // Erzeuge ein valides ED-269 GeoJSON Fallback-Paket
-    res.setHeader("content-type", "application/json");
-    res.send(JSON.stringify([
-      {
-        identifier: `ED269-${code}-01`,
-        name: `Amtliche EASA Geozone ${code} Hauptstadt/Kontrollzone`,
-        country: code,
-        type: "PROHIBITED",
-        restriction: "PROHIBITED",
-        upperLimit: 150,
-        lowerLimit: 0,
-        geometry: [
-          {
-            type: "Polygon",
-            coordinates: [
-              [[13.4, 52.5], [13.5, 52.5], [13.5, 52.6], [13.4, 52.6], [13.4, 52.5]]
-            ]
-          }
-        ]
-      }
-    ]));
   });
 
   // Karten-Proxy fuer den Browser.

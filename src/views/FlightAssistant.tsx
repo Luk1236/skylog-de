@@ -14,6 +14,8 @@ import { cn } from '../lib/utils';
 import { AirspaceCheckPanel } from '../components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from '../components/AviationWeatherPanel';
 import { ChecklistEditorDialog } from '../components/lazyDialogs';
+import { apiUrl } from '../lib/apiBase';
+import { Capacitor } from '@capacitor/core';
 
 const CHECKLIST_ITEMS = [
   {
@@ -147,10 +149,15 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
 
   const runSafetyAnalysis = async () => {
     if (!currentLocation[0] || !currentLocation[1]) return;
+    const url = apiUrl('/api/safety-check', import.meta.env.VITE_API_BASE, Capacitor.isNativePlatform());
+    if (!url) {
+      setSafetyError('Die KI-Analyse ist in dieser Version nicht verfügbar (kein Server). Nutze die Online-Version von SkyLog DE.');
+      return;
+    }
     setIsAnalyzing(true);
     setSafetyError(null);
     try {
-      const response = await fetch('/api/safety-check', {
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

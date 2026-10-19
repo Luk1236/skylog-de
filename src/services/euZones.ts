@@ -24,9 +24,12 @@ export interface ZonenQuelle {
   /** Bekannt maschinenlesbar (ED-269 o.ä.). */
   maschinenlesbar: boolean;
   /** STABILE Adresse der Zonendatei, falls es eine gibt — dann kann die App
-   *  selbst laden. Österreich hat bewusst keine: dort steckt das Datum im
-   *  Dateinamen, jede Woche eine neue Adresse. Da bleibt es beim Import von
-   *  Hand, denn eine geratene URL wäre schlimmer als ein ehrlicher Hinweis. */
+   *  selbst laden. Nur GEPRÜFTE Adressen eintragen (liefert wirklich ED-269-JSON).
+   *  Österreich hat bewusst keine: dort steckt das Datum im Dateinamen, jede
+   *  Woche eine neue Adresse. Da bleibt es beim Import von Hand, denn eine
+   *  geratene URL wäre schlimmer als ein ehrlicher Hinweis.
+   *  Stand 2026-10-19: geprüft und funktionierend nur CH und LU. 26 frühere
+   *  Einträge waren geraten (404/HTML) und wurden entfernt. */
   direktUrl?: string;
   /** Ungefähre Downloadgröße in MB, damit niemand im Mobilnetz überrascht wird. */
   groesseMB?: number;
@@ -35,14 +38,12 @@ export interface ZonenQuelle {
 export const ZONEN_QUELLEN: ZonenQuelle[] = [
   {
     code: 'DE', land: 'Deutschland', landEn: 'Germany',
-    url: 'https://maps.dfs.de/geozones/', maschinenlesbar: true,
+    url: 'https://maptool-dipul.dfs.de/', maschinenlesbar: true,
   },
   {
     code: 'AT', land: 'Österreich', landEn: 'Austria',
     url: 'https://www.austrocontrol.at/luftfahrtbehoerde/lizenzen__bewilligungen/drohnen/geografische_zonen',
     maschinenlesbar: true,
-    direktUrl: 'https://www.austrocontrol.at/drohnen/geografische_zonen.json',
-    groesseMB: 5,
   },
   {
     code: 'CH', land: 'Schweiz', landEn: 'Switzerland',
@@ -53,14 +54,10 @@ export const ZONEN_QUELLEN: ZonenQuelle[] = [
   {
     code: 'NL', land: 'Niederlande', landEn: 'Netherlands',
     url: 'https://www.godrone.nl/', maschinenlesbar: true,
-    direktUrl: 'https://www.godrone.nl/api/geozones.json',
-    groesseMB: 4,
   },
   {
     code: 'BE', land: 'Belgien', landEn: 'Belgium',
     url: 'https://map.droneguide.be/', maschinenlesbar: true,
-    direktUrl: 'https://map.droneguide.be/api/v1/zones.json',
-    groesseMB: 3,
   },
   {
     code: 'LU', land: 'Luxemburg', landEn: 'Luxembourg',
@@ -72,140 +69,94 @@ export const ZONEN_QUELLEN: ZonenQuelle[] = [
     code: 'FR', land: 'Frankreich', landEn: 'France',
     url: 'https://www.geoportail.gouv.fr/donnees/restrictions-uas-categorie-ouverte-et-aeromodelisme',
     maschinenlesbar: true,
-    direktUrl: 'https://www.geoportail.gouv.fr/depot/fichiers/restrictions-uas.json',
-    groesseMB: 12,
   },
   {
     code: 'DK', land: 'Dänemark', landEn: 'Denmark',
     url: 'https://www.droneluftrum.dk/', maschinenlesbar: true,
-    direktUrl: 'https://www.droneluftrum.dk/api/zones.json',
-    groesseMB: 4,
   },
   {
     code: 'PL', land: 'Polen', landEn: 'Poland',
     url: 'https://airspace.pansa.pl/', maschinenlesbar: true,
-    direktUrl: 'https://airspace.pansa.pl/api/ed269.json',
-    groesseMB: 8,
   },
   {
     code: 'CZ', land: 'Tschechien', landEn: 'Czechia',
     url: 'https://dronview.rlp.cz/', maschinenlesbar: true,
-    direktUrl: 'https://dronview.rlp.cz/api/geozones.json',
-    groesseMB: 6,
   },
   {
     code: 'ES', land: 'Spanien', landEn: 'Spain',
     url: 'https://drones.enaire.es/', maschinenlesbar: true,
-    direktUrl: 'https://drones.enaire.es/api/ed269.json',
-    groesseMB: 10,
   },
   {
     code: 'IT', land: 'Italien', landEn: 'Italy',
     url: 'https://www.d-flight.it/', maschinenlesbar: true,
-    direktUrl: 'https://www.d-flight.it/api/zones.json',
-    groesseMB: 9,
   },
   {
     code: 'PT', land: 'Portugal', landEn: 'Portugal',
     url: 'https://www.anac.pt/', maschinenlesbar: true,
-    direktUrl: 'https://www.anac.pt/api/geozones.json',
-    groesseMB: 4,
   },
   {
     code: 'SE', land: 'Schweden', landEn: 'Sweden',
     url: 'https://aro.lfv.se/', maschinenlesbar: true,
-    direktUrl: 'https://aro.lfv.se/api/ed269.json',
-    groesseMB: 7,
   },
   {
     code: 'FI', land: 'Finnland', landEn: 'Finland',
     url: 'https://www.aviamaps.com/', maschinenlesbar: true,
-    direktUrl: 'https://aviamaps.com/api/ed269.json',
-    groesseMB: 6,
   },
   {
     code: 'IE', land: 'Irland', landEn: 'Ireland',
     url: 'https://www.iaa.ie/', maschinenlesbar: true,
-    direktUrl: 'https://www.iaa.ie/api/zones.json',
-    groesseMB: 3,
   },
   {
     code: 'HR', land: 'Kroatien', landEn: 'Croatia',
     url: 'https://amc.crocontrol.hr/', maschinenlesbar: true,
-    direktUrl: 'https://amc.crocontrol.hr/api/zones.json',
-    groesseMB: 4,
   },
   {
     code: 'SK', land: 'Slowakei', landEn: 'Slovakia',
     url: 'https://mamdron.sk/', maschinenlesbar: true,
-    direktUrl: 'https://mamdron.sk/api/zones.json',
-    groesseMB: 4,
   },
   {
     code: 'HU', land: 'Ungarn', landEn: 'Hungary',
     url: 'https://www.hungarocontrol.hu/', maschinenlesbar: true,
-    direktUrl: 'https://www.hungarocontrol.hu/api/zones.json',
-    groesseMB: 5,
   },
   {
     code: 'RO', land: 'Rumänien', landEn: 'Romania',
     url: 'https://www.romatsa.ro/', maschinenlesbar: true,
-    direktUrl: 'https://www.romatsa.ro/api/zones.json',
-    groesseMB: 7,
   },
   {
     code: 'BG', land: 'Bulgarien', landEn: 'Bulgaria',
     url: 'https://www.bulatsa.com/', maschinenlesbar: true,
-    direktUrl: 'https://www.bulatsa.com/api/zones.json',
-    groesseMB: 5,
   },
   {
     code: 'GR', land: 'Griechenland', landEn: 'Greece',
     url: 'https://dagr.hcaa.gr/', maschinenlesbar: true,
-    direktUrl: 'https://dagr.hcaa.gr/api/zones.json',
-    groesseMB: 6,
   },
   {
     code: 'CY', land: 'Zypern', landEn: 'Cyprus',
     url: 'https://www.dca.gov.cy/', maschinenlesbar: true,
-    direktUrl: 'https://www.dca.gov.cy/api/zones.json',
-    groesseMB: 2,
   },
   {
     code: 'MT', land: 'Malta', landEn: 'Malta',
     url: 'https://www.transport.gov.mt/', maschinenlesbar: true,
-    direktUrl: 'https://www.transport.gov.mt/api/zones.json',
-    groesseMB: 1,
   },
   {
     code: 'SI', land: 'Slowenien', landEn: 'Slovenia',
     url: 'https://www.sloveniacontrol.si/', maschinenlesbar: true,
-    direktUrl: 'https://www.sloveniacontrol.si/api/zones.json',
-    groesseMB: 3,
   },
   {
     code: 'EE', land: 'Estland', landEn: 'Estonia',
     url: 'https://eans.ee/', maschinenlesbar: true,
-    direktUrl: 'https://eans.ee/api/zones.json',
-    groesseMB: 3,
   },
   {
     code: 'LV', land: 'Lettland', landEn: 'Latvia',
     url: 'https://www.lgs.lv/', maschinenlesbar: true,
-    direktUrl: 'https://www.lgs.lv/api/zones.json',
-    groesseMB: 3,
   },
   {
     code: 'LT', land: 'Litauen', landEn: 'Lithuania',
     url: 'https://www.ans.lt/', maschinenlesbar: true,
-    direktUrl: 'https://www.ans.lt/api/zones.json',
-    groesseMB: 3,
   },
   {
     code: 'NO', land: 'Norwegen', landEn: 'Norway',
     url: 'https://www.safetofly.no/', maschinenlesbar: true,
-    direktUrl: 'https://www.safetofly.no/api/zones.json',
-    groesseMB: 6,
   },
 ];
 
@@ -282,4 +233,16 @@ export function dipulDecktAb(lat: number, lon: number): boolean {
 /** true, wenn der Standort in mehr als ein Land fallen könnte (Grenznähe). */
 export function istGrenzregion(lat: number, lon: number): boolean {
   return laenderFuerKoordinate(lat, lon).length > 1;
+}
+
+/** Erkennt die Ersatzzone, die der Zonen-Proxy früher bei toten Quellen
+ *  ERFUNDEN hat (ein Polygon über Berlin, als „Amtliche EASA Geozone"
+ *  beschriftet). Solche Einträge liegen evtl. noch in der Datenbank und
+ *  blockieren dort einen echten Import - sie werden beim Laden entfernt. */
+export function istErfundeneErsatzzone(eintrag: { land: string; zonen: unknown[] }): boolean {
+  if (eintrag.zonen.length !== 1) return false;
+  const z = eintrag.zonen[0] as { id?: unknown; name?: unknown };
+  return z.id === `ED269-${eintrag.land}-01`
+    && typeof z.name === 'string'
+    && z.name.startsWith('Amtliche EASA Geozone');
 }

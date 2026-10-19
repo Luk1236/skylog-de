@@ -17,10 +17,26 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`, 3 Commits) – überholt.
 
 ## Stand 2026-10-19
-Verifiziert: `tsc` sauber · **ESLint 0 Fehler, 0 Warnungen** · **471 Tests grün** (43 Dateien)
+Verifiziert: `tsc` sauber · **ESLint 0 Fehler, 0 Warnungen** · **477 Tests grün** (44 Dateien)
+· `npm audit`: 0 Lücken
 · `npm run build` Exit 0. CI (`.github/workflows/ci.yml`) prüft Typecheck + Lint + Tests.
 
-Diese Runde (Branch `aufraeumen/sicherheit-und-abnahme`):
+Zweite Runde 2026-10-19 (dringende Punkte):
+- **Feste APK-Signatur:** Schlüssel in `../SkyLog-Sicherung/android-signatur/` (LIESMICH dort),
+  als GitHub-Secrets `SKYLOG_KEYSTORE_BASE64` / `_PASSWORD` / `SKYLOG_KEY_ALIAS`. `versionCode`
+  = Laufnummer des Workflows. Ohne Secret bricht der APK-Bau bewusst ab.
+  **Einmalig auf dem Handy:** Backup exportieren → alte App deinstallieren → neue APK → Backup importieren.
+- **EU-Geozonen:** 26 von 28 Direktadressen waren geraten (404/HTML) → entfernt, nur CH und LU
+  geprüft. Der Proxy erfand bei toten Quellen eine „amtliche" Verbotszone über Berlin – entfernt;
+  solche Einträge werden beim Laden aus der DB gelöscht (`istErfundeneErsatzzone`). Nativ lädt
+  die App direkt von der Quelle. DE-Portal-Link war tot → `maptool-dipul.dfs.de`.
+- **KI-Check in der APK:** `src/lib/apiBase.ts`; die APK nimmt `VITE_API_BASE` aus der
+  Repo-Variable `SKYLOG_API_URL`. **Offen:** Es gibt noch kein Vercel-Deployment – erst
+  deployen, dann Variable setzen, sonst zeigt die APK einen Hinweis statt der Analyse.
+- **Sicherheit:** alle 17 `npm audit`-Meldungen behoben (keine Major-Updates).
+- **CI-Fix:** `setup-android` mit `packages: platform-tools` (Paket `tools` gibt es nicht mehr).
+
+Erste Runde (Branch `aufraeumen/sicherheit-und-abnahme`):
 1. **KI-Endpunkt abgesichert:** Logik von `server.ts` und `api/safety-check.ts` in
    `api/_lib/safetyCheck.ts` zusammengeführt (mit Tests). Neu: Eingabeprüfung
    (Zahlen, Wertebereich, 0/0 erlaubt), Ortsname gesäubert (Prompt-Injection),
@@ -88,6 +104,10 @@ npm run sync:android   # build + cap sync android (für APK)
 - **Dialoge einzeln auf Kontrast prüfen** (diese Runde nur Hauptansichten/Unterseiten).
   Mehrere Dialoge sind bewusst dunkel gestaltet und werden im Dunkelmodus hell invertiert –
   auf ähnliche Fälle wie die Gesamt-Kachel achten.
-- **Optional:** Projekt aus OneDrive verschieben; Origin-Prüfung für den KI-Endpunkt,
-  falls er öffentlich auf Vercel läuft.
+- **Vercel-Deployment** einrichten (GEMINI_API_KEY dort setzen), dann Repo-Variable
+  `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK. Achtung: Auf Vercel
+  gibt es nur `/api/safety-check` – die Proxys `/api/zonen`, `/api/aviation`, `/api/karte`
+  laufen nur mit `server.ts` (in der APK unnötig, dort geht alles nativ).
+- **Weitere EU-Zonenquellen** nur nach echter Prüfung eintragen (Test „Direktadressen").
+- **Optional:** Projekt aus OneDrive verschieben; Origin-Prüfung für den KI-Endpunkt.
 - **Große Themen (eigene Infrastruktur):** Cloud-Team-Sync, Live-Remote-ID/U-space, Push.

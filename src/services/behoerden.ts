@@ -30,7 +30,7 @@ export const DEUTSCHLAND_QUELLEN: Amtslink[] = [
   {
     name: 'DFS — Drohnen-Geozonen (Karte)',
     beschreibung: 'Deutsche Flugsicherung: offizielle Karte der Flugbeschränkungs- und Geozonen.',
-    url: 'https://maps.dfs.de/geozones/',
+    url: 'https://maptool-dipul.dfs.de/',
   },
   {
     name: 'LBA OpenUAV — Betreiber-Registrierung (e-ID)',

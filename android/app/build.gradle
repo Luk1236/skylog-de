@@ -7,8 +7,10 @@ android {
         applicationId "com.skylog.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        // In der CI kommt die Versionsnummer aus der Laufnummer (SKYLOG_VERSION_CODE).
+        // Android installiert ein Update nur, wenn versionCode steigt.
+        versionCode((System.getenv("SKYLOG_VERSION_CODE") ?: "1").toInteger())
+        versionName "1.0." + (System.getenv("SKYLOG_VERSION_CODE") ?: "0")
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,7 +18,27 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Feste Signatur: Ohne sie erzeugt jeder CI-Lauf einen neuen Debug-Schluessel,
+    // und Android verweigert das Update ueber die installierte App (Neuinstallation
+    // = lokale Daten weg). Der Schluessel liegt als GitHub-Secret vor, die CI
+    // legt ihn als Datei ab und setzt diese Variablen. Lokal ohne Variablen bleibt
+    // es beim normalen Debug-Schluessel.
+    def signaturDatei = System.getenv("SKYLOG_KEYSTORE_FILE")
+    signingConfigs {
+        if (signaturDatei) {
+            fest {
+                storeFile file(signaturDatei)
+                storeType "PKCS12"
+                storePassword System.getenv("SKYLOG_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("SKYLOG_KEY_ALIAS")
+                keyPassword System.getenv("SKYLOG_KEYSTORE_PASSWORD")
+            }
+        }
+    }
     buildTypes {
+        debug {
+            if (signaturDatei) signingConfig signingConfigs.fest
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'

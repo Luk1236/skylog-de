@@ -19,7 +19,8 @@ import { OfflineBasemap } from './components/OfflineBasemap';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
 import { EuZoneLayer } from './components/EuZoneLayer';
 import { zonenInUmkreis, parseEd269, type Ed269Zone } from './services/ed269';
-import { laenderFuerKoordinate, quelleFuer } from './services/euZones';
+import { laenderFuerKoordinate, quelleFuer, istErfundeneErsatzzone } from './services/euZones';
+import { Capacitor } from '@capacitor/core';
 import { regionenFuerStandort } from './services/mapRegions';
 import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
 import type { PMTiles } from 'pmtiles';
@@ -866,6 +867,10 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
   const [zeigePreFlightSafety, setZeigePreFlightSafety] = useState(false);
 
   const ladeEuZonen = async () => {
+    // Frueher erfundene Ersatzzonen entfernen (blockieren sonst den echten Import).
+    for (const e of await dbService.getEuZonen()) {
+      if (istErfundeneErsatzzone(e)) await dbService.deleteEuZonen(e.land);
+    }
     const laender = laenderFuerKoordinate(location[0], location[1]);
     for (const code of laender) {
       const quelle = quelleFuer(code);
@@ -873,7 +878,8 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
         try {
           const vorhanden = await dbService.getEuZonen();
           if (!vorhanden.some(v => v.land === code)) {
-            const url = `/api/zonen/${code}`;
+            // Nativ direkt (CapacitorHttp, kein CORS); im Browser ueber den Proxy.
+            const url = Capacitor.isNativePlatform() ? quelle.direktUrl : `/api/zonen/${code}`;
             const res = await fetch(url);
             if (res.ok) {
               const text = await res.text();

@@ -48,15 +48,38 @@ jobs:
       # Bewusst build:app statt build - der Express-Server gehoert nicht
       # in die APK. DEPLOY_TARGET bleibt ungesetzt, damit die Basis-URL '/'
       # ist; mit '/skylog-de/' bliebe die App im WebView weiss.
+      # VITE_API_BASE: Server fuer den KI-Check in der APK (Vercel-Adresse).
+      # Als Repo-Variable SKYLOG_API_URL hinterlegen; leer = KI-Check zeigt
+      # in der APK einen Hinweis statt ins Leere zu laufen.
       - run: npm run build:app
+        env:
+          VITE_API_BASE: ${{ vars.SKYLOG_API_URL }}
 
       - run: npx cap sync android
 
       - name: Gradle-Wrapper ausfuehrbar machen
         run: chmod +x android/gradlew
 
+      # Fester Signaturschluessel aus den Secrets, damit jede neue APK sich
+      # ueber die installierte App aktualisieren laesst (gleiche Signatur).
+      - name: Signaturschluessel bereitlegen
+        env:
+          KEYSTORE_B64: ${{ secrets.SKYLOG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::error::Secret SKYLOG_KEYSTORE_BASE64 fehlt - ohne festen Schluessel liessen sich APKs nicht aktualisieren."
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/skylog.p12"
+          echo "SKYLOG_KEYSTORE_FILE=$RUNNER_TEMP/skylog.p12" >> "$GITHUB_ENV"
+
       - name: Debug-APK bauen
         working-directory: android
+        env:
+          SKYLOG_KEYSTORE_PASSWORD: ${{ secrets.SKYLOG_KEYSTORE_PASSWORD }}
+          SKYLOG_KEY_ALIAS: ${{ secrets.SKYLOG_KEY_ALIAS }}
+          # Laufnummer steigt mit jedem Bau und liegt schon ueber der alten Handy-App (versionCode 1)
+          SKYLOG_VERSION_CODE: ${{ github.run_number }}
         run: ./gradlew assembleDebug --no-daemon
 
       - name: APK zum Download bereitstellen

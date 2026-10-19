@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   laenderFuerKoordinate, quelleFuer, quellenFuerKoordinate,
-  dipulDecktAb, istGrenzregion, ZONEN_QUELLEN,
+  dipulDecktAb, istGrenzregion, ZONEN_QUELLEN, istErfundeneErsatzzone,
 } from './euZones';
 
 describe('laenderFuerKoordinate', () => {
@@ -94,5 +94,30 @@ describe('Registry-Hygiene', () => {
     for (const code of ['DE', 'AT', 'CH', 'NL', 'BE', 'LU', 'FR', 'DK', 'PL', 'CZ']) {
       expect(quelleFuer(code), `Quelle fehlt für ${code}`).not.toBeNull();
     }
+  });
+});
+
+// Am 2026-10-19 lieferten 26 von 28 eingetragenen Direktadressen 404 oder HTML -
+// sie waren geraten. Neue Einträge nur nach echter Prüfung hier freischalten.
+describe('Direktadressen', () => {
+  it('enthält nur geprüfte Quellen', () => {
+    const mitDirekt = ZONEN_QUELLEN.filter(q => q.direktUrl).map(q => q.code).sort();
+    expect(mitDirekt).toEqual(['CH', 'LU']);
+  });
+});
+
+describe('istErfundeneErsatzzone', () => {
+  it('erkennt die frühere Fake-Zone des Proxys', () => {
+    const fake = { land: 'AT', zonen: [{ id: 'ED269-AT-01', name: 'Amtliche EASA Geozone AT Hauptstadt/Kontrollzone' }] };
+    expect(istErfundeneErsatzzone(fake)).toBe(true);
+  });
+
+  it('lässt echte Importe in Ruhe', () => {
+    expect(istErfundeneErsatzzone({ land: 'AT', zonen: [{ id: 'LOWW-CTR', name: 'Wien CTR' }] })).toBe(false);
+    expect(istErfundeneErsatzzone({ land: 'AT', zonen: [] })).toBe(false);
+    expect(istErfundeneErsatzzone({
+      land: 'AT',
+      zonen: [{ id: 'ED269-AT-01', name: 'Amtliche EASA Geozone AT' }, { id: 'x', name: 'y' }],
+    })).toBe(false);
   });
 });
