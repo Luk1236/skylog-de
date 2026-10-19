@@ -129,7 +129,8 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    // Express 5: Platzhalter muessen benannt sein ('*' allein ist ungueltig).
+    app.get('/{*pfad}', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }
