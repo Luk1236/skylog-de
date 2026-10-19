@@ -141,6 +141,11 @@ function buildPrompt({ latitude, longitude, locationName }: SafetyInput): string
       Antworte auf Deutsch und sei sehr präzise.`;
 }
 
+// Stabiles (GA) Modell statt der Vorabversion gemini-3-flash-preview, die laut
+// Google-Deprecations-Seite ersetzt werden soll. Per GEMINI_MODEL ueberschreibbar,
+// falls Google das Modell abkuendigt - dann ohne neuen Build umstellen.
+export const DEFAULT_MODEL = 'gemini-3.8-flash';
+
 const RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -192,7 +197,7 @@ export async function handleSafetyCheck(
 
   try {
     const response = await getClient(apiKey).models.generateContent({
-      model: 'gemini-3-flash-preview',
+      model: process.env.GEMINI_MODEL || DEFAULT_MODEL,
       contents: buildPrompt(parsed.value),
       config: {
         tools: [{ googleSearch: {} }],
