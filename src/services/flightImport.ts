@@ -193,9 +193,9 @@ export function leseZahl(roh: string): number | null {
   // "1.234,56" -> deutsch;  "1,234.56" -> englisch
   const letztesKomma = bereinigt.lastIndexOf(',');
   const letzterPunkt = bereinigt.lastIndexOf('.');
-  let normal = bereinigt;
-  if (letztesKomma > letzterPunkt) normal = bereinigt.replace(/\./g, '').replace(',', '.');
-  else normal = bereinigt.replace(/,/g, '');
+  const normal = letztesKomma > letzterPunkt
+    ? bereinigt.replace(/\./g, '').replace(',', '.')
+    : bereinigt.replace(/,/g, '');
   const wert = Number(normal);
   return Number.isFinite(wert) ? wert : null;
 }
