@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import React, { useEffect, useState } from 'react';
 import { X, ShieldCheck, AlertTriangle, Activity, Loader2, Wifi, WifiOff } from 'lucide-react';
 import type { WeatherData } from '../services/weather';
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClose }: Props) {
+  const { tx } = useSprache();
   const [kpData, setKpData] = useState<KpData | null>(null);
   const [kpLoading, setKpLoading] = useState(true);
 
@@ -63,8 +65,8 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-base">Pre-Flight Safety & Score</h2>
-              <p className="text-xs text-slate-400">Vorflug-Sicherheitsanalyse & Live Kp-Index</p>
+              <h2 className="font-bold text-base">{tx('Pre-Flight Safety & Score', 'Pre-flight check & score')}</h2>
+              <p className="text-xs text-slate-400">{tx('Vorflug-Sicherheitsanalyse & Live Kp-Index', 'Pre-flight safety analysis & live Kp index')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
@@ -79,13 +81,13 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
           <div className="bg-slate-800/60 border border-slate-700/60 rounded-3xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">Flugsicherheits-Index</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
                 <h3 className="text-lg font-extrabold text-white leading-tight">
                   {safety.status === 'SAFE' && '🟢 Startfreigabe optimal'}
                   {safety.status === 'WARNING' && '🟡 Erhöhte Aufmerksamkeit'}
                   {safety.status === 'CRITICAL' && '🔴 Hohes Risiko – Start abgeraten'}
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-1">Wetter · Wind · Solarsturm · Akku</p>
+                <p className="text-[11px] text-slate-400 mt-1">{tx('Wetter · Wind · Solarsturm · Akku', 'Weather · wind · solar storm · battery')}</p>
               </div>
               <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center font-black ${getScoreColor(safety.score)}`}>
                 <span className="text-2xl leading-none">{safety.score}%</span>
@@ -107,9 +109,9 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
               <div className="flex items-center gap-2.5">
                 <Activity className="w-5 h-5 text-indigo-400 shrink-0" />
                 <div>
-                  <strong className="text-slate-200 block text-xs">Geomagnetischer Kp-Index (NOAA)</strong>
+                  <strong className="text-slate-200 block text-xs">{tx('Geomagnetischer Kp-Index (NOAA)', 'Geomagnetic Kp index (NOAA)')}</strong>
                   {kpLoading
-                    ? <span className="text-[10px] text-slate-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> Lade Echtzeit-Daten…</span>
+                    ? <span className="text-[10px] text-slate-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {tx('Lade Echtzeit-Daten…', 'Loading live data…')}</span>
                     : <span className={`text-[10px] font-medium ${kpData?.color ?? 'text-slate-400'}`}>{kpData?.label}</span>
                   }
                 </div>
@@ -139,14 +141,14 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
             </div>
             {kpData?.gpsWarning && (
               <p className="text-[10px] text-orange-400 mt-2 font-medium">
-                ⚠️ Erhöhte geomagnetische Aktivität – GPS-Präzision eingeschränkt möglich. Kompasskalibrierung empfohlen.
+                {tx('⚠️ Erhöhte geomagnetische Aktivität – GPS-Präzision eingeschränkt möglich. Kompasskalibrierung empfohlen.', '⚠️ Increased geomagnetic activity – GPS accuracy may be reduced. Compass calibration recommended.')}
               </p>
             )}
           </div>
 
           {/* Checklist Items */}
           <div className="space-y-3">
-            <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[10px] px-1">Prüfpunkte der Vorflug-Analyse</h4>
+            <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[10px] px-1">{tx('Prüfpunkte der Vorflug-Analyse', 'Pre-flight analysis check items')}</h4>
             {safety.items.map((item) => (
               <div key={item.id} className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-start gap-3">
                 {getStatusIcon(item.status)}
@@ -160,7 +162,7 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
 
           {/* NOAA Attribution */}
           <p className="text-center text-[9px] text-slate-600">
-            Kp-Daten: NOAA Space Weather Prediction Center (swpc.noaa.gov)
+            {tx('Kp-Daten: NOAA Space Weather Prediction Center (swpc.noaa.gov)', 'Kp data: NOAA Space Weather Prediction Center (swpc.noaa.gov)')}
           </p>
         </div>
 
@@ -170,7 +172,7 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
             onClick={onClose}
             className="w-full bg-brand-blue hover:bg-brand-blue/90 text-slate-950 font-bold py-3 rounded-2xl text-xs transition-all active:scale-95 shadow-lg shadow-brand-blue/20"
           >
-            Verstanden & Schließen
+            {tx('Verstanden & Schließen', 'Got it & close')}
           </button>
         </div>
       </div>

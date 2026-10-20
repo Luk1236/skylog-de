@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { X, Zap, Plus, TrendingDown, Gauge } from 'lucide-react';
@@ -15,6 +16,7 @@ interface Props {
 const feld = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm';
 
 export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Props) {
+  const { tx } = useSprache();
   const [battery, setBattery] = useState<Battery>(initial);
   const [zyklen, setZyklen] = useState<string>(String(initial.cycles ?? ''));
   const [health, setHealth] = useState<string>(initial.health ? String(initial.health) : '');
@@ -60,9 +62,9 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
           <div className="flex items-center gap-2">
             <Zap className="w-5 h-5 fill-current" style={{ color: farbe }} />
-            <h3 className="font-black text-slate-900">Akku {battery.number}</h3>
+            <h3 className="font-black text-slate-900">{tx('Akku', 'Battery')} {battery.number}</h3>
           </div>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl hover:bg-slate-100">
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -77,19 +79,19 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
             <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
               <Zap className="w-4 h-4 text-brand-blue" />
               <span className="text-lg font-black text-slate-900 leading-none">{battery.cycles ?? 0}</span>
-              <span className="text-[9px] text-slate-400 uppercase tracking-wider">Zyklen</span>
+              <span className="text-[9px] text-slate-400 uppercase tracking-wider">{tx('Zyklen', 'Cycles')}</span>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
               <TrendingDown className="w-4 h-4 text-slate-400" />
               <span className="text-lg font-black text-slate-900 leading-none">{rest}</span>
-              <span className="text-[9px] text-slate-400 uppercase tracking-wider">Rest-Zyklen</span>
+              <span className="text-[9px] text-slate-400 uppercase tracking-wider">{tx('Rest-Zyklen', 'Cycles left')}</span>
             </div>
           </div>
 
           {/* Zyklen-Fortschritt gegen die Hersteller-Grenze */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4">
             <div className="flex justify-between text-[10px] text-slate-400 uppercase tracking-wider mb-1">
-              <span>Zyklen genutzt</span><span>{battery.cycles ?? 0} / {max}</span>
+              <span>{tx('Zyklen genutzt', 'Cycles used')}</span><span>{battery.cycles ?? 0} / {max}</span>
             </div>
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
               <div className="h-full rounded-full" style={{ width: `${Math.min(100, ((battery.cycles ?? 0) / max) * 100)}%`, background: farbe }} />
@@ -105,7 +107,7 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
 
           {chartDaten.length >= 2 && (
             <div className="bg-white rounded-2xl border border-slate-200 p-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Gesundheitsverlauf (%)</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{tx('Gesundheitsverlauf (%)', 'Health history (%)')}</p>
               <div className="h-32">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartDaten} margin={{ top: 4, right: 8, bottom: 0, left: -24 }}>
@@ -121,31 +123,30 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
 
           {erfassen ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Neue Messung</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Neue Messung', 'New reading')}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">Zyklen</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('Zyklen', 'Cycles')}</label>
                   <input type="number" className={feld} value={zyklen} onChange={e => setZyklen(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">SOH % (optional)</label>
+                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('SOH % (optional)', 'SOH % (optional)')}</label>
                   <input type="number" className={feld} placeholder="z.B. 88" value={health} onChange={e => setHealth(e.target.value)} />
                 </div>
               </div>
               <div className="flex gap-2">
-                <button onClick={messungSpeichern} className="flex-1 bg-brand-blue text-white font-bold py-2.5 rounded-xl text-xs active:scale-95">Speichern</button>
-                <button onClick={() => setErfassen(false)} className="px-4 text-xs font-bold text-slate-500">Abbrechen</button>
+                <button onClick={messungSpeichern} className="flex-1 bg-brand-blue text-white font-bold py-2.5 rounded-xl text-xs active:scale-95">{tx('Speichern', 'Save')}</button>
+                <button onClick={() => setErfassen(false)} className="px-4 text-xs font-bold text-slate-500">{tx('Abbrechen', 'Cancel')}</button>
               </div>
             </div>
           ) : (
             <button onClick={() => setErfassen(true)}
               className="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-sm active:scale-95">
-              <Plus className="w-4 h-4" /> Messung erfassen
+              <Plus className="w-4 h-4" /> {tx('Messung erfassen', 'Record reading')}
             </button>
           )}
           <p className="text-[10px] text-slate-400 text-center leading-relaxed">
-            Zyklenzahl und SOH stehen in der DJI-Fly-App unter Akku-Info. Regelmäßig
-            erfassen, damit der Verlauf und die Prognose aussagekräftig werden.
+            {tx('Zyklenzahl und SOH stehen in der DJI-Fly-App unter Akku-Info. Regelmäßig erfassen, damit der Verlauf und die Prognose aussagekräftig werden.', 'Cycle count and SOH are shown in the DJI Fly app under battery info. Record them regularly so the history and forecast are meaningful.')}
           </p>
         </div>
       </div>

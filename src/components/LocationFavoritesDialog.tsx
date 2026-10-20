@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import React, { useState, useMemo, FormEvent } from 'react';
 import { X, MapPin, Plus, Search, Trash2, Check, AlertCircle } from 'lucide-react';
 import type { LocationFavorite } from '../services/db';
@@ -18,6 +19,7 @@ export function LocationFavoritesDialog({
   onSelectFavorite,
   onClose
 }: Props) {
+  const { tx } = useSprache();
   const [search, setSearch] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [name, setName] = useState('');
@@ -71,8 +73,8 @@ export function LocationFavoritesDialog({
               <MapPin className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-base">Standort-Favoriten</h2>
-              <p className="text-xs text-slate-400">Gespeicherte Orte für Logbuch & Flugplaner</p>
+              <h2 className="font-bold text-base">{tx('Standort-Favoriten', 'Location favourites')}</h2>
+              <p className="text-xs text-slate-400">{tx('Gespeicherte Orte für Logbuch & Flugplaner', 'Saved places for logbook & flight planner')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
@@ -91,7 +93,7 @@ export function LocationFavoritesDialog({
                   type="text"
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Standorte durchsuchen..."
+                  placeholder={tx('Standorte durchsuchen...', 'Search locations…')}
                   className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -100,7 +102,7 @@ export function LocationFavoritesDialog({
                 className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all shrink-0"
               >
                 <Plus className="w-4 h-4" />
-                <span>Neuer Ort</span>
+                <span>{tx('Neuer Ort', 'New place')}</span>
               </button>
             </div>
           )}
@@ -109,9 +111,9 @@ export function LocationFavoritesDialog({
           {isAdding && (
             <form onSubmit={handleAddSubmit} className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">Neuen Standort speichern</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">{tx('Neuen Standort speichern', 'Save new location')}</h3>
                 <button type="button" onClick={() => setIsAdding(false)} className="text-xs text-slate-400 hover:text-white">
-                  Abbrechen
+                  {tx('Abbrechen', 'Cancel')}
                 </button>
               </div>
 
@@ -124,28 +126,28 @@ export function LocationFavoritesDialog({
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 <div>
-                  <label className="block mb-1 font-medium text-slate-300">Name (z.B. Modellflugplatz)</label>
+                  <label className="block mb-1 font-medium text-slate-300">{tx('Name (z.B. Modellflugplatz)', 'Name (e.g. model airfield)')}</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
-                    placeholder="Titel des Ortes"
+                    placeholder={tx('Titel des Ortes', 'Place title')}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium text-slate-300">Ort / Gemeinde</label>
+                  <label className="block mb-1 font-medium text-slate-300">{tx('Ort / Gemeinde', 'Town / municipality')}</label>
                   <input
                     type="text"
                     value={locationName}
                     onChange={e => setLocationName(e.target.value)}
-                    placeholder="z.B. Griesheim"
+                    placeholder={tx('z.B. Griesheim', 'e.g. Griesheim')}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500"
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium text-slate-300">Breitengrad (Latitude)</label>
+                  <label className="block mb-1 font-medium text-slate-300">{tx('Breitengrad (Latitude)', 'Latitude')}</label>
                   <input
                     type="number"
                     step="any"
@@ -157,7 +159,7 @@ export function LocationFavoritesDialog({
                   />
                 </div>
                 <div>
-                  <label className="block mb-1 font-medium text-slate-300">Längengrad (Longitude)</label>
+                  <label className="block mb-1 font-medium text-slate-300">{tx('Längengrad (Longitude)', 'Longitude')}</label>
                   <input
                     type="number"
                     step="any"
@@ -171,12 +173,12 @@ export function LocationFavoritesDialog({
               </div>
 
               <div>
-                <label className="block mb-1 text-xs font-medium text-slate-300">Notizen / Hindernisse</label>
+                <label className="block mb-1 text-xs font-medium text-slate-300">{tx('Notizen / Hindernisse', 'Notes / obstacles')}</label>
                 <input
                   type="text"
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
-                  placeholder="z.B. Starker Seitenwind bei Nordost, Hochspannungsleitung in 400m"
+                  placeholder={tx('z.B. Starker Seitenwind bei Nordost, Hochspannungsleitung in 400m', 'e.g. strong crosswind from the north-east, power line at 400 m')}
                   className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -187,7 +189,7 @@ export function LocationFavoritesDialog({
                   onClick={() => setIsAdding(false)}
                   className="px-4 py-2 rounded-xl bg-slate-700 text-slate-300 text-xs font-medium"
                 >
-                  Abbrechen
+                  {tx('Abbrechen', 'Cancel')}
                 </button>
                 <button
                   type="submit"
@@ -204,7 +206,7 @@ export function LocationFavoritesDialog({
           {filtered.length === 0 ? (
             <div className="py-12 text-center text-slate-400 text-xs">
               <MapPin className="w-8 h-8 mx-auto mb-2 opacity-30 text-amber-400" />
-              <p>Keine Standort-Favoriten vorhanden.</p>
+              <p>{tx('Keine Standort-Favoriten vorhanden.', 'No location favourites yet.')}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -234,13 +236,13 @@ export function LocationFavoritesDialog({
                         className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-semibold"
                       >
                         <Check className="w-3.5 h-3.5" />
-                        <span>Auswählen</span>
+                        <span>{tx('Auswählen', 'Select')}</span>
                       </button>
                     )}
                     <button
                       onClick={() => onDeleteFavorite(fav.id)}
                       className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
-                      title="Löschen"
+                      title={tx('Löschen', 'Delete')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>

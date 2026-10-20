@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState } from 'react';
 import { X, Shield, Check, AlertCircle, ExternalLink, Copy } from 'lucide-react';
 import type { UserProfile } from '../services/db';
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
+  const { tx } = useSprache();
   const [eidInput, setEidInput] = useState(profile?.eid ?? '');
   const [copied, setCopied] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -68,8 +70,8 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="font-bold text-base">Betreiber-Registrierung (e-ID)</h2>
-              <p className="text-xs text-slate-400">EASA Registrierungs-ID & LBA Portal</p>
+              <h2 className="font-bold text-base">{tx('Betreiber-Registrierung (e-ID)', 'Operator registration (e-ID)')}</h2>
+              <p className="text-xs text-slate-400">{tx('EASA Registrierungs-ID & LBA Portal', 'EASA registration ID & LBA portal')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
@@ -96,14 +98,14 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
           {/* e-ID Input Section */}
           <div className="space-y-2">
             <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-              <span>Betreiber-ID (e-ID)</span>
+              <span>{tx('Betreiber-ID (e-ID)', 'Operator ID (e-ID)')}</span>
               <span className="text-[11px] text-slate-400 font-normal">Format: DEU123456789012-xyz</span>
             </label>
             <input
               type="text"
               value={eidInput}
               onChange={e => setEidInput(e.target.value)}
-              placeholder="z.B. DEU87AST46RAC38A-XYZ"
+              placeholder={tx('z.B. DEU87AST46RAC38A-XYZ', 'e.g. DEU87AST46RAC38A-XYZ')}
               className="w-full px-4 py-3 rounded-2xl bg-slate-800/80 border border-slate-700 text-white font-mono text-sm focus:outline-none focus:border-sky-500"
             />
             {eidInput.trim() !== '' && (
@@ -120,7 +122,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
           {publicPart && (
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">Öffentliche e-ID für Plakette</span>
+                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
                 <button
                   onClick={handleCopyPublicEID}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs font-semibold transition-all"
@@ -131,14 +133,14 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
               </div>
               <p className="font-mono text-base font-bold text-sky-300 tracking-wider break-all">{publicPart}</p>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                Dies ist der sichtbare Teil deiner Betreiber-ID. Er muss gemäß EU-Verordnung 2019/947 gut sichtbar auf all deinen Drohnen angebracht sein.
+                {tx('Dies ist der sichtbare Teil deiner Betreiber-ID. Er muss gemäß EU-Verordnung 2019/947 gut sichtbar auf all deinen Drohnen angebracht sein.', 'This is the visible part of your operator ID. Under EU Regulation 2019/947 it must be clearly displayed on all your drones.')}
               </p>
             </div>
           )}
 
           {/* Direct Links to Authority Portals */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Luftfahrtbehörden & Portale</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">{tx('Luftfahrtbehörden & Portale', 'Aviation authorities & portals')}</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {AUTHORITY_PORTALS.map(portal => (
                 <a
@@ -165,7 +167,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
             onClick={onClose}
             className="px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 text-xs font-semibold"
           >
-            Abbrechen
+            {tx('Abbrechen', 'Cancel')}
           </button>
           <button
             onClick={handleSave}

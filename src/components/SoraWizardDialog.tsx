@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import React, { useState } from 'react';
 import { X, Shield, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
 import type { Drone, UserProfile } from '../services/db';
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export function SoraWizardDialog({ drones, profile, onClose }: Props) {
+  const { tx } = useSprache();
   const [step, setStep] = useState<'form' | 'result'>('form');
   const [selectedDroneId, setSelectedDroneId] = useState<string>(drones[0]?.id || '');
 
@@ -43,8 +45,8 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
               <Shield className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-base">EASA SORA 2.5 — ConOps & Behörden-Assistent</h2>
-              <p className="text-xs text-slate-400">Erstellung behördengerechter Betriebsanträge (Spezifische Kategorie)</p>
+              <h2 className="font-bold text-base">{tx('EASA SORA 2.5 — ConOps & Behörden-Assistent', 'EASA SORA 2.5 — ConOps & authority assistant')}</h2>
+              <p className="text-xs text-slate-400">{tx('Erstellung behördengerechter Betriebsanträge (Spezifische Kategorie)', 'Preparing operation applications for the authority (Specific category)')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
@@ -57,7 +59,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
           {step === 'form' ? (
             <div className="space-y-5">
               <div>
-                <label className="font-bold text-slate-300 block mb-1.5">Bezeichnung des Flugvorhabens / ConOps Title</label>
+                <label className="font-bold text-slate-300 block mb-1.5">{tx('Bezeichnung des Flugvorhabens / ConOps Title', 'Operation name / ConOps title')}</label>
                 <input
                   type="text"
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
@@ -68,7 +70,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">Eingesetzte Drohne</label>
+                  <label className="font-bold text-slate-300 block mb-1.5">{tx('Eingesetzte Drohne', 'Drone used')}</label>
                   <select
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                     value={selectedDroneId}
@@ -90,7 +92,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">MTOM Abflugmasse (kg)</label>
+                  <label className="font-bold text-slate-300 block mb-1.5">{tx('MTOM Abflugmasse (kg)', 'MTOM take-off mass (kg)')}</label>
                   <input
                     type="number"
                     step="0.1"
@@ -104,36 +106,36 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">Betriebsumgebung (Ground Environment)</label>
+                  <label className="font-bold text-slate-300 block mb-1.5">{tx('Betriebsumgebung (Ground Environment)', 'Ground environment')}</label>
                   <select
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                     value={input.environment}
                     onChange={e => setInput({ ...input, environment: e.target.value as SoraInput['environment'] })}
                   >
-                    <option value="controlled">Kontrollierter Bereich am Boden (Controlled Ground)</option>
-                    <option value="sparse">Dünn besiedeltes Gebiet (Sparsely Populated Area)</option>
-                    <option value="populated">Besiedeltes Gebiet (Populated Area)</option>
-                    <option value="assembly">Menschenansammlungen (Assemblies of People)</option>
+                    <option value="controlled">{tx('Kontrollierter Bereich am Boden (Controlled Ground)', 'Controlled ground area')}</option>
+                    <option value="sparse">{tx('Dünn besiedeltes Gebiet (Sparsely Populated Area)', 'Sparsely populated area')}</option>
+                    <option value="populated">{tx('Besiedeltes Gebiet (Populated Area)', 'Populated area')}</option>
+                    <option value="assembly">{tx('Menschenansammlungen (Assemblies of People)', 'Assemblies of people')}</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">Luftraumklasse (Airspace)</label>
+                  <label className="font-bold text-slate-300 block mb-1.5">{tx('Luftraumklasse (Airspace)', 'Airspace class')}</label>
                   <select
                     className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
                     value={input.airspace}
                     onChange={e => setInput({ ...input, airspace: e.target.value as SoraInput['airspace'] })}
                   >
-                    <option value="uncontrolled">Unkontrollierter Luftraum (G / E)</option>
-                    <option value="controlled">Kontrollierter Luftraum (CTR / C / D)</option>
-                    <option value="airport">Flughafennahbereich / CTR</option>
-                    <option value="prohibited">Sperrgebiet / ED-R</option>
+                    <option value="uncontrolled">{tx('Unkontrollierter Luftraum (G / E)', 'Uncontrolled airspace (G / E)')}</option>
+                    <option value="controlled">{tx('Kontrollierter Luftraum (CTR / C / D)', 'Controlled airspace (CTR / C / D)')}</option>
+                    <option value="airport">{tx('Flughafennahbereich / CTR', 'Airport vicinity / CTR')}</option>
+                    <option value="prohibited">{tx('Sperrgebiet / ED-R', 'Restricted area / ED-R')}</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-slate-300 block mb-1.5">Max. Flughöhe (m AGL)</label>
+                <label className="font-bold text-slate-300 block mb-1.5">{tx('Max. Flughöhe (m AGL)', 'Max. altitude (m AGL)')}</label>
                 <input
                   type="number"
                   className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
@@ -144,7 +146,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
 
               {/* Mitigations Checkboxes */}
               <div className="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl space-y-3">
-                <h4 className="font-bold text-indigo-400 uppercase text-[10px] tracking-wider">Risikominderungsmaßnahmen (Mitigations)</h4>
+                <h4 className="font-bold text-indigo-400 uppercase text-[10px] tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h4>
                 
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -153,7 +155,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                     checked={input.m1Mitigation}
                     onChange={e => setInput({ ...input, m1Mitigation: e.target.checked })}
                   />
-                  <span><strong>M1 Mitigation:</strong> Strategische Bodenpufferzonen & zeitliche/räumliche Isolation (-1 GRC)</span>
+                  <span><strong>M1 Mitigation:</strong> {tx('Strategische Bodenpufferzonen & zeitliche/räumliche Isolation (-1 GRC)', 'Strategic ground buffers & temporal/spatial isolation (-1 GRC)')}</span>
                 </label>
 
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -163,7 +165,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                     checked={input.m2Mitigation}
                     onChange={e => setInput({ ...input, m2Mitigation: e.target.checked })}
                   />
-                  <span><strong>M2 Mitigation:</strong> Notfall-Fallschirm / Aufprallminderung am Boden (-1 GRC)</span>
+                  <span><strong>M2 Mitigation:</strong> {tx('Notfall-Fallschirm / Aufprallminderung am Boden (-1 GRC)', 'Emergency parachute / ground impact reduction (-1 GRC)')}</span>
                 </label>
 
                 <label className="flex items-center gap-3 cursor-pointer">
@@ -173,7 +175,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                     checked={input.m3Mitigation}
                     onChange={e => setInput({ ...input, m3Mitigation: e.target.checked })}
                   />
-                  <span><strong>M3 Mitigation:</strong> Validierter Notfallaktionsplan (Emergency Response Plan - ERP) (-1 GRC)</span>
+                  <span><strong>M3 Mitigation:</strong> {tx('Validierter Notfallaktionsplan (Emergency Response Plan - ERP) (-1 GRC)', 'Validated emergency response plan (ERP) (-1 GRC)')}</span>
                 </label>
               </div>
 
@@ -181,7 +183,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                 onClick={() => setStep('result')}
                 className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-bold text-sm text-white shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all"
               >
-                <span>SORA 2.5 Risikobewertung Ausführen</span>
+                <span>{tx('SORA 2.5 Risikobewertung Ausführen', 'Run SORA 2.5 risk assessment')}</span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -203,14 +205,14 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                   <p className="text-xl font-black text-sky-400 mt-1">{result.finalArc}</p>
                 </div>
                 <div className="p-3 bg-indigo-600 border border-indigo-500 rounded-2xl text-center shadow-lg shadow-indigo-600/20">
-                  <p className="text-[10px] text-indigo-200 uppercase font-bold">Ergebnis SAIL</p>
+                  <p className="text-[10px] text-indigo-200 uppercase font-bold">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
                   <p className="text-xl font-black text-white mt-1">{result.sail}</p>
                 </div>
               </div>
 
               {/* OSOs List */}
               <div className="p-4 bg-slate-800/60 border border-slate-700 rounded-2xl space-y-3">
-                <h4 className="font-bold text-sm text-indigo-400">Erforderliche Operational Safety Objectives (OSOs):</h4>
+                <h4 className="font-bold text-sm text-indigo-400">{tx('Erforderliche Operational Safety Objectives (OSOs):', 'Required operational safety objectives (OSOs):')}</h4>
                 <div className="space-y-2 text-slate-300">
                   {result.requiredOsos.map((oso, idx) => (
                     <div key={idx} className="flex items-start gap-2">
@@ -227,14 +229,14 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
                   onClick={() => setStep('form')}
                   className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-slate-300 text-xs"
                 >
-                  Parameter Ändern
+                  {tx('Parameter Ändern', 'Change parameters')}
                 </button>
                 <button
                   onClick={handleGeneratePdf}
                   className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-white text-xs shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>SORA PDF Dossier Exportieren</span>
+                  <span>{tx('SORA PDF Dossier Exportieren', 'Export SORA PDF dossier')}</span>
                 </button>
               </div>
             </div>

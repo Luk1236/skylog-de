@@ -21,7 +21,7 @@ function alterText(importiertAm: number): { text: string; warnen: boolean } {
 }
 
 export function EuZonesDialog({ onClose, onGeaendert }: Props) {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const [gespeichert, setGespeichert] = useState<GespeicherteZonen[]>([]);
   const [laeuft, setLaeuft] = useState(false);
 
@@ -101,7 +101,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
           <div className="flex items-center gap-2">
             <Globe2 className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">Zonen anderer Länder</h3>
+            <h3 className="font-black text-slate-900">{tx('Zonen anderer Länder', 'Zones of other countries')}</h3>
           </div>
           <button onClick={onClose} aria-label={t('aktion.schliessen')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
@@ -110,8 +110,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
 
         <div className="overflow-y-auto px-4 py-4 space-y-3">
           <p className="text-[11px] text-slate-500 leading-relaxed px-1">
-            Das eingebaute Overlay gilt nur für Deutschland. Für andere Länder lädst
-            du die amtliche Zonendatei (ED-269) herunter und importierst sie hier.
+            {tx('Das eingebaute Overlay gilt nur für Deutschland. Für andere Länder lädst du die amtliche Zonendatei (ED-269) herunter und importierst sie hier.', 'The built-in overlay covers Germany only. For other countries, download the official zone file (ED-269) and import it here.')}
           </p>
 
           <label className="w-full flex items-center justify-center gap-2 bg-brand-blue text-white font-bold py-3 rounded-2xl active:scale-95 cursor-pointer">
@@ -122,13 +121,13 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
 
           {gespeichert.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">Importiert</p>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">{tx('Importiert', 'Imported')}</p>
               {gespeichert.map(e => {
                 const alter = alterText(e.importiertAm);
                 return (
                   <div key={e.land} className="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900">{e.land} · {e.anzahl} Zonen</p>
+                      <p className="text-xs font-bold text-slate-900">{e.land} · {e.anzahl} {tx('Zonen', 'Zones')}</p>
                       <p className={alter.warnen ? 'text-[10px] text-brand-red font-bold' : 'text-[10px] text-slate-400'}>
                         {alter.text}{alter.warnen && ' — bitte erneuern'}
                       </p>
@@ -144,7 +143,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
           )}
 
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">Amtliche Quellen</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">{tx('Amtliche Quellen', 'Official sources')}</p>
             <div className="space-y-1">
               {ZONEN_QUELLEN.filter(q => q.code !== 'DE').map(q => (
                 <div key={q.code} className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2">
@@ -153,12 +152,12 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
                     <button onClick={() => direktLaden(q)} disabled={laeuft}
                       className="bg-brand-blue text-white font-bold px-2.5 py-1 rounded-lg text-[10px] active:scale-95 disabled:opacity-40 flex items-center gap-1">
                       <RefreshCw className="w-3 h-3" />
-                      Laden{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
+                      {tx('Laden', 'Load')}{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
                     </button>
                   ) : q.maschinenlesbar ? (
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Datei von Hand</span>
+                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{tx('Datei von Hand', 'File by hand')}</span>
                   ) : (
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-wider">nur Karte</span>
+                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-wider">{tx('nur Karte', 'map only')}</span>
                   )}
                   <a href={q.url} target="_blank" rel="noopener noreferrer" aria-label={`${q.land} öffnen`}>
                     <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
@@ -171,9 +170,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
           <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3">
             <p className="text-[10px] text-amber-800 flex items-start gap-1.5 leading-relaxed">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              Zonendaten ändern sich. Die App lädt sie bewusst nicht automatisch nach —
-              ein stillschweigend veralteter Stand wäre gefährlicher als keiner. Vor
-              Flügen im Ausland die Datei neu holen.
+              {tx('Zonendaten ändern sich. Die App lädt sie bewusst nicht automatisch nach — ein stillschweigend veralteter Stand wäre gefährlicher als keiner. Vor Flügen im Ausland die Datei neu holen.', 'Zone data changes. The app deliberately does not refresh it automatically — silently outdated data would be more dangerous than none. Fetch the file again before flying abroad.')}
             </p>
           </div>
         </div>

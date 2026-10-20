@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState, useMemo, type ChangeEvent } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -51,6 +52,7 @@ function Stat({ icon: Icon, label, wert }: { icon: LucideIcon, label: string, we
 }
 
 export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
+  const { tx } = useSprache();
   const [track, setTrack] = useState<TrackPoint[]>(flight.track ?? []);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -93,9 +95,9 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
           <div className="flex items-center gap-2">
             <Route className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">Flug-Track</h3>
+            <h3 className="font-black text-slate-900">{tx('Flug-Track', 'Flight track')}</h3>
           </div>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl hover:bg-slate-100">
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -104,10 +106,9 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
           {track.length === 0 ? (
             <div className="text-center py-8">
               <Route className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 mb-1 font-medium">Für diesen Flug ist noch kein Track gespeichert.</p>
+              <p className="text-sm text-slate-500 mb-1 font-medium">{tx('Für diesen Flug ist noch kein Track gespeichert.', 'No track saved for this flight yet.')}</p>
               <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
-                Detaillierte Telemetrie-CSV (z.B. Airdata-Export mit Zeit, Position,
-                Höhe, Speed, Akku) laden — daraus werden Flugpfad und Diagramme erzeugt.
+                {tx('Detaillierte Telemetrie-CSV (z.B. Airdata-Export mit Zeit, Position, Höhe, Speed, Akku) laden — daraus werden Flugpfad und Diagramme erzeugt.', 'Load a detailed telemetry CSV (e.g. an Airdata export with time, position, altitude, speed, battery) — the flight path and charts are generated from it.')}
               </p>
               <label className={cn('inline-flex items-center gap-2 bg-brand-blue text-white font-bold py-3 px-5 rounded-xl text-sm cursor-pointer active:scale-95 transition-all', laeuft && 'opacity-60')}>
                 <Upload className="w-4 h-4" /> {laeuft ? 'Lese…' : 'Track-CSV laden'}
@@ -148,7 +149,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
               ) : (
                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-green/20 bg-brand-green/5 text-brand-green text-[11px] font-bold">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                  Keine Auffälligkeiten in der Aufzeichnung.
+                  {tx('Keine Auffälligkeiten in der Aufzeichnung.', 'No anomalies in the recording.')}
                 </div>
               )}
 
@@ -166,7 +167,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
               {hatSpeed && <Diagramm titel="Geschwindigkeit (km/h)" farbe="#059669" daten={chartDaten} feld="speed" />}
               {hatAkku && <Diagramm titel="Akku (%)" farbe="#b91c1c" daten={chartDaten} feld="battery" />}
 
-              <p className="text-[10px] text-slate-400 text-center">{stats.punkte} Messpunkte</p>
+              <p className="text-[10px] text-slate-400 text-center">{stats.punkte} {tx('Messpunkte', 'data points')}</p>
             </>
           )}
         </div>

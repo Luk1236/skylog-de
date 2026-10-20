@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { X, Search, MapPin, Crosshair, AlertCircle, Loader2 } from 'lucide-react';
 import { sucheOrte, parseKoordinaten, type OrtsTreffer } from '../services/geocode';
@@ -13,6 +14,7 @@ interface Props {
 /** Standort ohne GPS setzen: per Ortssuche oder per Koordinateneingabe.
  *  Nützlich am Desktop und wenn die Standortfreigabe verweigert wurde. */
 export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
+  const { tx } = useSprache();
   const [suche, setSuche] = useState('');
   const [treffer, setTreffer] = useState<OrtsTreffer[]>([]);
   const [laedt, setLaedt] = useState(false);
@@ -54,9 +56,9 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
           <div className="flex items-center gap-2">
             <MapPin className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">Standort setzen</h3>
+            <h3 className="font-black text-slate-900">{tx('Standort setzen', 'Set location')}</h3>
           </div>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl hover:bg-slate-100">
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -64,13 +66,13 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
         <div className="overflow-y-auto px-5 py-4 space-y-5">
           {/* Ortssuche */}
           <div className="space-y-2">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ort suchen</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Ort suchen', 'Search place')}</p>
             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input
                 autoFocus
                 className="flex-1 bg-transparent text-sm focus:outline-none"
-                placeholder="z. B. Offenburg, Flugplatz Griesheim …"
+                placeholder={tx('z. B. Offenburg, Flugplatz Griesheim …', 'e.g. Offenburg, Griesheim airfield …')}
                 value={suche}
                 onChange={e => setSuche(e.target.value)}
               />
@@ -78,7 +80,7 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
             </div>
 
             {suche.trim().length >= 2 && !laedt && treffer.length === 0 && (
-              <p className="text-xs text-slate-400 py-2 text-center">Keine Treffer.</p>
+              <p className="text-xs text-slate-400 py-2 text-center">{tx('Keine Treffer.', 'No results.')}</p>
             )}
             {treffer.map((t, i) => (
               <button
@@ -94,13 +96,13 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
               </button>
             ))}
             <p className="text-[9px] text-slate-400 leading-relaxed">
-              Ortssuche über OpenStreetMap (Nominatim). Benötigt eine Internetverbindung.
+              {tx('Ortssuche über OpenStreetMap (Nominatim). Benötigt eine Internetverbindung.', 'Place search via OpenStreetMap (Nominatim). Requires an internet connection.')}
             </p>
           </div>
 
           {/* Koordinaten von Hand */}
           <form onSubmit={koordUebernehmen} className="space-y-2 border-t border-slate-100 pt-4">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Oder Koordinaten eingeben</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Oder Koordinaten eingeben', 'Or enter coordinates')}</p>
             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
               <Crosshair className="w-4 h-4 text-slate-400 shrink-0" />
               <input
@@ -119,7 +121,7 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
               type="submit"
               className="w-full bg-brand-blue text-white font-bold py-2.5 rounded-xl text-sm active:scale-95"
             >
-              Standort übernehmen
+              {tx('Standort übernehmen', 'Use location')}
             </button>
           </form>
         </div>

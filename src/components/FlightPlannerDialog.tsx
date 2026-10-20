@@ -49,7 +49,7 @@ function KlickFaenger({ onKlick }: { onKlick: (lat: number, lon: number) => void
 }
 
 export function FlightPlannerDialog({ startLat, startLon, locationFavorites = [], onClose }: Props) {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const [wegpunkte, setWegpunkte] = useState<Wegpunkt[]>([]);
   const [name, setName] = useState('');
   const [plaene, setPlaene] = useState<FlightPlan[]>([]);
@@ -206,7 +206,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     }}
                     defaultValue=""
                   >
-                    <option value="" disabled>★ Startpunkt aus Favoriten wählen...</option>
+                    <option value="" disabled>{tx('★ Startpunkt aus Favoriten wählen...', '★ Choose take-off point from favourites…')}</option>
                     {locationFavorites.map(fav => (
                       <option key={fav.id} value={fav.id}>
                         {fav.name} ({fav.locationName})
@@ -361,7 +361,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                         </label>
                         <label className="flex items-center gap-1 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
                           <span className="text-[9px] font-bold text-slate-400">km/h</span>
-                          <input type="number" inputMode="numeric" placeholder="Tempo" aria-label={`Tempo Wegpunkt ${i + 1}`}
+                          <input type="number" inputMode="numeric" placeholder={tx('Tempo', 'Speed')} aria-label={`Tempo Wegpunkt ${i + 1}`}
                             value={w.speed ?? ''} onChange={e => aktualisiereWegpunkt(i, { speed: e.target.value ? Number(e.target.value) : undefined })}
                             className="w-full bg-transparent text-[11px] font-mono focus:outline-none" />
                         </label>
@@ -369,19 +369,19 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                           value={w.aktion ?? ''} onChange={e => aktualisiereWegpunkt(i, { aktion: (e.target.value || undefined) as WegpunktAktion | undefined })}
                           className="bg-slate-50 rounded-lg px-2 py-1 border border-slate-100 text-[11px] font-bold text-slate-600 focus:outline-none">
                           <option value="">—</option>
-                          <option value="foto">Foto</option>
-                          <option value="video-start">Video an</option>
-                          <option value="video-stop">Video aus</option>
-                          <option value="hover">Schweben</option>
+                          <option value="foto">{tx('Foto', 'Photo')}</option>
+                          <option value="video-start">{tx('Video an', 'Video on')}</option>
+                          <option value="video-stop">{tx('Video aus', 'Video off')}</option>
+                          <option value="hover">{tx('Schweben', 'Hover')}</option>
                         </select>
                       </div>
                       {w.aktion === 'hover' && (
                         <label className="flex items-center gap-2 text-[10px] text-slate-500">
-                          Schwebedauer
-                          <input type="number" inputMode="numeric" value={w.hoverSek ?? ''} placeholder="Sek."
+                          {tx('Schwebedauer', 'Hover time')}
+                          <input type="number" inputMode="numeric" value={w.hoverSek ?? ''} placeholder={tx('Sek.', 'sec')}
                             onChange={e => aktualisiereWegpunkt(i, { hoverSek: e.target.value ? Number(e.target.value) : undefined })}
                             className="w-16 bg-slate-50 rounded-lg px-2 py-0.5 border border-slate-100 font-mono focus:outline-none" />
-                          Sek.
+                          {tx('Sek.', 'sec')}
                         </label>
                       )}
                     </div>
@@ -395,7 +395,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                   {/* Fliegbare Mission: Litchi kann diese Datei importieren und abfliegen. */}
                   <button onClick={() => exportieren('csv')}
                     className="w-full flex items-center justify-center gap-1.5 bg-brand-blue text-white rounded-xl py-2.5 text-xs font-bold active:scale-95">
-                    <Download className="w-3.5 h-3.5" /> Mission für Litchi (fliegbar)
+                    <Download className="w-3.5 h-3.5" /> {tx('Mission für Litchi (fliegbar)', 'Mission for Litchi (flyable)')}
                   </button>
                   <div className="grid grid-cols-2 gap-2">
                     <button onClick={() => exportieren('gpx')}
@@ -409,7 +409,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                   </div>
                   <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-start gap-1.5 leading-relaxed">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                    Litchi-Datei in Litchi importieren, <b>vor dem Start prüfen</b> (Höhen, Hindernisse, Luftraum) und nur in Sichtweite fliegen. SkyLog plant nur — es steuert die Drohne nicht.
+                    {tx('Litchi-Datei in Litchi importieren,', 'Import the Litchi file into Litchi,')} <b>{tx('vor dem Start prüfen', 'check before take-off')}</b> {tx('(Höhen, Hindernisse, Luftraum) und nur in Sichtweite fliegen. SkyLog plant nur — es steuert die Drohne nicht.', '(altitudes, obstacles, airspace) and only fly within line of sight. SkyLog only plans — it does not control the drone.')}
                   </p>
                 </div>
               )}

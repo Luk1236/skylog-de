@@ -798,7 +798,7 @@ function MehrSheet({
 
         <div className="overflow-y-auto px-4 py-4 space-y-4">
           <div>
-            <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider px-1 mb-1.5">{tx('Werkzeuge', 'Tools')}</p>
+            <p className="text-[10px] font-bold text-brand-blue uppercase tracking-wider px-1 mb-1.5">{tx('Werkzeuge', 'Tools')}</p>
             <div className="space-y-1.5">
               {werkzeuge.map(w => (
                 <button

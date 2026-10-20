@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState, type ChangeEvent } from 'react';
 import { X, ImagePlus, Trash2, AlertTriangle, Image as ImageIcon } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -26,6 +27,7 @@ function alsDataUrl(datei: File): Promise<string> {
 }
 
 export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props) {
+  const { tx } = useSprache();
   const [flight, setFlight] = useState<Flight>(initial);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -80,9 +82,9 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
           <div className="flex items-center gap-2">
             <ImageIcon className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">Bilder zum Flug</h3>
+            <h3 className="font-black text-slate-900">{tx('Bilder zum Flug', 'Flight photos')}</h3>
           </div>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl hover:bg-slate-100">
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -95,7 +97,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
           {media.length === 0 ? (
             <div className="text-center py-8">
               <ImageIcon className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 font-medium">Noch keine Bilder an diesem Flug.</p>
+              <p className="text-sm text-slate-500 font-medium">{tx('Noch keine Bilder an diesem Flug.', 'No photos attached to this flight yet.')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-3 gap-2">
@@ -109,7 +111,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
                   />
                   <button
                     onClick={() => entfernen(m.id)}
-                    aria-label="Bild entfernen"
+                    aria-label={tx('Bild entfernen', 'Remove photo')}
                     className="absolute top-1 right-1 p-1 rounded-lg bg-slate-900/60 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -136,7 +138,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
           </label>
           <div className="flex justify-between text-[10px] text-slate-400">
             <span>{media.length} {media.length === 1 ? 'Bild' : 'Bilder'}</span>
-            <span>{formatGroesse(belegt)} von {formatGroesse(MAX_FLUG_BYTES)}</span>
+            <span>{formatGroesse(belegt)} {tx('von', 'of')} {formatGroesse(MAX_FLUG_BYTES)}</span>
           </div>
         </div>
       </div>

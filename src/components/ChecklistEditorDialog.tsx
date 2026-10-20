@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState } from 'react';
 import { X, Plus, Trash2, ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
 import {
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
+  const { tx } = useSprache();
   const [punkte, setPunkte] = useState<ChecklistPunkt[]>(() => ladeChecklist(art));
   const [neu, setNeu] = useState('');
 
@@ -32,8 +34,8 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
     <div className="fixed inset-0 bg-slate-900/50 z-[80] flex items-end sm:items-center justify-center">
       <div className="bg-slate-50 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[92vh] flex flex-col">
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
-          <h3 className="font-black text-slate-900">{titel} bearbeiten</h3>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl hover:bg-slate-100">
+          <h3 className="font-black text-slate-900">{titel} {tx('bearbeiten', 'edit')}</h3>
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -47,21 +49,21 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
                 onChange={e => anwenden(punktBearbeiten(punkte, p.id, e.target.value))}
               />
               <button onClick={() => anwenden(verschiebe(punkte, p.id, -1))} disabled={i === 0}
-                aria-label="Nach oben" className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
+                aria-label={tx('Nach oben', 'Move up')} className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
                 <ChevronUp className="w-4 h-4" />
               </button>
               <button onClick={() => anwenden(verschiebe(punkte, p.id, 1))} disabled={i === punkte.length - 1}
-                aria-label="Nach unten" className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
+                aria-label={tx('Nach unten', 'Move down')} className="p-1 text-slate-300 hover:text-slate-600 disabled:opacity-30">
                 <ChevronDown className="w-4 h-4" />
               </button>
               <button onClick={() => anwenden(punktEntfernen(punkte, p.id))}
-                aria-label="Löschen" className="p-1 text-slate-300 hover:text-brand-red">
+                aria-label={tx('Löschen', 'Delete')} className="p-1 text-slate-300 hover:text-brand-red">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
           ))}
           {punkte.length === 0 && (
-            <p className="text-center text-xs text-slate-400 py-6">Keine Punkte — füge unten welche hinzu.</p>
+            <p className="text-center text-xs text-slate-400 py-6">{tx('Keine Punkte — füge unten welche hinzu.', 'No items — add some below.')}</p>
           )}
         </div>
 
@@ -69,7 +71,7 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
           <div className="flex gap-2">
             <input
               className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
-              placeholder="Neuer Prüfpunkt…"
+              placeholder={tx('Neuer Prüfpunkt…', 'New check item…')}
               value={neu}
               onChange={e => setNeu(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') hinzufuegen(); }}
@@ -82,7 +84,7 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
             onClick={async () => { if (await bestaetige('Diese Liste auf die Standardpunkte zurücksetzen?')) anwenden(setzeZurueck(art)); }}
             className="w-full flex items-center justify-center gap-2 text-xs font-bold text-slate-500 hover:bg-slate-50 rounded-xl py-2"
           >
-            <RotateCcw className="w-3.5 h-3.5" /> Auf Standard zurücksetzen
+            <RotateCcw className="w-3.5 h-3.5" /> {tx('Auf Standard zurücksetzen', 'Reset to default')}
           </button>
         </div>
       </div>

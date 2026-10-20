@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { X, Clock, Plane, CalendarDays, TrendingUp, MapPin, AlertTriangle, type LucideIcon } from 'lucide-react';
@@ -21,6 +22,7 @@ function Kennzahl({ icon: Icon, wert, label }: { icon: LucideIcon, wert: string,
 }
 
 export function StatisticsDialog({ flights, drones, onClose }: Props) {
+  const { tx } = useSprache();
   const s = useMemo(() => berechneStatistik(flights, drones), [flights, drones]);
 
   return (
@@ -29,9 +31,9 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
         <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
           <div className="flex items-center gap-2">
             <TrendingUp className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">Statistik</h3>
+            <h3 className="font-black text-slate-900">{tx('Statistik', 'Statistics')}</h3>
           </div>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl hover:bg-slate-100">
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -39,7 +41,7 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
         <div className="overflow-y-auto px-5 py-4 space-y-5">
           {s.anzahlFluege === 0 ? (
             <p className="text-center text-sm text-slate-400 py-10">
-              Noch keine Flüge — sobald du welche einträgst, erscheint hier deine Auswertung.
+              {tx('Noch keine Flüge — sobald du welche einträgst, erscheint hier deine Auswertung.', 'No flights yet — your statistics will appear here as soon as you log some.')}
             </p>
           ) : (
             <>
@@ -54,17 +56,17 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
 
               <div className="bg-brand-blue text-white rounded-2xl p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-blue-200">Dieses Jahr</p>
+                  <p className="text-[10px] uppercase tracking-wider text-blue-200">{tx('Dieses Jahr', 'This year')}</p>
                   <p className="text-xl font-black">{formatDauer(s.diesesJahrMinuten)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-wider text-blue-200">Flüge {new Date().getFullYear()}</p>
+                  <p className="text-[10px] uppercase tracking-wider text-blue-200">{tx('Flüge', 'Flights')} {new Date().getFullYear()}</p>
                   <p className="text-xl font-black">{s.diesesJahrFluege}</p>
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Flüge pro Monat (12 Mon.)</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{tx('Flüge pro Monat (12 Mon.)', 'Flights per month (12 mo.)')}</p>
                 <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={s.proMonat} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
@@ -78,7 +80,7 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Flugzeit je Drohne</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">{tx('Flugzeit je Drohne', 'Flight time per drone')}</p>
                 <div className="space-y-2">
                   {s.proDrohne.map(d => {
                     const anteil = Math.round((d.minuten / Math.max(1, s.gesamtMinuten)) * 100);
@@ -86,7 +88,7 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
                       <div key={d.droneId}>
                         <div className="flex justify-between text-xs mb-1">
                           <span className="font-bold text-slate-700">{d.model}</span>
-                          <span className="text-slate-400">{formatDauer(d.minuten)} · {d.fluege} Flüge</span>
+                          <span className="text-slate-400">{formatDauer(d.minuten)} · {d.fluege} {tx('Flüge', 'Flights')}</span>
                         </div>
                         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                           <div className="h-full bg-brand-blue rounded-full" style={{ width: `${anteil}%` }} />
@@ -101,7 +103,7 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-4">
                   <div className="flex items-center gap-1.5 mb-2">
                     <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Top-Standorte</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Top-Standorte', 'Top locations')}</p>
                   </div>
                   <div className="space-y-1.5">
                     {s.topOrte.map(o => (
@@ -116,10 +118,10 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-4">
                   <div className="flex items-center gap-1.5 mb-2">
                     <AlertTriangle className="w-3.5 h-3.5 text-brand-red" />
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Vorfälle</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Vorfälle', 'Incidents')}</p>
                   </div>
                   <p className="text-2xl font-black text-slate-900">{s.vorfallRateProzent}%</p>
-                  <p className="text-[10px] text-slate-400">{s.vorfallAnzahl} von {s.anzahlFluege} Flügen</p>
+                  <p className="text-[10px] text-slate-400">{s.vorfallAnzahl} {tx('von', 'of')} {s.anzahlFluege} {tx('Flügen', 'flights')}</p>
                 </div>
               </div>
             </>

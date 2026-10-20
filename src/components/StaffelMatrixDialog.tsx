@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import React, { useState } from 'react';
 import { X, Layers, Plane, BatteryCharging, Wrench, CheckCircle2, UserCheck, AlertTriangle } from 'lucide-react';
 import type { Drone, Battery, UserProfile, MaintenanceRecord } from '../services/db';
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, onClose }: Props) {
+  const { tx } = useSprache();
   const [filter, setFilter] = useState<'all' | 'ready' | 'maintenance'>('all');
 
   const readyBatteries = batteries.filter(b => (b.health || 100) >= 80);
@@ -39,8 +41,8 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
               <Layers className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-bold text-lg">Staffel- & Flottenmatrix (Multi-Drone Operational View)</h2>
-              <p className="text-xs text-slate-400">Taktische Bereitschaftsübersicht für Teams, BOS & Flottenbetreiber</p>
+              <h2 className="font-bold text-lg">{tx('Staffel- & Flottenmatrix (Multi-Drone Operational View)', 'Squadron & fleet matrix (multi-drone operational view)')}</h2>
+              <p className="text-xs text-slate-400">{tx('Taktische Bereitschaftsübersicht für Teams, BOS & Flottenbetreiber', 'Tactical readiness overview for teams, emergency services & fleet operators')}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
@@ -53,15 +55,15 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
           <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl">
             <div className="flex items-center gap-2 text-sky-400 text-xs font-bold mb-1">
               <Plane className="w-4 h-4" />
-              <span>Flottenstärke</span>
+              <span>{tx('Flottenstärke', 'Fleet size')}</span>
             </div>
-            <p className="text-2xl font-black text-white">{drones.length} Drohnen</p>
+            <p className="text-2xl font-black text-white">{drones.length} {tx('Drohnen', 'Drones')}</p>
           </div>
 
           <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl">
             <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold mb-1">
               <BatteryCharging className="w-4 h-4" />
-              <span>Einsatzbereite Akkus</span>
+              <span>{tx('Einsatzbereite Akkus', 'Ready batteries')}</span>
             </div>
             <p className="text-2xl font-black text-emerald-400">{readyBatteries.length} / {batteries.length}</p>
           </div>
@@ -69,7 +71,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
           <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl">
             <div className="flex items-center gap-2 text-amber-400 text-xs font-bold mb-1">
               <Wrench className="w-4 h-4" />
-              <span>Flugstunden Gesamt</span>
+              <span>{tx('Flugstunden Gesamt', 'Total flight hours')}</span>
             </div>
             <p className="text-2xl font-black text-amber-400">{totalFlightHours.toFixed(1)} h</p>
           </div>
@@ -77,7 +79,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
           <div className="p-3.5 bg-slate-800/80 border border-slate-700 rounded-2xl">
             <div className="flex items-center gap-2 text-indigo-400 text-xs font-bold mb-1">
               <UserCheck className="w-4 h-4" />
-              <span>Kommandant / Pilot</span>
+              <span>{tx('Kommandant / Pilot', 'Commander / pilot')}</span>
             </div>
             <p className="text-sm font-bold text-slate-200 truncate mt-1">{profile?.name || 'Fernpilot'}</p>
           </div>
@@ -91,7 +93,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
               filter === 'all' ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
             }`}
           >
-            Alle Drohnen ({drones.length})
+            {tx('Alle Drohnen (', 'All drones (')}{drones.length})
           </button>
           <button
             onClick={() => setFilter('ready')}
@@ -99,7 +101,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
               filter === 'ready' ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
             }`}
           >
-            Einsatzbereit
+            {tx('Einsatzbereit', 'Ready')}
           </button>
           <button
             onClick={() => setFilter('maintenance')}
@@ -107,7 +109,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
               filter === 'maintenance' ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
             }`}
           >
-            Wartung erforderlich
+            {tx('Wartung erforderlich', 'Maintenance required')}
           </button>
         </div>
 
@@ -116,7 +118,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
           {filteredDrones.length === 0 ? (
             <div className="text-center py-10 border border-dashed border-slate-800 rounded-2xl text-slate-500">
               <Plane className="w-10 h-10 mx-auto mb-2 opacity-40" />
-              <p className="text-xs font-bold">Keine Drohnen für diesen Filter gefunden</p>
+              <p className="text-xs font-bold">{tx('Keine Drohnen für diesen Filter gefunden', 'No drones match this filter')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -139,12 +141,12 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                       {status === 'ready' ? (
                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Einsatzbereit</span>
+                          <span>{tx('Einsatzbereit', 'Ready')}</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-wider">
                           <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>Wartung Offen</span>
+                          <span>{tx('Wartung Offen', 'Maintenance open')}</span>
                         </div>
                       )}
                     </div>
@@ -152,15 +154,15 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                     {/* Specs */}
                     <div className="grid grid-cols-3 gap-2 pt-2 text-[11px] border-t border-slate-700/60">
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">Gewicht</span>
+                        <span className="text-slate-400 block text-[9px] uppercase font-bold">{tx('Gewicht', 'Weight')}</span>
                         <strong className="text-slate-200">{d.weight ? `${d.weight}g` : 'k.A.'}</strong>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">UAS-Klasse</span>
+                        <span className="text-slate-400 block text-[9px] uppercase font-bold">{tx('UAS-Klasse', 'UAS class')}</span>
                         <strong className="text-slate-200">{d.uasClass || 'Legacy'}</strong>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">Seriennummer</span>
+                        <span className="text-slate-400 block text-[9px] uppercase font-bold">{tx('Seriennummer', 'Serial number')}</span>
                         <strong className="text-slate-200">{d.serialNumber ? 'Ja' : 'Nein'}</strong>
                       </div>
                     </div>
@@ -168,7 +170,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                     {/* Maintenance Notes if any */}
                     {droneMaint.length > 0 && (
                       <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
-                        <strong>Wartung:</strong> {droneMaint[0].description} ({droneMaint[0].date})
+                        <strong>{tx('Wartung:', 'Maintenance:')}</strong> {droneMaint[0].description} ({droneMaint[0].date})
                       </div>
                     )}
                   </div>
