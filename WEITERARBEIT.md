@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-19.
+Zuletzt aktualisiert: 2026-10-20.
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -16,10 +16,32 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
   minifizierte Bundle, keine Source-Maps – Quelltext lässt sich daraus nicht zurückgewinnen.
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`, 3 Commits) – überholt.
 
-## Stand 2026-10-19
-Verifiziert: `tsc` sauber · **ESLint 0 Fehler, 0 Warnungen** · **477 Tests grün** (44 Dateien)
-· `npm audit`: 0 Lücken
-· `npm run build` Exit 0. CI (`.github/workflows/ci.yml`) prüft Typecheck + Lint + Tests.
+## Stand 2026-10-20
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **500 Unit-Tests** (46 Dateien) ·
+**50 Playwright-Tests** · `npm run build` Exit 0. CI: Job `check` (Typecheck, Lint, Unit) und
+Job `e2e` (Playwright inkl. Kontrast-Wächter). Release per Tag `v*.*.*` (`release.yml`).
+
+Dritte Runde 2026-10-20 (Branch `ausbau/veraltet-verbessern-erweitern`):
+- **Updates:** Vite 8, Vitest 5, TypeScript 6 (+ `strict`), ESLint 10, Express 5, lucide 1.x,
+  motion 14, Gemini-SDK 2.30 + stabiles Modell `gemini-3.8-flash` (per `GEMINI_MODEL`).
+  Bewusst zurück: TypeScript 7 (typescript-eslint < 6.1), pmtiles 4 (protomaps-leaflet will 3),
+  @types/node 26 (CI läuft auf Node 22). `.npmrc legacy-peer-deps` wegen optionaler Peer-Kette.
+- **`@types/react` fehlte komplett** → React war `any`, Typecheck prüfte in Komponenten nichts.
+  Nachgerüstet; dabei 2 Bugs: Erinnerungs-Zähler in der Navigation blieb immer leer, Karten-Popup.
+- **PIN:** PBKDF2-SHA256 (310k, Zufallssalz), Wartezeit nach Fehlversuchen, v1 wird migriert;
+  ehrlich als „Bildschirmsperre" (verschlüsselt die Daten nicht).
+- **Attrappen ersetzt:** Ersatzteil-Inventar statt Bambu/STL-Platzhaltern (DB v12);
+  „Auto Cloud-Backup" → „Datensicherung" mit AES-256-GCM-Export (Android: Teilen-Menü);
+  Backup-Format 2 inkl. Flugpläne/Favoriten/Kunden/Ersatzteile; „LBA Konform" → „Daten nur lokal".
+- **Erststart ~40 % kleiner** (Ansichten lazy, recharts ohne festen Chunk).
+- **Flächenraster** für beliebige Vielecke, freie Richtung, Bahnabstand aus Kamera.
+- **Android-Benachrichtigungen** für Lizenz, Garantie, Wartung, Sicherung (`benachrichtigungen.ts`).
+- **Releases:** `release.yml`; `versionCode` jetzt = Zahl der Commits (in beiden Workflows gleich).
+- **Dialog-Kontrast:** `.immer-dunkel` für bewusst dunkle Dialoge; Kartenelemente lagen mit
+  z-[400]/[500] über Dialogen → z-20/30.
+- **Englisch:** 305 Texte der Hauptansichten (`tx('de', 'en')` aus `useSprache`).
+- **Datenschutz:** e-ID-QR lokal statt api.qrserver.com; `datenschutz.html` auf aktuelle
+  Dienste (u.a. Gemini, NOAA, Nominatim) – **bitte rechtlich gegenlesen**.
 
 Zweite Runde 2026-10-19 (dringende Punkte):
 - **Feste APK-Signatur:** Schlüssel in `../SkyLog-Sicherung/android-signatur/` (LIESMICH dort),
@@ -99,15 +121,18 @@ npm run sync:android   # build + cap sync android (für APK)
 - `api/` – Vercel-Funktion + gemeinsame Server-Logik (`_lib/`, nicht als Route veröffentlicht)
 
 ## Noch offen
+- **Englisch für Fach-Dialoge** (SORA, Staffelmatrix, CRM, Vorflug-Check, e-ID, Vorfall-Bericht …).
+- **Release-Workflow** einmal mit echtem Tag ausprobieren (`git tag v1.1.0 && git push origin v1.1.0`).
 - **DJI-SRT-Import mit echter Datei gegenprüfen** (`djiSrt.ts`). Braucht eine Beispiel-SRT
   vom Nutzer. (DJI-Fly-`.txt`/DAT-Logs sind verschlüsselt.)
-- **Dialoge einzeln auf Kontrast prüfen** (diese Runde nur Hauptansichten/Unterseiten).
-  Mehrere Dialoge sind bewusst dunkel gestaltet und werden im Dunkelmodus hell invertiert –
-  auf ähnliche Fälle wie die Gesamt-Kachel achten.
+- **Kontrast-Wächter erweitern** auf Dialoge, die Daten brauchen und deshalb noch nicht im
+  Test sind (Akku-Details, Flug-Track, Statistik, Medien, Favoriten, Flug-Import): in
+  `e2e/kontrast.spec.ts` vorher Testdaten anlegen. Neue bewusst dunkle Dialoge bekommen
+  die Klasse `immer-dunkel`.
 - **Vercel-Deployment** einrichten (GEMINI_API_KEY dort setzen), dann Repo-Variable
   `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK. Achtung: Auf Vercel
   gibt es nur `/api/safety-check` – die Proxys `/api/zonen`, `/api/aviation`, `/api/karte`
   laufen nur mit `server.ts` (in der APK unnötig, dort geht alles nativ).
 - **Weitere EU-Zonenquellen** nur nach echter Prüfung eintragen (Test „Direktadressen").
-- **Optional:** Projekt aus OneDrive verschieben; Origin-Prüfung für den KI-Endpunkt.
+- **Projekt aus OneDrive verschieben** (Ort bestimmt der Nutzer); Origin-Prüfung für den KI-Endpunkt.
 - **Große Themen (eigene Infrastruktur):** Cloud-Team-Sync, Live-Remote-ID/U-space, Push.

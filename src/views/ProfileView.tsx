@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent } from 'react';
 import {
   AlertTriangle, DatabaseBackup, Download, ExternalLink, FileDigit, Lock,
   Plus, Settings, ShieldAlert, ShieldCheck, Trash2, Upload, User,
@@ -257,11 +257,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
               {profile?.eid && (
                 <div className="flex flex-col items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{tx('LBA e-ID QR-Code', 'LBA e-ID QR code')}</p>
-                  <img
-                    src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(profile.eid)}&bgcolor=ffffff&color=0a0a0a&margin=8`}
-                    alt="LBA e-ID QR Code"
-                    className="w-32 h-32 rounded-xl"
-                  />
+                  <EidQrCode eid={profile.eid} />
                   <p className="text-[10px] text-slate-500 text-center">{tx('Für Bodeninspektion scannen', 'Scan for ground inspection')}</p>
                 </div>
               )}
@@ -527,4 +523,20 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
       </div>
     </div>
   );
+}
+
+/** QR-Code der e-ID - lokal erzeugt. Frueher kam das Bild von api.qrserver.com,
+ *  d.h. die e-ID ging bei jedem Oeffnen des Profils an einen fremden Dienst. */
+function EidQrCode({ eid }: { eid: string }) {
+  const [bild, setBild] = useState<string | null>(null);
+  useEffect(() => {
+    let aktiv = true;
+    import('qrcode')
+      .then(({ default: QRCode }) => QRCode.toDataURL(eid, { margin: 1, width: 256, errorCorrectionLevel: 'M' }))
+      .then(url => { if (aktiv) setBild(url); })
+      .catch(() => { if (aktiv) setBild(null); });
+    return () => { aktiv = false; };
+  }, [eid]);
+  if (!bild) return <div className="w-32 h-32 rounded-xl bg-white" aria-hidden />;
+  return <img src={bild} alt="LBA e-ID QR-Code" className="w-32 h-32 rounded-xl bg-white p-1" />;
 }

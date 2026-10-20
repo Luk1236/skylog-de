@@ -14,7 +14,7 @@
 </head>
 <body>
   <h1>Datenschutzerklärung</h1>
-  <p><strong>SkyLog DE – Drohnen Flugbuch</strong><br/>Stand: Juni 2025</p>
+  <p><strong>SkyLog DE – Drohnen Flugbuch</strong><br/>Stand: Oktober 2026</p>
 
   <h2>1. Verantwortlicher</h2>
   <p>Diese App wird als Einzelprojekt betrieben. Anfragen richten Sie bitte per E-Mail an die in den App-Store-Metadaten hinterlegte Kontaktadresse.</p>
@@ -27,20 +27,28 @@
     <li>Drohnen- und Akkuinformationen</li>
     <li>Flugprotokolle (Ort, Datum, Dauer, Wetter, Notizen)</li>
     <li>Hochgeladene Dokumente und Fotos</li>
+    <li>Flugpläne, Standort-Favoriten, Kunden und Ersatzteile</li>
   </ul>
+  <p>Eine Datensicherung erstellen Sie selbst; wohin die Datei geht (z.&nbsp;B. Download-Ordner, Google Drive, Nextcloud), entscheiden Sie. Auf Wunsch wird sie mit einem Passwort verschlüsselt (AES-256), das nicht gespeichert wird.</p>
 
   <h2>3. Externe Dienste</h2>
-  <p>Die App ruft folgende externe Dienste ab – dabei werden <strong>keine personenbezogenen Daten übertragen</strong>, lediglich technische Parameter (GPS-Koordinaten für Wetterdaten):</p>
+  <p>Für einzelne Funktionen ruft die App externe Dienste ab. Dabei werden <strong>keine Profil- oder Flugbuchdaten</strong> übertragen, sondern nur die für die Abfrage nötigen Angaben:</p>
   <ul>
-    <li><strong>Open-Meteo API</strong> (open-meteo.com) – Wetterdaten und Vorhersage anhand von GPS-Koordinaten. Datenschutz: <a href="https://open-meteo.com/en/terms" target="_blank">open-meteo.com/en/terms</a></li>
-    <li><strong>FAA NOTAM API</strong> (api.faa.gov) – NOTAM-Daten (optional, nur wenn API-Key hinterlegt). Datenschutz: <a href="https://www.faa.gov/privacy" target="_blank">faa.gov/privacy</a></li>
-    <li><strong>QR Server API</strong> (api.qrserver.com) – QR-Code-Generierung für die LBA e-ID (nur die eingegebene e-ID wird übertragen). Datenschutz: <a href="https://goqr.me/de/api/" target="_blank">goqr.me</a></li>
-    <li><strong>OpenStreetMap / Leaflet</strong> – Kartenmaterial. Datenschutz: <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank">osmfoundation.org</a></li>
-    <li><strong>DIPUL WMS</strong> (Luftfahrt-Informationsdienst Deutschland) – Luftraumdarstellung auf der Karte</li>
+    <li><strong>Open-Meteo</strong> (open-meteo.com) – Wetter und Vorhersage anhand der Koordinaten. <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Datenschutz</a></li>
+    <li><strong>aviationweather.gov</strong> (NOAA, USA) – Luftfahrtwetter (METAR/TAF) für Flughäfen in der Nähe, anhand eines Kartenausschnitts.</li>
+    <li><strong>NOAA Space Weather Prediction Center</strong> (services.swpc.noaa.gov) – Kp-Index (Weltraumwetter), ohne Standortangabe.</li>
+    <li><strong>FAA NOTAM API</strong> (api.faa.gov) – NOTAMs, nur wenn Sie einen eigenen API-Schlüssel hinterlegt haben. <a href="https://www.faa.gov/privacy" target="_blank" rel="noopener">Datenschutz</a></li>
+    <li><strong>Nominatim / OpenStreetMap</strong> (nominatim.openstreetmap.org) – Ortssuche, nur der eingegebene Suchtext. <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">Datenschutz</a></li>
+    <li><strong>OpenStreetMap / Leaflet</strong> – Kartenkacheln. <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">Datenschutz</a></li>
+    <li><strong>DIPUL</strong> (DFS / Bundesverkehrsministerium) – Geozonen-Darstellung auf der Karte.</li>
+    <li><strong>Amtliche Zonenquellen anderer Länder</strong> (z.&nbsp;B. data.geo.admin.ch, drones.geoportail.lu) – nur wenn Sie Zonen eines Landes laden.</li>
+    <li><strong>GitHub</strong> (github.com) – Download von Offline-Kartendateien, nur auf Ihren Wunsch.</li>
+    <li><strong>Google Gemini</strong> (optional, KI-Sicherheitscheck) – nur wenn Sie die KI-Analyse starten: Koordinaten und der angezeigte Ortsname werden über den SkyLog-Server an Google übertragen, um mögliche Hindernisse am Ort zu bewerten. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Datenschutz</a></li>
   </ul>
+  <p>Der QR-Code Ihrer e-ID wird lokal im Gerät erzeugt. Erinnerungen der Android-App sind lokale Benachrichtigungen ohne Server.</p>
 
   <h2>4. GPS / Standortdaten</h2>
-  <p>Die App fragt Standortdaten (GPS) ab, um die Karte zu zentrieren und Wetterdaten für Ihren Standort zu laden. Diese Daten werden <strong>nicht gespeichert oder übertragen</strong>, außer als Teil des Flugprotokolls, das lokal auf Ihrem Gerät verbleibt.</p>
+  <p>Die App fragt Standortdaten (GPS) ab, um die Karte zu zentrieren und Wetterdaten für Ihren Standort zu laden. Sie werden nur lokal im Flugprotokoll gespeichert und für die oben genannten Abfragen (Wetter, Luftfahrtwetter, optional KI-Sicherheitscheck) verwendet.</p>
 
   <h2>5. Ihre Rechte</h2>
   <p>Da alle Daten lokal auf Ihrem Gerät gespeichert werden, können Sie diese jederzeit selbst löschen – über die Browser-Einstellungen (Websitedaten löschen) oder die integrierte Backup/Restore-Funktion der App. Es gibt keine zentrale Datenbank, bei der Löschanfragen gestellt werden müssten.</p>
@@ -48,6 +56,6 @@
   <h2>6. Änderungen dieser Erklärung</h2>
   <p>Diese Datenschutzerklärung kann bei Funktionserweiterungen der App aktualisiert werden. Die jeweils aktuelle Version ist in der App verlinkt.</p>
 
-  <footer>SkyLog DE · Datenschutzerklärung · Stand Juni 2025</footer>
+  <footer>SkyLog DE · Datenschutzerklärung · Stand Oktober 2026</footer>
 </body>
 </html>

@@ -1,34 +1,79 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# SkyLog DE
 
-# Run and deploy your AI Studio app
+Digitales Flugbuch für Drohnenpilot:innen in Deutschland – als Web-App und als Android-App.
+Alle Daten bleiben lokal auf dem Gerät (IndexedDB); es gibt kein Konto und keine Cloud.
 
-This contains everything you need to run your app locally.
+## Funktionen
 
-View your app in AI Studio: https://ai.studio/apps/89b41fe0-37c9-40a0-89d5-a4282c8a5a9f
+- **Logbuch**: Flüge mit Legs, Akku, Wetter, Co-Pilot und Nachtflug. Dazu Statistik, Jahres-PDF (Betriebsnachweis), CSV/KML-Export und Import aus Airdata-CSV und DJI-SRT.
+- **Flotte**: Drohnen, Akkus (Zyklen und Gesundheit), Wartung mit Intervallen, Garantie und Kosten, Ersatzteil-Inventar.
+- **Karte**: DIPUL-Geozonen, Offline-Karten (PMTiles), importierte EU-Geozonen (ED-269) und ein Zonen-Urteil mit Höhengrenzen.
+- **Flug-Assistent**: Wetter mit Wind auf 120 m, bestes Flugfenster, METAR/TAF, NOTAM, Kp-Index, Checklisten und optional ein KI-Sicherheitscheck (Gemini).
+- **Flugplaner**: Wegpunkt-Routen und Flächenraster für Mapping (beliebige Vielecke, freie Flugrichtung, Bahnabstand aus der Kamera). Export als GPX, KML oder Litchi-CSV.
+- **Recht & Sicherheit**: QR-Behördencheck, Vorfall-Bericht für das LBA, SORA 2.5, Risiko-Check (A1/A2/A3/Specific), e-ID sowie ein Verzeichnis von Behörden und Rechtsquellen.
+- **Datensicherung**: vollständiger Export, optional AES-256-verschlüsselt. In der Android-App geht die Datei über das Teilen-Menü direkt nach Google Drive, Nextcloud oder „Dateien“.
+- **Erinnerungen**: in der App und auf Android als echte Benachrichtigung, z. B. Lizenzablauf, Garantie, Wartung und fällige Sicherung.
+- **Hell/Dunkel**, Deutsch/Englisch (Rechtstexte bleiben bewusst deutsch) und eine PIN-Bildschirmsperre.
 
-## Run Locally
+## Entwicklung
 
-**Prerequisites:**  Node.js
+Voraussetzung: Node.js 22 oder neuer.
 
+```bash
+npm install
+npm run dev          # Express + Vite auf http://localhost:3000
+npm test             # Unit-Tests (Vitest)
+npm run e2e          # Oberflächentests im Browser (Playwright), inkl. Kontrast-Wächter
+npm run check        # Typecheck (TypeScript strict) + ESLint
+npm run build        # Web-App + Server-Bundle nach dist/
+```
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in `.env` (or `.env.local`) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+Für die Oberflächentests einmalig `npx playwright install chromium` ausführen.
 
-## Deploy
+Optional in `.env` (Vorlage: `.env.example`):
 
-Die App hat zwei Teile: das statische Frontend **und** eine kleine Server-Funktion für den KI-Sicherheitscheck (`/api/safety-check`). Wähle je nachdem, ob du die KI online brauchst:
+| Variable | Zweck |
+|---|---|
+| `GEMINI_API_KEY` | KI-Sicherheitscheck. Ohne Schlüssel antwortet der Endpunkt mit 503, der Rest der App läuft normal. |
+| `GEMINI_MODEL` | anderes Gemini-Modell (Standard: `gemini-3.8-flash`) |
+| `SAFETY_CHECK_PER_HOUR` / `_PER_DAY` | Limits des KI-Checks (Standard: 10 pro Stunde und IP, 300 pro Tag) |
 
-### Option A — Vercel (empfohlen, KI funktioniert)
-1. Repo auf [vercel.com](https://vercel.com) importieren.
-2. Environment Variable `GEMINI_API_KEY` in den Vercel-Projekteinstellungen setzen.
-3. Deploy. Vercel baut das Frontend (`vite build`) und stellt `api/safety-check.ts` automatisch als Serverless-Funktion bereit (siehe `vercel.json`).
+## Android-App
 
-### Option B — GitHub Pages (nur statisch, **ohne** KI)
-Der Workflow unter `.github/workflows/deploy.yml` veröffentlicht nur das statische Frontend. Karte, Logbuch, Garage, Wetter usw. funktionieren — der **KI-Sicherheitscheck nicht** (dafür fehlt der Server). Die App zeigt in dem Fall einen freundlichen Hinweis statt eines Fehlers.
+Die App wird mit Capacitor gebaut, und zwar in GitHub Actions, nicht lokal:
 
-> **Wichtig:** Der `GEMINI_API_KEY` bleibt immer server-seitig und wird nie an den Browser ausgeliefert.
+- **Jeder Push auf `master`** baut eine Test-APK (Actions → „Android APK bauen“ → Artefakt `skylog-apk`).
+- **Ein Versions-Tag** erzeugt ein Release mit signierter APK und Änderungsliste:
+  ```bash
+  git tag v1.1.0
+  git push origin v1.1.0
+  ```
+
+Alle APKs tragen denselben festen Schlüssel (GitHub-Secrets `SKYLOG_KEYSTORE_BASE64`, `SKYLOG_KEYSTORE_PASSWORD`, `SKYLOG_KEY_ALIAS`). Die Versionsnummer ist die Zahl der Commits. Dadurch lässt sich jede neuere APK über jede ältere installieren, ohne Datenverlust.
+
+Für den KI-Check in der APK muss die Server-Adresse (z. B. die Vercel-URL) als Repo-Variable `SKYLOG_API_URL` gesetzt sein.
+
+Lokal: `npm run sync:android` baut die Web-App und überträgt sie ins Android-Projekt.
+
+## Server / Deployment
+
+- **Vercel** (empfohlen): Repo importieren und `GEMINI_API_KEY` setzen. `api/safety-check.ts` läuft dann als Serverless-Funktion.
+- **`server.ts`** (Express): stellt zusätzlich Proxys für Luftfahrtwetter, EU-Zonen und Offline-Karten bereit. In der Android-App sind diese nicht nötig, weil dort alles nativ abgerufen wird.
+
+## Aufbau
+
+```
+src/views/       Ansichten (Logbuch, Flotte, Profil, Flug-Assistent …), außer der Karte lazy geladen
+src/components/  Dialoge und Panels (lazy geladen, s. lazyDialogs.tsx)
+src/services/    Fachlogik, fast alles mit Unit-Tests
+src/lib/         Sprache, API-Basis, Dateiausgabe
+api/             Vercel-Funktion + gemeinsame Server-Logik (api/_lib)
+e2e/             Playwright-Tests
+android/         Capacitor-Android-Projekt
+```
+
+Notizen für die Weiterarbeit stehen in [WEITERARBEIT.md](WEITERARBEIT.md).
+
+## Datenschutz
+
+Flugdaten verlassen das Gerät nicht. Nur auf ausdrücklichen Wunsch gehen Anfragen an externe Dienste: Wetter, NOTAM, Zonenquellen, Kartendateien und – nur für den KI-Check – Koordinaten und Ortsname an Google Gemini. Details: `public/datenschutz.html`.
