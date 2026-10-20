@@ -1,0 +1,90 @@
+name: Release
+
+# Richtiges Release: signierte Release-APK als GitHub-Release mit Änderungsliste.
+# Auslösen mit einem Versions-Tag, z.B.:
+#   git tag v1.1.0 && git push origin v1.1.0
+# Die APK ist mit demselben festen Schlüssel signiert wie die Test-APKs
+# (android.yml) und hat denselben versionCode-Zähler (Zahl der Commits) -
+# sie lässt sich also über jede ältere SkyLog-APK installieren.
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # Paket "tools" gibt es mit cmdline-tools 16 nicht mehr (siehe android.yml).
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - run: npm ci
+
+      # Kein Release mit roten Tests oder Typfehlern.
+      - run: npm run check
+      - run: npm test
+
+      - run: npm run build:app
+        env:
+          VITE_API_BASE: ${{ vars.SKYLOG_API_URL }}
+
+      - run: npx cap sync android
+
+      - name: Signatur und Version bereitlegen
+        env:
+          KEYSTORE_B64: ${{ secrets.SKYLOG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "::error::Secret SKYLOG_KEYSTORE_BASE64 fehlt."
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/skylog.p12"
+          echo "SKYLOG_KEYSTORE_FILE=$RUNNER_TEMP/skylog.p12" >> "$GITHUB_ENV"
+          echo "SKYLOG_VERSION_CODE=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+          echo "SKYLOG_VERSION_NAME=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+
+      - name: Release-APK bauen
+        working-directory: android
+        env:
+          SKYLOG_KEYSTORE_PASSWORD: ${{ secrets.SKYLOG_KEYSTORE_PASSWORD }}
+          SKYLOG_KEY_ALIAS: ${{ secrets.SKYLOG_KEY_ALIAS }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+          cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/skylog-de-${GITHUB_REF_NAME}.apk"
+
+      # Änderungsliste: alle Commit-Betreffs seit dem letzten Versions-Tag.
+      - name: GitHub-Release anlegen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VORHER=$(git describe --tags --abbrev=0 --match 'v*.*.*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)
+          if [ -n "$VORHER" ]; then BEREICH="$VORHER..$GITHUB_REF_NAME"; else BEREICH="$GITHUB_REF_NAME"; fi
+          {
+            echo "## Änderungen"
+            echo
+            git log --no-merges --pretty='- %s' "$BEREICH"
+            echo
+            echo "**Installation:** APK aufs Handy laden und öffnen. Updates lassen sich direkt über eine vorhandene SkyLog-App installieren."
+          } > "$RUNNER_TEMP/notes.md"
+          gh release create "$GITHUB_REF_NAME" "$RUNNER_TEMP/skylog-de-${GITHUB_REF_NAME}.apk" \
+            --title "SkyLog DE ${GITHUB_REF_NAME}" --notes-file "$RUNNER_TEMP/notes.md"

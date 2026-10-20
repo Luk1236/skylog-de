@@ -7,10 +7,11 @@ android {
         applicationId "com.skylog.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // In der CI kommt die Versionsnummer aus der Laufnummer (SKYLOG_VERSION_CODE).
+        // In der CI ist die Versionsnummer die Zahl der Commits (SKYLOG_VERSION_CODE).
         // Android installiert ein Update nur, wenn versionCode steigt.
         versionCode((System.getenv("SKYLOG_VERSION_CODE") ?: "1").toInteger())
-        versionName "1.0." + (System.getenv("SKYLOG_VERSION_CODE") ?: "0")
+        // Release-Workflow setzt SKYLOG_VERSION_NAME aus dem Tag (v1.2.0 -> 1.2.0)
+        versionName System.getenv("SKYLOG_VERSION_NAME") ?: ("1.0." + (System.getenv("SKYLOG_VERSION_CODE") ?: "0"))
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -40,6 +41,7 @@ android {
             if (signaturDatei) signingConfig signingConfigs.fest
         }
         release {
+            if (signaturDatei) signingConfig signingConfigs.fest
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

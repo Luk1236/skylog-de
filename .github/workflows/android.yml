@@ -13,7 +13,10 @@ jobs:
   apk:
     runs-on: ubuntu-latest
     steps:
+      # Volle Historie: die Versionsnummer ist die Zahl der Commits (siehe unten).
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -72,14 +75,16 @@ jobs:
           fi
           echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/skylog.p12"
           echo "SKYLOG_KEYSTORE_FILE=$RUNNER_TEMP/skylog.p12" >> "$GITHUB_ENV"
+          # versionCode = Zahl der Commits: steigt mit jedem Commit und ist fuer
+          # Test-APKs und Releases gleich - so laesst sich jede neuere APK ueber
+          # jede aeltere installieren (Android verlangt einen steigenden versionCode).
+          echo "SKYLOG_VERSION_CODE=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
 
       - name: Debug-APK bauen
         working-directory: android
         env:
           SKYLOG_KEYSTORE_PASSWORD: ${{ secrets.SKYLOG_KEYSTORE_PASSWORD }}
           SKYLOG_KEY_ALIAS: ${{ secrets.SKYLOG_KEY_ALIAS }}
-          # Laufnummer steigt mit jedem Bau und liegt schon ueber der alten Handy-App (versionCode 1)
-          SKYLOG_VERSION_CODE: ${{ github.run_number }}
         run: ./gradlew assembleDebug --no-daemon
 
       - name: APK zum Download bereitstellen
