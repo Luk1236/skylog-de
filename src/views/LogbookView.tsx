@@ -24,7 +24,7 @@ import {
 import { FlightAssistant } from './FlightAssistant';
 
 export function LogbookView({ flights, drones, batteries, profile, onUpdate, currentLocation, onOpenFavorites }: { flights: Flight[], drones: Drone[], batteries: Battery[], profile: UserProfile | null, locationFavorites?: LocationFavorite[], onUpdate: () => void, currentLocation: [number, number], onOpenFavorites?: () => void }) {
-  const { t } = useSprache();
+  const { t, tx, sprache } = useSprache();
   const [showAdd, setShowAdd] = useState(false);
   const [showAssistant, setShowAssistant] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -208,7 +208,9 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
   }));
 
   const currentYear = new Date().getFullYear();
-  const monthNames = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+  // Monatskuerzel in der eingestellten Sprache (de: Mär, Okt … / en: Mar, Oct …)
+  const monthNames = Array.from({ length: 12 }, (_, i) =>
+    new Date(2000, i, 1).toLocaleDateString(sprache === 'en' ? 'en-GB' : 'de-DE', { month: 'short' }).replace('.', ''));
   const yearlyData = monthNames.map((label, i) => {
     const prefix = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
     const mFlights = validFlights.filter(f => f.date.startsWith(prefix));
@@ -226,52 +228,52 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.logbuch')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Statistik & Dokumentation</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Statistik & Dokumentation', 'Statistics & documentation')}</p>
         </div>
         <div className="flex gap-2">
           {verfuegbareJahre.length > 0 && (
             <select
               value={exportJahr}
               onChange={e => setExportJahr(e.target.value)}
-              title="Zeitraum für den PDF-Export"
+              title={tx('Zeitraum für den PDF-Export', 'Period for the PDF export')}
               className="bg-white border border-slate-200 rounded-2xl shadow-sm text-xs font-bold text-slate-600 px-2"
             >
-              <option value="alle">Alle</option>
+              <option value="alle">{tx('Alle', 'All')}</option>
               {verfuegbareJahre.map(j => <option key={j} value={j}>{j}</option>)}
             </select>
           )}
           <button
              onClick={exportToPDF}
              className="p-2.5 text-slate-400 hover:text-brand-orange bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Export PDF (Betriebsnachweis)"
+             title={tx('Export PDF (Betriebsnachweis)', 'Export PDF (operations record)')}
           >
              <FileDigit className="w-5 h-5" />
           </button>
           <button
              onClick={exportToCSV}
              className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Export CSV"
+             title={tx('Export CSV', 'Export CSV')}
           >
              <Download className="w-5 h-5" />
           </button>
           <button
              onClick={exportToKML}
              className="p-2.5 text-slate-400 hover:text-brand-green bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Export KML (Google Earth)"
+             title={tx('Export KML (Google Earth)', 'Export KML (Google Earth)')}
           >
              <MapPin className="w-5 h-5" />
           </button>
           <button
              onClick={() => setShowImport(true)}
              className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Flüge aus Flugaufzeichnung importieren (CSV)"
+             title={tx('Flüge aus Flugaufzeichnung importieren (CSV)', 'Import flights from flight log (CSV)')}
           >
              <Upload className="w-5 h-5" />
           </button>
           <button
              onClick={() => setShowStats(true)}
              className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
-             title="Statistik"
+             title={tx('Statistik', 'Statistics')}
           >
              <TrendingUp className="w-5 h-5" />
           </button>
@@ -316,21 +318,21 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
           <div className="bg-slate-900 text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
             <History className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 rotate-12" />
             <p className="text-[8px] font-bold text-white/70 uppercase tracking-widest mb-1 flex items-center gap-1">
-              <Clock className="w-2 h-2" /> Gesamt
+              <Clock className="w-2 h-2" /> {tx('Gesamt', 'Total')}
             </p>
             <p className="text-sm font-black whitespace-nowrap">{hours}h {mins}m</p>
           </div>
           <div className="bg-brand-blue text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
             <Plane className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 -rotate-12" />
             <p className="text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-1 flex items-center gap-1">
-              <TrendingUp className="w-2 h-2" /> Flüge
+              <TrendingUp className="w-2 h-2" /> {tx('Flüge', 'Flights')}
             </p>
             <p className="text-sm font-black">{totalFlights}</p>
           </div>
           <div className="bg-brand-orange text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
             <Timer className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 rotate-12" />
             <p className="text-[8px] font-bold text-orange-100 uppercase tracking-widest mb-1 flex items-center gap-1">
-              <Clock className="w-2 h-2" /> Schnitt
+              <Clock className="w-2 h-2" /> {tx('Schnitt', 'Average')}
             </p>
             <p className="text-sm font-black">{avgDuration}m</p>
           </div>
@@ -341,10 +343,10 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-brand-blue" />
-              <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Letzte 7 Tage</h3>
+              <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('Letzte 7 Tage', 'Last 7 days')}</h3>
             </div>
             <div className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded text-right">
-              Aktivität
+              {tx('Aktivität', 'Activity')}
             </div>
           </div>
           <div className="h-24 w-full">
@@ -388,18 +390,18 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       {/* Erweiterte Statistiken */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Diesen Monat</p>
-          <p className="text-lg font-black text-slate-900">{thisMonthFlights} <span className="text-sm font-bold text-slate-400">Flüge</span></p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{tx('Diesen Monat', 'This month')}</p>
+          <p className="text-lg font-black text-slate-900">{thisMonthFlights} <span className="text-sm font-bold text-slate-400">{tx('Flüge', 'Flights')}</span></p>
         </div>
         <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Top Drohne</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{tx('Top Drohne', 'Top drone')}</p>
           <p className="text-sm font-black text-slate-900 truncate">{topDrone?.model || '—'}</p>
-          {topDrone && <p className="text-[9px] text-slate-400">{topDrone.count} Flüge</p>}
+          {topDrone && <p className="text-[9px] text-slate-400">{topDrone.count} {tx('Flüge', 'Flights')}</p>}
         </div>
       </div>
       {purposeData.length > 0 && (
         <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm mb-6">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">Flüge nach Zweck</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">{tx('Flüge nach Zweck', 'Flights by purpose')}</p>
           <div className="space-y-2">
             {purposeData.map(({ name, value }) => (
               <div key={name} className="flex items-center gap-2">
@@ -419,9 +421,9 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-brand-blue" />
-            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Jahresübersicht {currentYear}</p>
+            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('Jahresübersicht', 'Year overview')} {currentYear}</p>
           </div>
-          <span className="text-[9px] font-bold text-brand-blue">{Math.floor(yearTotalMins / 60)}h {yearTotalMins % 60}m gesamt</span>
+          <span className="text-[9px] font-bold text-brand-blue">{Math.floor(yearTotalMins / 60)}h {yearTotalMins % 60}{tx('m gesamt', 'm total')}</span>
         </div>
         <div className="flex items-end gap-1 h-16">
           {yearlyData.map((m, i) => (
@@ -441,8 +443,8 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       </div>
 
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-slate-900 text-xs uppercase tracking-widest">Alle Einträge</h3>
-        <span className="text-[10px] font-bold text-slate-400">{validFlights.length} Einträge</span>
+        <h3 className="font-bold text-slate-900 text-xs uppercase tracking-widest">{tx('Alle Einträge', 'All entries')}</h3>
+        <span className="text-[10px] font-bold text-slate-400">{validFlights.length} {tx('Einträge', 'entries')}</span>
       </div>
 
       <AnimatePresence>
@@ -454,34 +456,34 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
             className="overflow-hidden mb-6"
           >
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-bold text-slate-800 text-sm">Manueller Eintrag</h3>
+              <h3 className="font-bold text-slate-800 text-sm">{tx('Manueller Eintrag', 'Manual entry')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Drohne wählen</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Drohne wählen', 'Choose drone')}</label>
                   <select 
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
                      value={newFlight.droneId || ''}
                      onChange={e => setNewFlight({...newFlight, droneId: e.target.value})}
                   >
-                    <option value="">Wähle...</option>
+                    <option value="">{tx('Wähle...', 'Choose…')}</option>
                     {drones.map(d => <option key={d.id} value={d.id}>{d.model}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Akku wählen</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Akku wählen', 'Choose battery')}</label>
                   <select 
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
                      value={newFlight.batteryId || ''}
                      onChange={e => setNewFlight({...newFlight, batteryId: e.target.value})}
                   >
-                    <option value="">Wähle...</option>
+                    <option value="">{tx('Wähle...', 'Choose…')}</option>
                     {batteries.map(b => <option key={b.id} value={b.id}>{b.number}</option>)}
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Datum</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Datum', 'Date')}</label>
                   <input 
                     type="date" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" 
@@ -491,13 +493,13 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Dauer (Min)</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Dauer (Min)', 'Duration (min)')}</label>
                   <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="15" value={newFlight.duration || ''} onChange={e => setNewFlight({...newFlight, duration: Number(e.target.value)})} />
                 </div>
               </div>
                <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">Einsatzort</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase">{tx('Einsatzort', 'Location')}</label>
                     {onOpenFavorites && (
                       <button
                         type="button"
@@ -505,16 +507,16 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                         className="text-[10px] font-bold text-amber-500 hover:underline flex items-center gap-1"
                       >
                         <MapPin className="w-3 h-3" />
-                        <span>Favoriten</span>
+                        <span>{tx('Favoriten', 'Favourites')}</span>
                       </button>
                     )}
                   </div>
-                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="z.B. Griesheim, Flugplatz" value={newFlight.locationName || ''} onChange={e => setNewFlight({...newFlight, locationName: e.target.value})} />
+                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder={tx('z.B. Griesheim, Flugplatz', 'e.g. Griesheim, airfield')} value={newFlight.locationName || ''} onChange={e => setNewFlight({...newFlight, locationName: e.target.value})} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Zweiter Fernpilot / Co-Pilot</label>
-                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="Name Co-Pilot / Beobachter" value={newFlight.coPilotName || ''} onChange={e => setNewFlight({...newFlight, coPilotName: e.target.value})} />
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Zweiter Fernpilot / Co-Pilot', 'Second remote pilot / co-pilot')}</label>
+                    <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder={tx('Name Co-Pilot / Beobachter', 'Name of co-pilot / observer')} value={newFlight.coPilotName || ''} onChange={e => setNewFlight({...newFlight, coPilotName: e.target.value})} />
                   </div>
                   <div className="flex flex-col justify-end">
                     <label className="flex items-center gap-2 p-2.5 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer text-xs font-semibold text-slate-700">
@@ -525,7 +527,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                         className="rounded text-brand-blue"
                       />
                       <Moon className="w-4 h-4 text-indigo-500" />
-                      <span>Nachtflug</span>
+                      <span>{tx('Nachtflug', 'Night flight')}</span>
                     </label>
                   </div>
                 </div>
@@ -533,7 +535,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 onClick={handleManualAdd}
                 className="w-full bg-brand-blue text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-blue/20 active:scale-95 transition-all text-sm"
               >
-                Flug Protokollieren
+                {tx('Flug Protokollieren', 'Log flight')}
               </button>
             </div>
           </motion.div>
@@ -609,7 +611,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 <div className="flex flex-col items-end">
                   <span className="text-[10px] font-black text-slate-400 uppercase">{new Date(flight.date).toLocaleDateString('de-DE')}</span>
                   {flight.legs && flight.legs.length > 0 && (
-                    <span className="text-[9px] font-bold text-brand-green uppercase">{flight.legs.length} Flüge (Legs)</span>
+                    <span className="text-[9px] font-bold text-brand-green uppercase">{flight.legs.length} {tx('Flüge (Legs)', 'Flights (legs)')}</span>
                   )}
                 </div>
               </div>
@@ -617,12 +619,12 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 <div>
                   <p className="text-xs font-bold text-slate-800">{drone?.model || 'Gelöschte Drohne'}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="text-[10px] text-slate-500 font-medium">{flight.duration} Minuten</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{flight.duration} {tx('Minuten', 'minutes')}</p>
                     <div className="flex gap-1">
                       {flight.isNightFlight && (
                         <div className="flex items-center gap-0.5 px-1 bg-indigo-50 rounded border border-indigo-100">
                           <Moon className="w-2.5 h-2.5 text-indigo-600" />
-                          <span className="text-[8px] font-black text-indigo-600 uppercase">Nachtflug</span>
+                          <span className="text-[8px] font-black text-indigo-600 uppercase">{tx('Nachtflug', 'Night flight')}</span>
                         </div>
                       )}
                       {flight.coPilotName && (
@@ -634,19 +636,19 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                       {flight.weather && (flight.weather.windSpeed > 15 || flight.weather.temp > 30) && (
                         <div className="flex items-center gap-0.5 px-1 bg-amber-50 rounded border border-amber-100">
                           <Wind className="w-2.5 h-2.5 text-amber-500" />
-                          <span className="text-[8px] font-black text-amber-500 uppercase">Wetter-Warnung</span>
+                          <span className="text-[8px] font-black text-amber-500 uppercase">{tx('Wetter-Warnung', 'Weather warning')}</span>
                         </div>
                       )}
                       {flight.batteryStatus?.endPercent != null && flight.batteryStatus.endPercent < 15 && (
                         <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
                           <ShieldAlert className="w-2.5 h-2.5 text-brand-red" />
-                          <span className="text-[8px] font-black text-brand-red uppercase">Tiefentladungs-Risiko</span>
+                          <span className="text-[8px] font-black text-brand-red uppercase">{tx('Tiefentladungs-Risiko', 'Deep discharge risk')}</span>
                         </div>
                       )}
                       {flight.incidents && (
                         <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
                           <AlertTriangle className="w-2.5 h-2.5 text-brand-red" />
-                          <span className="text-[8px] font-black text-brand-red uppercase">Vorkommnis</span>
+                          <span className="text-[8px] font-black text-brand-red uppercase">{tx('Vorkommnis', 'Occurrence')}</span>
                         </div>
                       )}
                     </div>
@@ -654,14 +656,14 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                       <p className="text-[10px] text-brand-red mt-1 leading-tight">{flight.incidents}</p>
                     )}
                     {flight.incidentPhoto && (
-                      <img src={flight.incidentPhoto} alt="Vorkommnis" className="mt-2 w-24 h-16 object-cover rounded-lg border border-brand-red/20" />
+                      <img src={flight.incidentPhoto} alt={tx('Vorkommnis', 'Occurrence')} className="mt-2 w-24 h-16 object-cover rounded-lg border border-brand-red/20" />
                     )}
                   </div>
                 </div>
                 {/* Bilder zum Flug. Gefüllt, wenn welche hängen. */}
                 <button
                   onClick={(e) => { e.stopPropagation(); setMediaFlight(flight); }}
-                  aria-label="Bilder zum Flug"
+                  aria-label={tx('Bilder zum Flug', 'Flight photos')}
                   className={cn(
                     'p-2 rounded-xl transition-colors shrink-0',
                     flight.media && flight.media.length > 0
@@ -674,7 +676,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 {/* Track ansehen / hinzufügen. Gefüllt, wenn eine Aufzeichnung da ist. */}
                 <button
                   onClick={(e) => { e.stopPropagation(); setTrackFlight(flight); }}
-                  aria-label="Flug-Track"
+                  aria-label={tx('Flug-Track', 'Flight track')}
                   className={cn(
                     'p-2 rounded-xl transition-colors shrink-0',
                     flight.track && flight.track.length > 0
@@ -695,8 +697,8 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
             <div className="bg-slate-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
               <Book className="w-8 h-8 text-slate-300" />
             </div>
-            <p className="text-slate-600 font-bold">Logbuch ist leer</p>
-            <p className="text-slate-400 text-xs mt-1">Starten Sie Ihren ersten Flug und dokumentieren Sie ihn hier.</p>
+            <p className="text-slate-600 font-bold">{tx('Logbuch ist leer', 'Logbook is empty')}</p>
+            <p className="text-slate-400 text-xs mt-1">{tx('Starten Sie Ihren ersten Flug und dokumentieren Sie ihn hier.', 'Start your first flight and record it here.')}</p>
           </div>
         )}
       </div>

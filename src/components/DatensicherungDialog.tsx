@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState } from 'react';
 import { X, DatabaseBackup, Download, Check, Lock, RefreshCw, Bell } from 'lucide-react';
 import { exportBackup, getLastBackupAt } from '../services/backup';
@@ -17,6 +18,7 @@ interface Props {
  *  Datei geht im Browser in den Download-Ordner, in der Android-App über das
  *  Teilen-Menü - z.B. direkt nach Google Drive oder Nextcloud. */
 export function DatensicherungDialog({ onClose }: Props) {
+  const { tx } = useSprache();
   const [intervall, setIntervall] = useState(getSicherungsIntervall);
   const [letzte, setLetzte] = useState(getLastBackupAt);
   const [mitPasswort, setMitPasswort] = useState(false);
@@ -65,19 +67,17 @@ export function DatensicherungDialog({ onClose }: Props) {
               <DatabaseBackup className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="font-black text-slate-900">Datensicherung</h2>
-              <p className="text-xs text-slate-500">Export, Verschlüsselung und Erinnerung</p>
+              <h2 className="font-black text-slate-900">{tx('Datensicherung', 'Backup')}</h2>
+              <p className="text-xs text-slate-500">{tx('Export, Verschlüsselung und Erinnerung', 'Export, encryption and reminder')}</p>
             </div>
           </div>
-          <button onClick={onClose} aria-label="Schließen" className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500">
+          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <p className="text-xs text-slate-600 leading-relaxed">
-          Deine Daten liegen nur auf diesem Gerät. Eine Sicherung enthält Drohnen, Akkus, Flüge,
-          Piloten, Wartungen, Dokumente, Flugpläne, Favoriten, Kunden und Ersatzteile.
-          In der Android-App kannst du sie direkt in Google Drive, Nextcloud oder „Dateien“ ablegen.
+          {tx('Deine Daten liegen nur auf diesem Gerät. Eine Sicherung enthält Drohnen, Akkus, Flüge, Piloten, Wartungen, Dokumente, Flugpläne, Favoriten, Kunden und Ersatzteile. In der Android-App kannst du sie direkt in Google Drive, Nextcloud oder „Dateien“ ablegen.', 'Your data only lives on this device. A backup contains drones, batteries, flights, pilots, maintenance, documents, flight plans, favourites, customers and spare parts. In the Android app you can save it straight to Google Drive, Nextcloud or “Files”.')}
         </p>
 
         <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
@@ -89,7 +89,7 @@ export function DatensicherungDialog({ onClose }: Props) {
               onChange={e => setMitPasswort(e.target.checked)}
             />
             <span className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
-              <Lock className="w-4 h-4 text-brand-blue" /> Mit Passwort verschlüsseln
+              <Lock className="w-4 h-4 text-brand-blue" /> {tx('Mit Passwort verschlüsseln', 'Encrypt with password')}
             </span>
           </label>
           {mitPasswort && (
@@ -97,7 +97,7 @@ export function DatensicherungDialog({ onClose }: Props) {
               <input
                 type="password"
                 autoComplete="new-password"
-                placeholder="Passwort (mind. 8 Zeichen)"
+                placeholder={tx('Passwort (mind. 8 Zeichen)', 'Password (min. 8 characters)')}
                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
                 value={passwort}
                 onChange={e => setPasswort(e.target.value)}
@@ -105,14 +105,13 @@ export function DatensicherungDialog({ onClose }: Props) {
               <input
                 type="password"
                 autoComplete="new-password"
-                placeholder="Passwort wiederholen"
+                placeholder={tx('Passwort wiederholen', 'Repeat password')}
                 className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
                 value={passwort2}
                 onChange={e => setPasswort2(e.target.value)}
               />
               <p className="text-[11px] text-slate-600 leading-relaxed">
-                AES-256-verschlüsselt. Das Passwort wird nirgends gespeichert –
-                ohne es lässt sich die Sicherung nicht wiederherstellen.
+                {tx('AES-256-verschlüsselt. Das Passwort wird nirgends gespeichert – ohne es lässt sich die Sicherung nicht wiederherstellen.', 'AES-256 encrypted. The password is not stored anywhere – without it the backup cannot be restored.')}
               </p>
               {passwortFehler && (passwort || passwort2) && (
                 <p className="text-[11px] font-bold text-brand-red">{passwortFehler}</p>
@@ -127,25 +126,25 @@ export function DatensicherungDialog({ onClose }: Props) {
           className="w-full py-3 rounded-2xl bg-brand-blue text-white font-bold text-sm shadow-lg shadow-brand-blue/20 flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {laeuft ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-          <span>Sicherung jetzt exportieren</span>
+          <span>{tx('Sicherung jetzt exportieren', 'Export backup now')}</span>
         </button>
 
         {erfolg && (
           <p className="flex items-center gap-2 text-xs font-bold text-emerald-700">
-            <Check className="w-4 h-4" /> Sicherung erstellt.
+            <Check className="w-4 h-4" /> {tx('Sicherung erstellt.', 'Backup created.')}
           </p>
         )}
 
         <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
           <label className="flex items-center gap-1.5 text-sm font-bold text-slate-900">
-            <Bell className="w-4 h-4 text-brand-blue" /> Erinnern, wenn die letzte Sicherung älter ist als
+            <Bell className="w-4 h-4 text-brand-blue" /> {tx('Erinnern, wenn die letzte Sicherung älter ist als', 'Remind me when the last backup is older than')}
           </label>
           <select
             className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
             value={intervall}
             onChange={e => waehleIntervall(Number(e.target.value))}
           >
-            {INTERVALL_OPTIONEN.map(t => <option key={t} value={t}>{t} Tage</option>)}
+            {INTERVALL_OPTIONEN.map(t => <option key={t} value={t}>{t} {tx('Tage', 'days')}</option>)}
           </select>
           <p className="text-[11px] text-slate-600">
             {letzte

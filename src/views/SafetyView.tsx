@@ -5,7 +5,7 @@ import { useSprache } from '../lib/sprache';
 import { IncidentReportDialog, RiskAssessmentDialog } from '../components/lazyDialogs';
 
 export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { profile: UserProfile | null, drones: Drone[], onBehoerdenCheck: () => void, onOpenEid?: () => void }) {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const [showVorfall, setShowVorfall] = useState(false);
   const [showRisiko, setShowRisiko] = useState(false);
   const emergencySteps = [
@@ -20,7 +20,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">Notfall-Leitfaden & LBA Meldung</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Notfall-Leitfaden & LBA Meldung', 'Emergency guide & LBA reporting')}</p>
         </div>
         {onOpenEid && (
           <button
@@ -28,7 +28,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
             className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 shadow-sm hover:border-slate-300 active:scale-95 transition-all"
           >
             <ShieldCheck className="w-4 h-4 text-sky-500" />
-            <span>e-ID Verwalten</span>
+            <span>{tx('e-ID Verwalten', 'Manage e-ID')}</span>
           </button>
         )}
       </div>
@@ -42,13 +42,13 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
           <ShieldCheck className="w-6 h-6 text-white" />
         </div>
         <div>
-          <h3 className="font-bold text-sm">Behörden-Check</h3>
-          <p className="text-[11px] text-white/70 leading-relaxed">Betreiber-ID, Nachweise & QR-Code zum Vorzeigen bei einer Kontrolle.</p>
+          <h3 className="font-bold text-sm">{tx('Behörden-Check', 'Authority check')}</h3>
+          <p className="text-[11px] text-white/70 leading-relaxed">{tx('Betreiber-ID, Nachweise & QR-Code zum Vorzeigen bei einer Kontrolle.', 'Operator ID, certificates & QR code to show during an inspection.')}</p>
         </div>
       </button>
       {(!profile?.eid || drones.length === 0) && (
         <p className="-mt-6 mb-8 text-[10px] text-slate-400 px-1">
-          Tipp: Betreiber-ID im Profil und mindestens eine Drohne hinterlegen, damit der Check vollständig ist.
+          {tx('Tipp: Betreiber-ID im Profil und mindestens eine Drohne hinterlegen, damit der Check vollständig ist.', 'Tip: add your operator ID in the profile and at least one drone so the check is complete.')}
         </p>
       )}
 
@@ -61,8 +61,8 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
           <Scale className="w-6 h-6 text-brand-blue" />
         </div>
         <div>
-          <h3 className="font-bold text-sm text-slate-900">Risiko-Check (Betriebskategorie)</h3>
-          <p className="text-[11px] text-slate-500 leading-relaxed">Open A1/A2/A3 oder Specific? Nach EU 2019/947 einordnen.</p>
+          <h3 className="font-bold text-sm text-slate-900">{tx('Risiko-Check (Betriebskategorie)', 'Risk check (operating category)')}</h3>
+          <p className="text-[11px] text-slate-500 leading-relaxed">{tx('Open A1/A2/A3 oder Specific? Nach EU 2019/947 einordnen.', 'Open A1/A2/A3 or Specific? Classify according to EU 2019/947.')}</p>
         </div>
       </button>
 
@@ -71,7 +71,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
           <div className="p-2 bg-white/20 rounded-xl">
             <AlertTriangle className="w-6 h-6 text-white" />
           </div>
-          <h3 className="font-bold text-lg">NOTFALL-GUIDE</h3>
+          <h3 className="font-bold text-lg">{tx('NOTFALL-GUIDE', 'EMERGENCY GUIDE')}</h3>
         </div>
         <div className="space-y-4">
           {emergencySteps.map((step, idx) => (
@@ -101,8 +101,8 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
             </div>
             <ArrowRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
           </div>
-          <h4 className="font-bold text-slate-900 mb-1">Vorfall-Bericht erstellen</h4>
-          <p className="text-[10px] text-slate-500 leading-relaxed">Ereignis dokumentieren und als fertigen Meldetext für das LBA kopieren.</p>
+          <h4 className="font-bold text-slate-900 mb-1">{tx('Vorfall-Bericht erstellen', 'Create incident report')}</h4>
+          <p className="text-[10px] text-slate-500 leading-relaxed">{tx('Ereignis dokumentieren und als fertigen Meldetext für das LBA kopieren.', 'Document the occurrence and copy a ready-made report text for the LBA.')}</p>
         </button>
 
         <a
@@ -117,12 +117,12 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
             </div>
             <ArrowRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
           </div>
-          <h4 className="font-bold text-slate-900 mb-1">LBA Ereignismeldung</h4>
-          <p className="text-[10px] text-slate-500 leading-relaxed">Offizielles Meldeportal für Unfälle und schwere Störungen (ECCAIRS 2).</p>
+          <h4 className="font-bold text-slate-900 mb-1">{tx('LBA Ereignismeldung', 'LBA occurrence report')}</h4>
+          <p className="text-[10px] text-slate-500 leading-relaxed">{tx('Offizielles Meldeportal für Unfälle und schwere Störungen (ECCAIRS 2).', 'Official reporting portal for accidents and serious incidents (ECCAIRS 2).')}</p>
         </a>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-          <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">Flugverbotszonen</h4>
+          <h4 className="font-bold text-slate-900 mb-4 text-sm uppercase tracking-wider">{tx('Flugverbotszonen', 'No-fly zones')}</h4>
           <div className="space-y-3">
             {[
               { l: "Flughäfen", v: "1.5km Abstand" },

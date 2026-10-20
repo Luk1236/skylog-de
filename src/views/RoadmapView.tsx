@@ -3,7 +3,7 @@ import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
 
 export function RoadmapView() {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   // Ehrlicher Stand: Was fertig ist, steht auf „Live". Nur was wirklich noch
   // fehlt, ist „Geplant". Vorher standen gebaute Funktionen hier als „geplant"
   // — das las sich, als wäre nichts fertig.
@@ -38,7 +38,7 @@ export function RoadmapView() {
     <div className="max-w-md lg:max-w-3xl mx-auto pb-8">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.roadmap')}</h2>
-        <p className="text-slate-500 text-sm font-medium">Unsere Vision für SkyLog DE</p>
+        <p className="text-slate-500 text-sm font-medium">{tx('Unsere Vision für SkyLog DE', 'Our vision for SkyLog DE')}</p>
       </div>
 
       <div className="space-y-6">
@@ -64,8 +64,8 @@ export function RoadmapView() {
 
       <div className="mt-12 p-6 bg-brand-blue/5 rounded-3xl text-center border border-brand-blue/10">
         <Rocket className="w-8 h-8 text-brand-blue mx-auto mb-3" />
-        <h4 className="font-bold text-slate-900 mb-1">Feedback erwünscht!</h4>
-        <p className="text-xs text-slate-500">Welche Funktion fehlt Ihnen am meisten? Lassen Sie es uns wissen.</p>
+        <h4 className="font-bold text-slate-900 mb-1">{tx('Feedback erwünscht!', 'Feedback welcome!')}</h4>
+        <p className="text-xs text-slate-500">{tx('Welche Funktion fehlt Ihnen am meisten? Lassen Sie es uns wissen.', 'Which feature do you miss most? Let us know.')}</p>
       </div>
     </div>
   );

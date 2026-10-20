@@ -15,6 +15,9 @@ import { uebersetze, type Sprache } from '../services/i18n';
 interface SprachKontext {
   sprache: Sprache;
   t: (key: string) => string;
+  /** Text direkt an Ort und Stelle: tx('Deutsch', 'English'). Fuer einmalige
+   *  Beschriftungen in Ansichten - Wiederkehrendes gehoert ins Woerterbuch (t). */
+  tx: (de: string, en: string) => string;
 }
 
 // Fallback Deutsch: Wird eine Komponente ausserhalb des Providers gerendert
@@ -22,11 +25,16 @@ interface SprachKontext {
 const Kontext = createContext<SprachKontext>({
   sprache: 'de',
   t: (key: string) => uebersetze(key, 'de'),
+  tx: (de: string) => de,
 });
 
 export function SprachProvider({ sprache, children }: { sprache: Sprache; children: ReactNode }) {
   const wert = useMemo<SprachKontext>(
-    () => ({ sprache, t: (key: string) => uebersetze(key, sprache) }),
+    () => ({
+      sprache,
+      t: (key: string) => uebersetze(key, sprache),
+      tx: (de: string, en: string) => (sprache === 'en' ? en : de),
+    }),
     [sprache]
   );
   return <Kontext.Provider value={wert}>{children}</Kontext.Provider>;

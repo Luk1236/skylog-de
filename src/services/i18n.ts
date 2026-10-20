@@ -8,6 +8,13 @@
 //
 // Neue Sprache: einen Schlüssel je Eintrag ergänzen. Fehlt eine Übersetzung,
 // fällt die Anzeige auf Deutsch zurück statt den Schlüssel zu zeigen.
+//
+// Zwei Wege: t('schluessel') für Wiederkehrendes (hier im Wörterbuch), und
+// tx('Deutsch', 'English') aus useSprache() für einmalige Beschriftungen direkt
+// in der Ansicht. Stand 2026-10-20 englisch: App-Hülle, Karte, Logbuch, Flotte,
+// Safety, Profil, Flug-Assistent, Inventar, Piloten, Roadmap, Datensicherung,
+// Bildschirmsperre, Flugplaner. Noch deutsch: Fach-Dialoge (SORA, Staffel,
+// CRM, Vorflug-Check, e-ID …) und bewusst alle Rechtstexte.
 
 export type Sprache = 'de' | 'en';
 

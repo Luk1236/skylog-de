@@ -101,6 +101,8 @@ export default function App() {
   const [sprache, setSprache] = useState<Sprache>(() => ladeSprache());
   // Kurzform fuer die Uebersetzung in dieser Komponente.
   const t = (key: string) => uebersetze(key, sprache);
+  // App liegt ueber dem SprachProvider - daher eigenes tx statt useSprache().
+  const tx = (de: string, en: string) => (sprache === 'en' ? en : de);
   const spracheWechseln = () => {
     const neu = andereSprache(sprache);
     setzeSprache(neu);
@@ -236,7 +238,7 @@ export default function App() {
           <Plane className="w-14 h-14 text-white animate-pulse" />
         </div>
         <h1 className="text-white font-black text-2xl tracking-tight">SkyLog DE</h1>
-        <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">Wird geladen…</p>
+        <p className="text-blue-200 text-xs font-bold uppercase tracking-widest">{tx('Wird geladen…', 'Loading…')}</p>
       </div>
     );
   }
@@ -251,7 +253,7 @@ export default function App() {
       {!isOnline && (
         <div className="bg-amber-700 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
           <AlertTriangle className="w-4 h-4 shrink-0" />
-          Kein Internet — Wetter &amp; NOTAM nicht verfügbar. Logbuch funktioniert offline.
+          {tx('Kein Internet — Wetter & NOTAM nicht verfügbar. Logbuch funktioniert offline.', 'No internet — weather & NOTAMs unavailable. The logbook works offline.')}
         </div>
       )}
 
@@ -261,23 +263,23 @@ export default function App() {
           <div className="bg-white/20 p-5 rounded-3xl mb-6">
             <Plane className="w-14 h-14 text-white" />
           </div>
-          <h1 className="text-white font-black text-3xl tracking-tight mb-2">Willkommen bei<br/>SkyLog DE</h1>
-          <p className="text-blue-200 text-sm leading-relaxed mb-8 max-w-xs">Dein digitales Flugbuch für Drohnen. Starte mit deinem Piloten-Profil.</p>
+          <h1 className="text-white font-black text-3xl tracking-tight mb-2">{tx('Willkommen bei', 'Welcome to')}<br/>SkyLog DE</h1>
+          <p className="text-blue-200 text-sm leading-relaxed mb-8 max-w-xs">{tx('Dein digitales Flugbuch für Drohnen. Starte mit deinem Piloten-Profil.', 'Your digital drone logbook. Start with your pilot profile.')}</p>
           <div className="space-y-3 w-full max-w-xs">
             <button
               onClick={() => { setShowOnboarding(false); setActiveView('profile'); }}
               className="w-full bg-white text-brand-blue font-black py-4 rounded-2xl shadow-xl text-sm uppercase tracking-widest active:scale-95 transition-all"
             >
-              Profil einrichten
+              {tx('Profil einrichten', 'Set up profile')}
             </button>
             <button
               onClick={() => setShowOnboarding(false)}
               className="w-full text-blue-200 font-bold py-2 text-xs uppercase tracking-widest"
             >
-              Später
+              {tx('Später', 'Later')}
             </button>
           </div>
-          <p className="text-blue-300 text-[10px] mt-8">Alle Daten bleiben lokal auf deinem Gerät</p>
+          <p className="text-blue-300 text-[10px] mt-8">{tx('Alle Daten bleiben lokal auf deinem Gerät', 'All data stays on your device')}</p>
         </div>
       )}
 
@@ -336,7 +338,7 @@ export default function App() {
                     onClick={() => setShowManualLocation(true)}
                     className="shrink-0 bg-black/15 hover:bg-black/25 rounded-lg px-2 py-1 text-[11px] font-bold"
                   >
-                    Manuell setzen
+                    {tx('Manuell setzen', 'Set manually')}
                   </button>
                 </div>
               )}
@@ -366,7 +368,7 @@ export default function App() {
                         : <Plane className="w-4 h-4 text-brand-blue" />}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Letzter Flug</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{tx('Letzter Flug', 'Last flight')}</p>
                       <p className="text-xs font-bold text-slate-900 truncate">{last.locationName}</p>
                       <p className="text-[10px] text-slate-400">{new Date(last.date).toLocaleDateString('de-DE')} · {last.duration} min · {drone?.model || '—'}</p>
                     </div>
@@ -378,10 +380,10 @@ export default function App() {
               <button
                 onClick={() => { setActiveView('logbook'); }}
                 className="absolute bottom-36 right-4 z-20 flex items-center gap-2 bg-brand-blue text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-brand-blue/40 active:scale-95 transition-all hover:bg-brand-blue/90"
-                aria-label="Schnell-Log: Flug hinzufügen"
+                aria-label={tx('Schnell-Log: Flug hinzufügen', 'Quick log: add flight')}
               >
                 <PlusCircle className="w-4 h-4" />
-                Flug loggen
+                {tx('Flug loggen', 'Log flight')}
               </button>
             </motion.div>
           )}
@@ -487,7 +489,7 @@ export default function App() {
           </div>
           <div className="min-w-0">
             <p className="font-black text-slate-900 leading-none truncate">SkyLog DE</p>
-            <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Flugbuch</p>
+            <p className="text-[9px] text-slate-400 uppercase tracking-widest mt-1">{tx('Flugbuch', 'Logbook')}</p>
           </div>
         </div>
         <NavButton
@@ -705,7 +707,7 @@ function MehrSheet({
   onOpenPreFlightSafety: () => void;
   onClose: () => void;
 }) {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const eintraege: { view: View; icon: LucideIcon; label: string }[] = [
     { view: 'inventory', icon: Printer, label: t('nav.inventar') },
     { view: 'pilots', icon: User, label: t('nav.piloten') },
@@ -730,14 +732,14 @@ function MehrSheet({
         <div className="overflow-y-auto px-4 py-4 space-y-4">
           {/* Pro Werkzeuge */}
           <div>
-            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider px-1 mb-1.5">Pro Werkzeuge</p>
+            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider px-1 mb-1.5">{tx('Pro Werkzeuge', 'Pro tools')}</p>
             <div className="space-y-1.5">
               <button
                 onClick={onOpenPreFlightSafety}
                 className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
               >
                 <ShieldCheck className="w-5 h-5 shrink-0 text-emerald-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">Pre-Flight Safety Score & Kp-Index</span>
+                <span className="text-sm font-bold flex-1 text-slate-800">{tx('Pre-Flight Safety Score & Kp-Index', 'Pre-flight safety score & Kp index')}</span>
                 <ChevronRight className="w-4 h-4 text-slate-300" />
               </button>
 
@@ -746,7 +748,7 @@ function MehrSheet({
                 className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
               >
                 <Building2 className="w-5 h-5 shrink-0 text-blue-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">CRM & Kundenverwaltung</span>
+                <span className="text-sm font-bold flex-1 text-slate-800">{tx('CRM & Kundenverwaltung', 'CRM & customers')}</span>
                 <ChevronRight className="w-4 h-4 text-slate-300" />
               </button>
 
@@ -755,7 +757,7 @@ function MehrSheet({
                 className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
               >
                 <Shield className="w-5 h-5 shrink-0 text-indigo-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">EASA SORA 2.5 PDF Assistent</span>
+                <span className="text-sm font-bold flex-1 text-slate-800">{tx('EASA SORA 2.5 PDF Assistent', 'EASA SORA 2.5 PDF assistant')}</span>
                 <ChevronRight className="w-4 h-4 text-slate-300" />
               </button>
 
@@ -764,7 +766,7 @@ function MehrSheet({
                 className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
               >
                 <DatabaseBackup className="w-5 h-5 shrink-0 text-cyan-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">Datensicherung & Erinnerung</span>
+                <span className="text-sm font-bold flex-1 text-slate-800">{tx('Datensicherung & Erinnerung', 'Backup & reminder')}</span>
                 <ChevronRight className="w-4 h-4 text-slate-300" />
               </button>
 
@@ -773,7 +775,7 @@ function MehrSheet({
                 className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
               >
                 <Layers className="w-5 h-5 shrink-0 text-amber-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">Staffel- & Flottenmatrix</span>
+                <span className="text-sm font-bold flex-1 text-slate-800">{tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix')}</span>
                 <ChevronRight className="w-4 h-4 text-slate-300" />
               </button>
             </div>
@@ -859,7 +861,7 @@ function NavButton({ active, onClick, icon: Icon, label, badge }: { active: bool
 }
 
 function DroneMap({ location, onLocate, isLocating, weather, flights, locationFavorites = [], onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], locationFavorites?: LocationFavorite[], onPlaner: () => void }) {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
   // Grundkarte waehlen. Reihenfolge: heruntergeladene Region (beste, weil
   // offline und vom Nutzer bewusst geholt) > mitgelieferte Datei > online.
@@ -996,7 +998,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
         <EuZoneLayer zonen={euZonen} />
 
         <Marker position={location} icon={droneIcon}>
-          <Popup>Ihr Standort</Popup>
+          <Popup>{tx('Ihr Standort', 'Your location')}</Popup>
         </Marker>
 
         {/* Past flight locations */}
@@ -1036,14 +1038,14 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
             <div className="p-1 min-w-[200px]">
               <div className="flex items-center gap-2 mb-2">
                 <Info className="w-4 h-4 text-brand-blue" />
-                <h3 className="font-bold text-sm">Zone Information</h3>
+                <h3 className="font-bold text-sm">{tx('Zone Information', 'Zone information')}</h3>
               </div>
               <div className="space-y-2 text-xs text-slate-600">
-                <p>Besuchen Sie <span className="font-semibold text-brand-blue">dipul.de</span> für detaillierte Verbote am Standort [{infoPoint[0].toFixed(4)}, {infoPoint[1].toFixed(4)}].</p>
+                <p>{tx('Besuchen Sie', 'Visit')} <span className="font-semibold text-brand-blue">dipul.de</span> {tx('für detaillierte Verbote am Standort [', 'for detailed restrictions at [')}{infoPoint[0].toFixed(4)}, {infoPoint[1].toFixed(4)}].</p>
                 <div className="flex flex-col gap-1 mt-2">
                   <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded">
                     <div className="w-2.5 h-2.5 rounded-full bg-brand-red" />
-                    <span className="font-medium">Flugbeschränkung möglich</span>
+                    <span className="font-medium">{tx('Flugbeschränkung möglich', 'Flight restriction possible')}</span>
                   </div>
                 </div>
               </div>
@@ -1078,7 +1080,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
             Losfahren ins Funkloch zaehlt. */}
         <button
           onClick={() => setZeigeKarten(true)}
-          aria-label="Offline-Karten verwalten"
+          aria-label={tx('Offline-Karten verwalten', 'Manage offline maps')}
           className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
         >
           <DownloadCloud className={cn('w-6 h-6', geladeneKarte ? 'text-brand-green' : 'text-slate-400')} />
@@ -1087,7 +1089,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
         {/* Zonen fremder Laender. Gruen, sobald welche importiert sind. */}
         <button
           onClick={() => setZeigeEuZonen(true)}
-          aria-label="Zonen anderer Länder"
+          aria-label={tx('Zonen anderer Länder', 'Zones of other countries')}
           className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
         >
           <Globe2 className={cn('w-6 h-6', euZonen.length > 0 ? 'text-brand-green' : 'text-slate-400')} />
@@ -1122,9 +1124,9 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
             </div>
             <div>
               <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                Vorflug-Sicherheitsanalyse & Kp-Index
+                {tx('Vorflug-Sicherheitsanalyse & Kp-Index', 'Pre-flight safety analysis & Kp index')}
               </p>
-              <p className="text-[10px] text-slate-500 font-medium">Klick für 0-100% Sicherheits-Check</p>
+              <p className="text-[10px] text-slate-500 font-medium">{tx('Klick für 0-100% Sicherheits-Check', 'Tap for a 0–100% safety check')}</p>
             </div>
           </div>
           <span className="bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 group-hover:bg-emerald-800 transition-colors">

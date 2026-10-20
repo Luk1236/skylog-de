@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import {
@@ -52,6 +53,7 @@ const CHECKLIST_ITEMS = [
 ];
 
 function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: { art?: ChecklistArt, titel?: string }) {
+  const { tx } = useSprache();
   const [items, setItems] = useState<ChecklistPunkt[]>(() => ladeChecklist(art));
   const [checked, setChecked] = useState<Record<string, boolean>>({});
   const [editor, setEditor] = useState(false);
@@ -71,7 +73,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
           <span className={cn("text-[10px] font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-500")}>
             {done}/{items.length}
           </span>
-          <button onClick={() => setEditor(true)} aria-label="Checkliste bearbeiten" className="p-1 text-slate-300 hover:text-brand-blue">
+          <button onClick={() => setEditor(true)} aria-label={tx('Checkliste bearbeiten', 'Edit checklist')} className="p-1 text-slate-300 hover:text-brand-blue">
             <Settings2 className="w-4 h-4" />
           </button>
         </div>
@@ -93,7 +95,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
       {allDone && (
         <div className="mt-3 flex items-center gap-2 p-2.5 bg-emerald-50 rounded-xl">
           <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-          <p className="text-[10px] font-bold text-emerald-700">Alles geprüft — startklar!</p>
+          <p className="text-[10px] font-bold text-emerald-700">{tx('Alles geprüft — startklar!', 'All checked — ready for take-off!')}</p>
         </div>
       )}
 
@@ -109,6 +111,7 @@ function PreFlightChecklist({ art = 'preflight', titel = 'Pre-Flight Check' }: {
 }
 
 export function FlightAssistant({ drones, batteries, profile, onClose, onSave, currentLocation }: { drones: Drone[], batteries: Battery[], profile: UserProfile | null, onClose: () => void, onSave: (f: Flight) => void, currentLocation: [number, number] }) {
+  const { tx } = useSprache();
   const [selectedDroneId, setSelectedDroneId] = useState('');
   const [selectedBatteryId, setSelectedBatteryId] = useState('');
   const [selectedPilotId, setSelectedPilotId] = useState('main');
@@ -339,7 +342,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
         <div className="flex items-center justify-between mb-4">
           <button onClick={onClose} className="p-2 -ml-2 text-slate-400"><XCircle className="w-6 h-6" /></button>
           <div className="text-center">
-            <h2 className="font-black text-slate-900 uppercase tracking-tighter text-sm">Flug Assistent</h2>
+            <h2 className="font-black text-slate-900 uppercase tracking-tighter text-sm">{tx('Flug Assistent', 'Flight assistant')}</h2>
             <p className="text-[9px] font-bold text-brand-blue uppercase tracking-widest">{locationName}</p>
           </div>
           <div className="w-10"></div>
@@ -379,43 +382,43 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 pb-24">
               <div className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm space-y-6">
                 <h3 className="font-bold text-slate-900 flex items-center gap-2 text-sm uppercase tracking-widest">
-                  <Plane className="w-5 h-5 text-brand-blue" /> Fluggerät & Mission
+                  <Plane className="w-5 h-5 text-brand-blue" /> {tx('Fluggerät & Mission', 'Aircraft & mission')}
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Fluggerät</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Fluggerät', 'Aircraft')}</label>
                     <select 
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
                       value={selectedDroneId}
                       onChange={e => setSelectedDroneId(e.target.value)}
                     >
-                      <option value="">Wähle Drohne...</option>
+                      <option value="">{tx('Wähle Drohne...', 'Choose drone…')}</option>
                       {drones.map(d => <option key={d.id} value={d.id}>{d.model}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Akku</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Akku', 'Battery')}</label>
                     <select 
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
                       value={selectedBatteryId}
                       onChange={e => setSelectedBatteryId(e.target.value)}
                     >
-                      <option value="">Wähle Akku...</option>
-                      {filteredBatteries.map(b => <option key={b.id} value={b.id}>{b.number} ({b.cycles} Zyklen)</option>)}
+                      <option value="">{tx('Wähle Akku...', 'Choose battery…')}</option>
+                      {filteredBatteries.map(b => <option key={b.id} value={b.id}>{b.number} ({b.cycles} {tx('Zyklen)', 'cycles)')}</option>)}
                     </select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Zweck</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Zweck', 'Purpose')}</label>
                       <select 
                         className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm"
                         value={purpose}
                         onChange={e => setPurpose(e.target.value as Flight['purpose'])}
                       >
                         <option value="Hobby">Hobby</option>
-                        <option value="Gewerblich">Gewerblich</option>
-                        <option value="Inspektion">Inspektion</option>
-                        <option value="Kamerafahrt">Kamerafahrt</option>
+                        <option value="Gewerblich">{tx('Gewerblich', 'Commercial')}</option>
+                        <option value="Inspektion">{tx('Inspektion', 'Inspection')}</option>
+                        <option value="Kamerafahrt">{tx('Kamerafahrt', 'Camera shot')}</option>
                         <option value="Training">Training</option>
                       </select>
                     </div>
@@ -426,27 +429,27 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                         value={selectedPilotId}
                         onChange={e => setSelectedPilotId(e.target.value)}
                       >
-                        <option value="main">Ich (Hauptpilot)</option>
+                        <option value="main">{tx('Ich (Hauptpilot)', 'Me (pilot in command)')}</option>
                         {pilots.map(p => (
                           <option key={p.id} value={p.id}>{p.name} {p.isGuest ? '(Gast)' : ''}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Akku Start %</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Akku Start %', 'Battery start %')}</label>
                       <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm" value={batteryStart} onChange={e => setBatteryStart(Number(e.target.value))} />
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Einsatzort Name</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Einsatzort Name', 'Location name')}</label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input 
                           type="text" 
                           className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-3 text-sm"
-                          placeholder="z.B. Schlosspark"
+                          placeholder={tx('z.B. Schlosspark', 'e.g. castle park')}
                           value={locationName}
                           onChange={e => setLocationName(e.target.value)}
                         />
@@ -458,7 +461,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                           "p-3 rounded-xl transition-all disabled:opacity-50",
                           !safetyAnalysis ? "bg-brand-blue text-white animate-pulse shadow-lg shadow-brand-blue/30" : "bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20"
                         )}
-                        title="KI-Sicherheitsanalyse starten"
+                        title={tx('KI-Sicherheitsanalyse starten', 'Start AI safety analysis')}
                       >
                         {isAnalyzing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5" />}
                       </button>
@@ -471,8 +474,8 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                     <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
                       <BrainCircuit className="w-5 h-5 text-brand-blue shrink-0" />
                       <div>
-                        <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">KI-Empfehlung</p>
-                        <p className="text-[10px] text-slate-500 font-medium">Lasse den Ort auf versteckte Hindernisse analysieren, bevor du startest.</p>
+                        <p className="text-[10px] font-black text-brand-blue uppercase tracking-widest">{tx('KI-Empfehlung', 'AI recommendation')}</p>
+                        <p className="text-[10px] text-slate-500 font-medium">{tx('Lasse den Ort auf versteckte Hindernisse analysieren, bevor du startest.', 'Have the location analysed for hidden obstacles before you take off.')}</p>
                       </div>
                     </div>
                   )}
@@ -494,7 +497,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <BrainCircuit className="w-5 h-5 text-brand-blue" />
-                          <h4 className="text-[11px] font-black uppercase tracking-widest">KI-Sicherheitsanalyse</h4>
+                          <h4 className="text-[11px] font-black uppercase tracking-widest">{tx('KI-Sicherheitsanalyse', 'AI safety analysis')}</h4>
                         </div>
                         <div className={cn(
                           "px-2 py-0.5 rounded-full text-[9px] font-black",
@@ -533,17 +536,17 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                     </motion.div>
                   )}
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-3 text-center">Wetter Bedingungen</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase mb-3 text-center">{tx('Wetter Bedingungen', 'Weather conditions')}</p>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <span className="text-[9px] text-slate-400 block mb-1">Temp / Wind</span>
+                        <span className="text-[9px] text-slate-400 block mb-1">{tx('Temp / Wind', 'Temp / wind')}</span>
                         <div className="flex items-center gap-1">
                           <input type="number" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs" value={weatherData.temp} onChange={e => setWeatherData({...weatherData, temp: Number(e.target.value)})} />
                           <input type="number" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs" value={weatherData.windSpeed} onChange={e => setWeatherData({...weatherData, windSpeed: Number(e.target.value)})} />
                         </div>
                       </div>
                       <div>
-                        <span className="text-[9px] text-slate-400 block mb-1">Visibility / K-Index</span>
+                        <span className="text-[9px] text-slate-400 block mb-1">{tx('Visibility / K-Index', 'Visibility / K index')}</span>
                         <div className="flex items-center gap-1">
                            <input type="text" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs" value={weatherData.visibility} onChange={e => setWeatherData({...weatherData, visibility: e.target.value})} />
                            <input type="number" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs" value={weatherData.kIndex} onChange={e => setWeatherData({...weatherData, kIndex: Number(e.target.value)})} />
@@ -574,13 +577,13 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                       <div className="flex items-center gap-3 p-4 bg-brand-red/5 border border-brand-red/20 rounded-2xl">
                         <Wind className="w-5 h-5 text-brand-red shrink-0" />
                         <div>
-                          <p className="text-xs font-black text-brand-red">Wind über Limit für {selectedDrone.model}!</p>
+                          <p className="text-xs font-black text-brand-red">{tx('Wind über Limit für', 'Wind above the limit for')} {selectedDrone.model}!</p>
                           <p className="text-[10px] text-slate-500">
-                            {schlimmster.wert} km/h {schlimmster.quelle} · Max {limit} km/h laut Spezifikation
+                            {schlimmster.wert} km/h {schlimmster.quelle} · Max {limit} {tx('km/h laut Spezifikation', 'km/h according to spec')}
                           </p>
                           {weatherData.windSpeed120 > weatherData.windSpeed && (
                             <p className="text-[10px] text-slate-400 mt-0.5">
-                              Am Boden nur {weatherData.windSpeed} km/h — oben ist es deutlich windiger.
+                              {tx('Am Boden nur', 'Only')} {weatherData.windSpeed} {tx('km/h — oben ist es deutlich windiger.', 'km/h on the ground — it is much windier up there.')}
                             </p>
                           )}
                         </div>
@@ -597,10 +600,10 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                         <Clock className="w-5 h-5 text-brand-yellow shrink-0" />
                         <div>
                           <p className="text-xs font-black text-slate-800">
-                            Sonnenuntergang in {minuten < 60 ? `${minuten} Min` : `${Math.floor(minuten / 60)} Std ${minuten % 60} Min`}
+                            {tx('Sonnenuntergang in', 'Sunset in')} {minuten < 60 ? `${minuten} Min` : `${Math.floor(minuten / 60)} Std ${minuten % 60} Min`}
                           </p>
                           <p className="text-[10px] text-slate-500">
-                            Danach ist Nachtflug — die Drohne braucht ein blinkendes grünes Positionslicht.
+                            {tx('Danach ist Nachtflug — die Drohne braucht ein blinkendes grünes Positionslicht.', 'After that it is a night flight — the drone needs a flashing green position light.')}
                           </p>
                         </div>
                       </div>
@@ -629,11 +632,11 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                     };
                     return (
                     <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 text-center tracking-widest">6h Flugfenster</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 text-center tracking-widest">{tx('6h Flugfenster', '6 h flight window')}</p>
                       <p className="text-[9px] text-slate-400 mb-2 text-center">
                         {beste
-                          ? <>Beste Zeit: <span className="font-black text-brand-green">{beste.time}</span> ({beste.maxWindKmh} km/h)</>
-                          : <span className="font-black text-brand-red">Keine geeignete Stunde in den nächsten 6 h</span>}
+                          ? <>{tx('Beste Zeit:', 'Best time:')} <span className="font-black text-brand-green">{beste.time}</span> ({beste.maxWindKmh} km/h)</>
+                          : <span className="font-black text-brand-red">{tx('Keine geeignete Stunde in den nächsten 6 h', 'No suitable hour in the next 6 h')}</span>}
                       </p>
                       <div className="flex gap-2 overflow-x-auto pb-1">
                         {forecast.map((h, i) => (
@@ -671,12 +674,12 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                           </p>
                         </div>
                         {notamLoading && (
-                          <span className="text-[9px] text-slate-400 animate-pulse">Laden…</span>
+                          <span className="text-[9px] text-slate-400 animate-pulse">{tx('Laden…', 'Loading…')}</span>
                         )}
                       </div>
                       {!notamLoading && notams.length === 0 && (
                         <p className="text-[10px] text-brand-green font-bold text-center py-2">
-                          Keine aktiven NOTAMs für {notamFir}
+                          {tx('Keine aktiven NOTAMs für', 'No active NOTAMs for')} {notamFir}
                         </p>
                       )}
                       {notams.length > 0 && (
@@ -689,7 +692,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                               </div>
                               <p className="text-[10px] text-slate-700 leading-snug font-mono">{summariseNotam(n.text)}</p>
                               {n.endDate && (
-                                <p className="text-[8px] text-slate-400 mt-1">bis {formatNotamDate(n.endDate)}</p>
+                                <p className="text-[8px] text-slate-400 mt-1">{tx('bis', 'until')} {formatNotamDate(n.endDate)}</p>
                               )}
                             </div>
                           ))}
@@ -700,7 +703,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                     <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
                       <AlertTriangle className="w-4 h-4 text-slate-300 shrink-0" />
                       <p className="text-[10px] text-slate-400 leading-tight">
-                        <span className="font-bold">NOTAM-Feed nicht aktiviert.</span> API-Key unter Profil eingeben (developer.faa.gov · kostenlos).
+                        <span className="font-bold">{tx('NOTAM-Feed nicht aktiviert.', 'NOTAM feed not enabled.')}</span> {tx('API-Key unter Profil eingeben (developer.faa.gov · kostenlos).', 'Enter an API key in your profile (developer.faa.gov · free).')}
                       </p>
                     </div>
                   )}
@@ -711,7 +714,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                       <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
                           <ShieldCheck className="w-4 h-4 text-brand-blue" />
-                          <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">LBA Regulierungs-Check</p>
+                          <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('LBA Regulierungs-Check', 'LBA regulation check')}</p>
                         </div>
                         {(() => {
                           const uasClass = selectedDrone.uasClass || 'Legacy';
@@ -722,7 +725,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                           else if (uasClass === 'C2' && license === 'A2') category = 'A2';
                           return (
                             <span className="px-2 py-0.5 bg-brand-blue text-white rounded-full text-[9px] font-black">
-                              KATEGORIE {category}
+                              {tx('KATEGORIE', 'CATEGORY')} {category}
                             </span>
                           );
                         })()}
@@ -734,7 +737,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                             <MapPin className="w-4 h-4 text-brand-orange" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Vorgeschriebener Abstand</p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">{tx('Vorgeschriebener Abstand', 'Required distance')}</p>
                             <p className="text-xs font-black text-slate-900">
                               {(() => {
                                 const uasClass = selectedDrone.uasClass || 'Legacy';
@@ -752,7 +755,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                           <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-2xl">
                             <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
                             <p className="text-[10px] font-medium text-amber-700 leading-relaxed">
-                              Mit deinem <span className="font-bold">A1/A3 Schein</span> darfst du diese Drohne (C2) nur in <span className="font-bold text-slate-900">Kategorie A3</span> (weit weg von Menschen) fliegen. Für A2 ist ein Zusatzzeugnis nötig.
+                              {tx('Mit deinem', 'With your')} <span className="font-bold">{tx('A1/A3 Schein', 'A1/A3 certificate')}</span> {tx('darfst du diese Drohne (C2) nur in', 'you may only fly this drone (C2) in')} <span className="font-bold text-slate-900">{tx('Kategorie A3', 'category A3')}</span> {tx('(weit weg von Menschen) fliegen. Für A2 ist ein Zusatzzeugnis nötig.', '(far away from people). A2 requires an additional certificate.')}
                             </p>
                           </div>
                         )}
@@ -761,7 +764,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                           <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-100 rounded-2xl">
                             <AlertTriangle className="w-3.5 h-3.5 text-brand-red shrink-0 mt-0.5" />
                             <p className="text-[10px] font-black text-brand-red uppercase leading-tight">
-                              Kein Pilotenschein hinterlegt! Bitte Profil aktualisieren.
+                              {tx('Kein Pilotenschein hinterlegt! Bitte Profil aktualisieren.', 'No pilot certificate on file! Please update your profile.')}
                             </p>
                           </div>
                         )}
@@ -769,7 +772,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                         {profile?.isBOS && (
                           <div className="flex items-center gap-2 px-3 py-2 bg-brand-red text-white rounded-xl shadow-lg shadow-brand-red/20">
                             <Rocket className="w-3.5 h-3.5 animate-pulse" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">BOS-Sonderrechte aktiv</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest">{tx('BOS-Sonderrechte aktiv', 'Emergency-service privileges active')}</span>
                           </div>
                         )}
                       </div>
@@ -783,7 +786,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 onClick={() => setStep('checklist')}
                 className="w-full max-w-md bg-brand-blue text-white font-black py-4 rounded-[32px] shadow-xl shadow-brand-blue/20 disabled:opacity-50 transition-all active:scale-95 text-xs uppercase tracking-widest"
               >
-                Weiter zur Checkliste
+                {tx('Weiter zur Checkliste', 'Continue to checklist')}
               </button>
             </div>
           </motion.div>
@@ -795,7 +798,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
               <h3 className="font-bold text-slate-900 flex items-center gap-2">
                 <ClipboardCheck className="w-5 h-5 text-brand-blue" /> Pre-Flight Check
               </h3>
-              <p className="text-xs font-bold text-brand-blue">Wichtig!</p>
+              <p className="text-xs font-bold text-brand-blue">{tx('Wichtig!', 'Important!')}</p>
             </div>
             
             <div className="space-y-6 pb-20">
@@ -813,7 +816,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                     <BrainCircuit className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">KI-Sicherheits-Check</h4>
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-900">{tx('KI-Sicherheits-Check', 'AI safety check')}</h4>
                     <p className="text-[10px] text-slate-600 font-medium line-clamp-2 leading-tight">
                       {safetyAnalysis.summary}
                     </p>
@@ -854,7 +857,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 onClick={() => setStep('timer')}
                 className="w-full max-w-md mx-auto block bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 disabled:opacity-30 transition-all active:scale-95"
               >
-                Ready to Fly - Starten
+                {tx('Ready to Fly - Starten', 'Ready to fly – start')}
               </button>
             </div>
           </motion.div>
@@ -875,7 +878,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                       animate={{ scale: 1, opacity: 1 }}
                       className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-red text-white text-[9px] px-3 py-1 rounded-full font-black tracking-widest animate-pulse"
                     >
-                      LIVE FLUG
+                      {tx('LIVE FLUG', 'LIVE FLIGHT')}
                     </motion.div>
                  )}
               </div>
@@ -903,7 +906,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                <div className="flex items-center justify-between mb-4 border-b border-slate-50 pb-4">
                   <div className="flex items-center gap-2">
                     <History className="w-4 h-4 text-slate-400" />
-                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Flug-Abschnitte (Legs)</h4>
+                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('Flug-Abschnitte (Legs)', 'Flight segments (legs)')}</h4>
                   </div>
                   <span className="text-[9px] font-bold text-brand-blue bg-brand-blue/5 px-2 py-1 rounded-full">Leg {legs.length + (timerState === 'running' ? 1 : 0)}</span>
                </div>
@@ -919,12 +922,12 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                  ))}
                  {legs.length === 0 && timerState === 'idle' && (
                    <div className="text-center py-12">
-                     <p className="text-slate-300 font-bold text-xs uppercase tracking-widest">Warten auf Take-off</p>
+                     <p className="text-slate-300 font-bold text-xs uppercase tracking-widest">{tx('Warten auf Take-off', 'Waiting for take-off')}</p>
                    </div>
                  )}
                </div>
                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Gesamtflugzeit</span>
+                  <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('Gesamtflugzeit', 'Total flight time')}</span>
                   <span className="text-xl font-black text-brand-blue font-mono tracking-tighter">
                      {formatTime(legs.reduce((acc, l) => acc + l.duration, 0) + elapsedTime)}
                   </span>
@@ -937,7 +940,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                  onClick={() => setStep('summary')}
                  className="w-full max-w-md bg-slate-900 text-white font-black py-4 rounded-[32px] shadow-xl active:scale-95 transition-all text-xs uppercase tracking-widest disabled:opacity-50"
                >
-                 Session Abschliessen
+                 {tx('Session Abschliessen', 'Finish session')}
                </button>
             </div>
           </motion.div>
@@ -951,19 +954,19 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                   <CheckCircle2 className="w-6 h-6 text-brand-blue" />
                 </div>
                 <div>
-                  <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest">Flugbericht</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase">Abschluss & Review</p>
+                  <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest">{tx('Flugbericht', 'Flight report')}</h3>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase">{tx('Abschluss & Review', 'Wrap-up & review')}</p>
                 </div>
               </div>
               
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Dauer</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">{tx('Dauer', 'Duration')}</p>
                     <p className="text-sm font-black text-slate-900">{Math.max(1, Math.round(legs.reduce((acc, l) => acc + l.duration, 0) / 60))} Min</p>
                   </div>
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">Verbrauch</p>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase mb-1">{tx('Verbrauch', 'Consumption')}</p>
                     <p className="text-sm font-black text-slate-900">{batteryStart - batteryEnd}%</p>
                   </div>
                 </div>
@@ -971,7 +974,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 <PreFlightChecklist art="postflight" titel="Nach-Flug-Check" />
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Akku Ende %</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Akku Ende %', 'Battery end %')}</label>
                   <div className="flex items-center gap-4">
                     <input 
                       type="range" 
@@ -986,7 +989,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Wetter (Review)</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Wetter (Review)', 'Weather (review)')}</label>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
                       <Thermometer className="w-4 h-4 text-slate-400" />
@@ -1002,18 +1005,18 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Vorkommnisse / Anomalien</label>
+                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Vorkommnisse / Anomalien', 'Occurrences / anomalies')}</label>
                   <textarea
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm min-h-[100px] outline-none"
-                    placeholder="Waren Vögel, Passanten oder techn. Probleme präsent?"
+                    placeholder={tx('Waren Vögel, Passanten oder techn. Probleme präsent?', 'Were birds, passers-by or technical problems present?')}
                     value={incidents}
                     onChange={e => setIncidents(e.target.value)}
                   />
                   <div className="mt-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Foto (optional)</label>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Foto (optional)', 'Photo (optional)')}</label>
                     {incidentPhoto ? (
                       <div className="relative">
-                        <img src={incidentPhoto} alt="Vorkommnisfoto" className="w-full max-h-40 object-cover rounded-xl border border-slate-200" />
+                        <img src={incidentPhoto} alt={tx('Vorkommnisfoto', 'Occurrence photo')} className="w-full max-h-40 object-cover rounded-xl border border-slate-200" />
                         <button
                           onClick={() => setIncidentPhoto(undefined)}
                           className="absolute top-2 right-2 bg-brand-red text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold"
@@ -1022,7 +1025,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                     ) : (
                       <label className="flex items-center gap-2 p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
                         <Camera className="w-4 h-4 text-slate-400" />
-                        <span className="text-xs text-slate-400">Foto aufnehmen oder hochladen</span>
+                        <span className="text-xs text-slate-400">{tx('Foto aufnehmen oder hochladen', 'Take or upload a photo')}</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -1042,7 +1045,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase ml-1">Zusammenfassung Legs</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase ml-1">{tx('Zusammenfassung Legs', 'Leg summary')}</p>
                   <div className="space-y-1">
                     {legs.map((leg, i) => (
                       <div key={i} className="flex items-center justify-between px-3 py-2 bg-slate-50/50 rounded-xl border border-slate-100">
@@ -1063,7 +1066,7 @@ export function FlightAssistant({ drones, batteries, profile, onClose, onSave, c
                 onClick={handleFinish}
                 className="w-full bg-brand-blue text-white font-black py-4 rounded-[32px] shadow-xl shadow-brand-blue/20 active:scale-95 transition-all text-xs uppercase tracking-widest"
               >
-                Flug im Logbuch versiegeln
+                {tx('Flug im Logbuch versiegeln', 'Seal flight in logbook')}
               </button>
             </div>
           </motion.div>

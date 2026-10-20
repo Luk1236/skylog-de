@@ -1,3 +1,4 @@
+import { useSprache } from '../lib/sprache';
 import { useEffect, useState } from 'react';
 import { Lock, Unlock, X, AlertCircle, Check } from 'lucide-react';
 import { setPin, verifyPin, removePin, isPinEnabled, sperreRestSekunden } from '../services/pinProtection';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
+  const { tx } = useSprache();
   const [pin, setPinInput] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
   const [step, setStep] = useState<'enter' | 'confirm'>(mode === 'setup' ? 'enter' : 'enter');
@@ -142,8 +144,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
 
         {mode !== 'unlock' && (
           <p className="text-[11px] leading-relaxed text-slate-400">
-            Schützt die App vor neugierigen Blicken. Die Flugdaten selbst werden dadurch
-            nicht verschlüsselt – für echten Schutz die Gerätesperre des Handys nutzen.
+            {tx('Schützt die App vor neugierigen Blicken. Die Flugdaten selbst werden dadurch nicht verschlüsselt – für echten Schutz die Gerätesperre des Handys nutzen.', 'Protects the app from prying eyes. The flight data itself is not encrypted – for real protection use your phone\'s device lock.')}
           </p>
         )}
 
@@ -192,7 +193,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold transition-all"
             >
               <Unlock className="w-4 h-4" />
-              <span>PIN-Schutz Deaktivieren</span>
+              <span>{tx('PIN-Schutz Deaktivieren', 'Disable screen lock')}</span>
             </button>
           </div>
         )}

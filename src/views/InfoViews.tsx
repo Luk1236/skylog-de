@@ -15,7 +15,7 @@ import { DEUTSCHLAND_QUELLEN, EU_QUELLEN, RECHTSGRUNDLAGEN, type Amtslink } from
 import { ZONEN_QUELLEN } from '../services/euZones';
 
 export function KnowledgeView() {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const sections = [
     {
       title: "Die 'Offene' Kategorie",
@@ -50,7 +50,7 @@ export function KnowledgeView() {
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.lbaWissen')}</h2>
-        <p className="text-slate-500 text-sm font-medium">Offizielle Regeln & Informationen</p>
+        <p className="text-slate-500 text-sm font-medium">{tx('Offizielle Regeln & Informationen', 'Official rules & information')}</p>
       </div>
 
       <div className="space-y-8">
@@ -86,7 +86,7 @@ export function KnowledgeView() {
             <div className="p-2 bg-brand-blue/10 rounded-xl">
               <Globe className="w-5 h-5 text-brand-blue" />
             </div>
-            <h3 className="font-bold text-slate-900 uppercase tracking-wider text-xs">Amtliche Geozonen nach Land</h3>
+            <h3 className="font-bold text-slate-900 uppercase tracking-wider text-xs">{tx('Amtliche Geozonen nach Land', 'Official geozones by country')}</h3>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm divide-y divide-slate-100">
             {ZONEN_QUELLEN.map(q => (
@@ -103,13 +103,13 @@ export function KnowledgeView() {
             ))}
           </div>
           <p className="text-[10px] text-slate-400 mt-2 leading-relaxed">
-            Links führen zu den amtlichen Geozonen-Quellen der jeweiligen Luftfahrtbehörde.
+            {tx('Links führen zu den amtlichen Geozonen-Quellen der jeweiligen Luftfahrtbehörde.', 'Links lead to the official geozone sources of each aviation authority.')}
           </p>
         </div>
       </div>
 
       <p className="mt-8 text-[10px] text-slate-400 leading-relaxed text-center">
-        Diese Sammlung ist eine Orientierungshilfe. Rechtlich bindend sind allein die amtlichen Quellen.
+        {tx('Diese Sammlung ist eine Orientierungshilfe. Rechtlich bindend sind allein die amtlichen Quellen.', 'This collection is for orientation only. Only the official sources are legally binding.')}
       </p>
     </div>
   );
@@ -151,7 +151,7 @@ function AmtslinkGruppe({ titel, icon: Icon, links }: {
 }
 
 export function InventoryView() {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const [teile, setTeile] = useState<SparePart[]>([]);
   const [drohnen, setDrohnen] = useState<Drone[]>([]);
   const [zeigeForm, setZeigeForm] = useState(false);
@@ -205,13 +205,13 @@ export function InventoryView() {
       <div className="mb-6 flex items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-brand-blue">{t('view.ersatzteile')}</h2>
-          <p className="text-slate-500 font-medium uppercase tracking-widest text-[10px]">Ersatzteile, Bestand & Links</p>
+          <p className="text-slate-500 font-medium uppercase tracking-widest text-[10px]">{tx('Ersatzteile, Bestand & Links', 'Spare parts, stock & links')}</p>
         </div>
         <button
           onClick={() => setZeigeForm(v => !v)}
           className="flex items-center gap-1.5 bg-brand-blue text-white text-xs font-bold px-3 py-2 rounded-xl shadow-lg shadow-brand-blue/20"
         >
-          <Plus className="w-4 h-4" /> Teil
+          <Plus className="w-4 h-4" /> {tx('Teil', 'Part')}
         </button>
       </div>
 
@@ -219,19 +219,19 @@ export function InventoryView() {
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm mb-6 space-y-3">
           <input
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
-            placeholder="Name, z.B. Propeller-Satz Mini 4 Pro"
+            placeholder={tx('Name, z.B. Propeller-Satz Mini 4 Pro', 'Name, e.g. propeller set Mini 4 Pro')}
             value={neu.name ?? ''}
             onChange={e => setNeu({ ...neu, name: e.target.value })}
           />
           <input
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
-            placeholder="Beschreibung (optional)"
+            placeholder={tx('Beschreibung (optional)', 'Description (optional)')}
             value={neu.beschreibung ?? ''}
             onChange={e => setNeu({ ...neu, beschreibung: e.target.value })}
           />
           <div className="grid grid-cols-2 gap-3">
             <label className="text-[11px] font-bold text-slate-600">
-              Anzahl
+              {tx('Anzahl', 'Quantity')}
               <input type="number" min={0}
                 className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
                 value={neu.anzahl ?? 0}
@@ -239,7 +239,7 @@ export function InventoryView() {
               />
             </label>
             <label className="text-[11px] font-bold text-slate-600">
-              Warnen ab (optional)
+              {tx('Warnen ab (optional)', 'Warn at (optional)')}
               <input type="number" min={0}
                 className="mt-1 w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
                 value={neu.mindestAnzahl ?? ''}
@@ -249,7 +249,7 @@ export function InventoryView() {
           </div>
           <input
             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900"
-            placeholder="Link zu STL-Datei oder Shop (https://…)"
+            placeholder={tx('Link zu STL-Datei oder Shop (https://…)', 'Link to STL file or shop (https://…)')}
             value={neu.link ?? ''}
             onChange={e => setNeu({ ...neu, link: e.target.value })}
           />
@@ -258,7 +258,7 @@ export function InventoryView() {
             value={neu.droneId ?? ''}
             onChange={e => setNeu({ ...neu, droneId: e.target.value })}
           >
-            <option value="">Keiner Drohne zugeordnet</option>
+            <option value="">{tx('Keiner Drohne zugeordnet', 'Not assigned to a drone')}</option>
             {drohnen.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
           </select>
           <div className="flex gap-2">
@@ -267,7 +267,7 @@ export function InventoryView() {
             </button>
             <button onClick={speichern} disabled={!neu.name?.trim()}
               className="flex-1 py-2.5 text-xs font-bold text-white bg-brand-blue rounded-xl disabled:opacity-50">
-              Speichern
+              {tx('Speichern', 'Save')}
             </button>
           </div>
         </div>
@@ -276,8 +276,8 @@ export function InventoryView() {
       {teile.length === 0 && !zeigeForm ? (
         <div className="p-10 bg-white border border-dashed border-slate-200 rounded-[32px] text-center">
           <Package className="w-8 h-8 text-slate-400 mx-auto mb-2" />
-          <p className="text-xs font-bold text-slate-600">Noch keine Ersatzteile erfasst.</p>
-          <p className="text-[11px] text-slate-500 mt-1">Propeller, Akku-Ersatz, gedruckte Teile – mit Bestand und Link.</p>
+          <p className="text-xs font-bold text-slate-600">{tx('Noch keine Ersatzteile erfasst.', 'No spare parts recorded yet.')}</p>
+          <p className="text-[11px] text-slate-500 mt-1">{tx('Propeller, Akku-Ersatz, gedruckte Teile – mit Bestand und Link.', 'Propellers, spare batteries, printed parts – with stock and link.')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -291,7 +291,7 @@ export function InventoryView() {
                     <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{drohnenName(teil.droneId)}</span>
                   )}
                   {knapp(teil) && (
-                    <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full">Bestand knapp</span>
+                    <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full">{tx('Bestand knapp', 'Low stock')}</span>
                   )}
                   {teil.link && (
                     <a href={teil.link} target="_blank" rel="noopener noreferrer"
@@ -302,12 +302,12 @@ export function InventoryView() {
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
-                <button onClick={() => aendereAnzahl(teil, -1)} aria-label="Eins weniger"
+                <button onClick={() => aendereAnzahl(teil, -1)} aria-label={tx('Eins weniger', 'One less')}
                   className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-black">−</button>
                 <span className="w-8 text-center font-black text-slate-900 tabular-nums">{teil.anzahl}</span>
-                <button onClick={() => aendereAnzahl(teil, 1)} aria-label="Eins mehr"
+                <button onClick={() => aendereAnzahl(teil, 1)} aria-label={tx('Eins mehr', 'One more')}
                   className="w-8 h-8 rounded-xl bg-slate-100 text-slate-700 font-black">+</button>
-                <button onClick={() => loeschen(teil)} aria-label="Löschen"
+                <button onClick={() => loeschen(teil)} aria-label={tx('Löschen', 'Delete')}
                   className="w-8 h-8 rounded-xl text-slate-500 hover:text-brand-red flex items-center justify-center">
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -321,7 +321,7 @@ export function InventoryView() {
 }
 
 export function PilotsView() {
-  const { t } = useSprache();
+  const { t, tx } = useSprache();
   const [pilots, setPilots] = useState<Pilot[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [newPilot, setNewPilot] = useState<Partial<Pilot>>({ isGuest: true });
@@ -358,13 +358,13 @@ export function PilotsView() {
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
         <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.pilotenManagement')}</h2>
-        <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">LBA Registrierungen & Gast-Zugänge</p>
+        <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('LBA Registrierungen & Gast-Zugänge', 'LBA registrations & guest access')}</p>
       </div>
 
       <div className="space-y-4">
         {pilots.length === 0 && !showAdd && (
           <div className="bg-white p-8 rounded-[32px] border border-slate-200 text-center">
-            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">Keine Gast-Piloten hinterlegt</p>
+            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">{tx('Keine Gast-Piloten hinterlegt', 'No guest pilots added')}</p>
           </div>
         )}
 
@@ -372,7 +372,7 @@ export function PilotsView() {
           <div key={pilot.id} className="bg-white p-6 rounded-[32px] border border-slate-200 shadow-sm relative overflow-hidden group hover:shadow-lg transition-all">
              {pilot.isGuest && (
                <div className="absolute top-0 right-0 px-3 py-1 bg-amber-700 text-white text-[8px] font-black uppercase tracking-widest rounded-bl-xl">
-                 Gast
+                 {tx('Gast', 'Guest')}
                </div>
              )}
              <div className="flex items-center gap-4 mb-4">
@@ -388,13 +388,13 @@ export function PilotsView() {
              <div className="flex items-center justify-between pt-4 border-t border-slate-50">
                 <div className="flex items-center gap-1.5">
                    <ShieldCheck className="w-3.5 h-3.5 text-brand-green" />
-                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">Status: Aktiv</span>
+                   <span className="text-[10px] font-bold text-slate-500 uppercase tracking-tight">{tx('Status: Aktiv', 'Status: active')}</span>
                 </div>
                 <button
                   onClick={() => handleDelete(pilot.id)}
                   className="text-[10px] font-black text-slate-300 hover:text-brand-red uppercase tracking-widest transition-colors"
                 >
-                  Löschen
+                  {tx('Löschen', 'Delete')}
                 </button>
              </div>
           </div>
@@ -404,18 +404,18 @@ export function PilotsView() {
           {showAdd && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="overflow-hidden">
                <div className="bg-slate-900 text-white p-6 rounded-[32px] space-y-4 shadow-xl">
-                  <h4 className="font-bold text-sm uppercase tracking-widest text-slate-400">Gast hinzufügen</h4>
+                  <h4 className="font-bold text-sm uppercase tracking-widest text-slate-400">{tx('Gast hinzufügen', 'Add guest')}</h4>
                   <div className="space-y-3">
                     <input
                       type="text"
-                      placeholder="Name des Gastes"
+                      placeholder={tx('Name des Gastes', 'Guest name')}
                       className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-white/30"
                       value={newPilot.name || ''}
                       onChange={e => setNewPilot({...newPilot, name: e.target.value})}
                     />
                     <input
                       type="text"
-                      placeholder="LBA Betreiber-ID (e-ID)"
+                      placeholder={tx('LBA Betreiber-ID (e-ID)', 'LBA operator ID (e-ID)')}
                       className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3 text-sm font-mono outline-none focus:border-white/30"
                       value={newPilot.eid || ''}
                       onChange={e => setNewPilot({...newPilot, eid: e.target.value})}
@@ -423,7 +423,7 @@ export function PilotsView() {
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => setShowAdd(false)} className="flex-1 py-3 bg-white/5 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-white/10 transition-colors">{t('aktion.abbrechen')}</button>
-                    <button onClick={handleAddPilot} className="flex-1 py-3 bg-brand-blue rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-colors">Speichern</button>
+                    <button onClick={handleAddPilot} className="flex-1 py-3 bg-brand-blue rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-600 transition-colors">{tx('Speichern', 'Save')}</button>
                   </div>
                </div>
             </motion.div>
@@ -436,7 +436,7 @@ export function PilotsView() {
             className="w-full p-6 border-2 border-dashed border-slate-200 rounded-[32px] text-slate-400 flex flex-col items-center gap-2 hover:bg-white hover:border-brand-blue/30 transition-all group"
           >
             <Plus className="w-8 h-8 group-hover:text-brand-blue transition-colors" />
-            <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-slate-600 transition-colors">Gast-Piloten hinzufügen</span>
+            <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-slate-600 transition-colors">{tx('Gast-Piloten hinzufügen', 'Add guest pilots')}</span>
           </button>
         )}
       </div>
@@ -448,9 +448,9 @@ export function PilotsView() {
         <div className="flex gap-3 relative z-10">
           <Info className="w-5 h-5 text-amber-500 shrink-0" />
           <div className="space-y-2">
-            <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest">Versicherungs-Hinweis</h4>
+            <h4 className="text-[10px] font-black text-amber-700 uppercase tracking-widest">{tx('Versicherungs-Hinweis', 'Insurance note')}</h4>
             <p className="text-xs text-amber-800/80 leading-relaxed font-medium">
-              Stelle sicher, dass Gast-Piloten durch deine Drohnen-Haftpflicht mitversichert sind. Die LBA e-ID des verantwortlichen Luftfahrzeugfernsteuerers muss am Gerät verbleiben.
+              {tx('Stelle sicher, dass Gast-Piloten durch deine Drohnen-Haftpflicht mitversichert sind. Die LBA e-ID des verantwortlichen Luftfahrzeugfernsteuerers muss am Gerät verbleiben.', 'Make sure guest pilots are covered by your drone liability insurance. The LBA e-ID of the responsible remote pilot must remain on the aircraft.')}
             </p>
           </div>
         </div>
