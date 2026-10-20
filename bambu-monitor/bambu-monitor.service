@@ -1,0 +1,17 @@
+# systemd-Dienst: startet den Monitor beim Hochfahren und nach Abstürzen neu.
+# "pi" und die Pfade an deinen Benutzernamen anpassen (siehe README).
+[Unit]
+Description=Bambu Lab Drucker-Überwachung
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=pi
+WorkingDirectory=/home/pi/bambu-monitor
+ExecStart=/usr/bin/python3 /home/pi/bambu-monitor/bambu_monitor.py -c /home/pi/bambu-monitor/config.ini
+Environment=PYTHONUNBUFFERED=1
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

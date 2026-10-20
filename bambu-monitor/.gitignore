@@ -1,0 +1,5 @@
+# enthält den Zugangscode des Druckers
+config.ini
+status.json
+status.tmp
+__pycache__/
