@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { erzeugeRaster } from './gridPlan';
+import { erzeugeRaster, erzeugeVieleckRaster, bahnabstandAusKamera } from './gridPlan';
 import { distanzMeter } from './flightTrack';
 import type { Wegpunkt } from './db';
 
@@ -96,5 +96,76 @@ describe('erzeugeRaster – Startecke', () => {
     const ersteBahnLat = r.wegpunkte[0].lat;
     const letzteBahnLat = r.wegpunkte[r.wegpunkte.length - 1].lat;
     expect(ersteBahnLat).toBeGreaterThan(letzteBahnLat);
+  });
+});
+
+describe('erzeugeVieleckRaster', () => {
+  // Rechteck ~ 200 m (Ost-West) x 100 m (Nord-Süd) bei Darmstadt
+  const lat = 49.87;
+  const mLat = 1 / 111320;
+  const mLon = 1 / (111320 * Math.cos((lat * Math.PI) / 180));
+  const ecke = (ostM: number, nordM: number) => ({ lat: lat + nordM * mLat, lon: 8.65 + ostM * mLon });
+  const rechteck = [ecke(0, 0), ecke(200, 0), ecke(200, 100), ecke(0, 100)];
+
+  const innen = (p: { lat: number; lon: number }, poly: { lat: number; lon: number }[], tol = 1e-7) => {
+    let drin = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const a = poly[i], b = poly[j];
+      if ((a.lat > p.lat) !== (b.lat > p.lat)
+        && p.lon < ((b.lon - a.lon) * (p.lat - a.lat)) / (b.lat - a.lat) + a.lon + tol) drin = !drin;
+    }
+    return drin;
+  };
+
+  it('legt Ost-West-Bahnen (90°) mit dem gewünschten Abstand in ein Rechteck', () => {
+    const r = erzeugeVieleckRaster(rechteck, { bahnabstandM: 25, richtungGrad: 90, hoeheM: 60 });
+    expect(r.bahnen).toBe(4);              // 100 m / 25 m
+    expect(r.wegpunkte).toHaveLength(8);
+    // Bahnen laufen ost-west: beide Punkte einer Bahn haben dieselbe Breite
+    for (let i = 0; i < r.wegpunkte.length; i += 2) {
+      expect(r.wegpunkte[i].lat).toBeCloseTo(r.wegpunkte[i + 1].lat, 9);
+    }
+    // Abstand zwischen Bahn 1 und 2 ≈ 25 m
+    expect((r.wegpunkte[2].lat - r.wegpunkte[0].lat) / mLat).toBeCloseTo(25, 3);
+    expect(r.wegpunkte.every(w => w.alt === 60)).toBe(true);
+  });
+
+  it('beginnt an der zuerst gesetzten Ecke', () => {
+    const r = erzeugeVieleckRaster([ecke(200, 100), ecke(0, 100), ecke(0, 0), ecke(200, 0)], { bahnabstandM: 25, richtungGrad: 90 });
+    const erster = r.wegpunkte[0];
+    expect(erster.lat).toBeGreaterThan(lat + 80 * mLat);   // oben
+    expect(erster.lon).toBeGreaterThan(8.65 + 190 * mLon); // rechts
+  });
+
+  it('hält alle Punkte eines Dreiecks innerhalb der Fläche, auch schräg (37°)', () => {
+    const dreieck = [ecke(0, 0), ecke(300, 0), ecke(150, 250)];
+    const r = erzeugeVieleckRaster(dreieck, { bahnabstandM: 20, richtungGrad: 37 });
+    expect(r.bahnen).toBeGreaterThan(5);
+    // Punkte liegen auf dem Rand - minimal nach innen ziehen und prüfen
+    const mitte = { lat: dreieck.reduce((s, e) => s + e.lat, 0) / 3, lon: dreieck.reduce((s, e) => s + e.lon, 0) / 3 };
+    for (const w of r.wegpunkte) {
+      const p = { lat: w.lat + (mitte.lat - w.lat) * 0.001, lon: w.lon + (mitte.lon - w.lon) * 0.001 };
+      expect(innen(p, dreieck)).toBe(true);
+    }
+  });
+
+  it('vergrößert den Abstand, wenn zu viele Bahnen entstünden', () => {
+    const r = erzeugeVieleckRaster(rechteck, { bahnabstandM: 1, richtungGrad: 0, maxBahnen: 10 });
+    expect(r.begrenzt).toBe(true);
+    expect(r.bahnen).toBe(10);
+  });
+
+  it('fällt bei zwei Ecken auf das Rechteck-Raster zurück', () => {
+    const r = erzeugeVieleckRaster([ecke(0, 0), ecke(200, 100)], { bahnabstandM: 50, richtungGrad: 90, hoeheM: 40 });
+    expect(r.bahnen).toBe(3);
+    expect(r.wegpunkte[0].alt).toBe(40);
+  });
+});
+
+describe('bahnabstandAusKamera', () => {
+  it('rechnet aus Höhe, Bildwinkel und Überlappung', () => {
+    // 100 m Höhe, 90° FOV -> 200 m Bildbreite; 70 % Überlappung -> 60 m
+    expect(bahnabstandAusKamera(100, 90, 70)).toBe(60);
+    expect(bahnabstandAusKamera(50, 82, 80)).toBe(17);
   });
 });

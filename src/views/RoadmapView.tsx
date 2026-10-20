@@ -28,8 +28,8 @@ export function RoadmapView() {
     },
     {
       title: "Flächen- und Grid-Planung",
-      desc: "Automatische Mäander-/Rasterrouten für Mapping-Flüge. Der Wegpunkt-Planer ist da; das Flächenraster fehlt noch.",
-      status: "Geplant",
+      desc: "Mäander-Raster für Mapping-Flüge über beliebige Flächen: freie Flugrichtung, Bahnabstand aus Höhe, Bildwinkel und Überlappung.",
+      status: "Live",
       icon: Rocket
     }
   ];

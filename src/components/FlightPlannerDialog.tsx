@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { MapContainer, TileLayer, Polyline, Marker, Rectangle, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Polyline, Polygon, Marker, Rectangle, useMapEvents } from 'react-leaflet';
 import { X, Route, Trash2, ChevronUp, ChevronDown, Save, FolderOpen, AlertTriangle, MapPin, Download, Grid3x3 } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
@@ -9,7 +9,7 @@ import {
   wegpunktHinzufuegen, wegpunktEntfernen, wegpunktVerschieben,
   STANDARD_SPEED_KMH,
 } from '../services/flightPlan';
-import { erzeugeRaster, type Rasterrichtung } from '../services/gridPlan';
+import { erzeugeVieleckRaster, bahnabstandAusKamera } from '../services/gridPlan';
 import { alsGpx, alsKml, alsLitchiCsv, dateiname } from '../services/flightPlanExport';
 import { bestaetige } from '../services/dialog';
 import { useSprache } from '../lib/sprache';
@@ -59,7 +59,12 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
   const [modus, setModus] = useState<'route' | 'flaeche'>('route');
   const [ecken, setEcken] = useState<Wegpunkt[]>([]);
   const [bahnabstand, setBahnabstand] = useState(30);
-  const [rasterRichtung, setRasterRichtung] = useState<Rasterrichtung>('ost-west');
+  const [richtungGrad, setRichtungGrad] = useState(90);
+  const [hoehe, setHoehe] = useState(60);
+  const [ausKamera, setAusKamera] = useState(false);
+  const [bildwinkel, setBildwinkel] = useState(70);
+  const [ueberlappung, setUeberlappung] = useState(70);
+  const effektiverAbstand = ausKamera ? bahnabstandAusKamera(hoehe, bildwinkel, ueberlappung) : bahnabstand;
   const [rasterBegrenzt, setRasterBegrenzt] = useState(false);
 
   useEffect(() => { dbService.getFlightPlans().then(setPlaene); }, []);
@@ -121,23 +126,23 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
     setPlaene(await dbService.getFlightPlans());
   };
 
-  /** Ein Kartentipp: im Route-Modus ein Wegpunkt, im Flächen-Modus eine der
-   *  beiden Ecken (die dritte Berührung beginnt ein neues Rechteck). */
+  /** Ein Kartentipp: im Route-Modus ein Wegpunkt, im Flächen-Modus die
+   *  nächste Ecke der Fläche (2 = Rechteck, ab 3 = Vieleck, max. 30). */
   const kartenTipp = (lat: number, lon: number) => {
     if (modus === 'route') {
       setWegpunkte(w => wegpunktHinzufuegen(w, { lat, lon }));
     } else {
-      setEcken(e => (e.length >= 2 ? [{ lat, lon }] : [...e, { lat, lon }]));
+      setEcken(e => (e.length >= 30 ? e : [...e, { lat, lon }]));
       setRasterBegrenzt(false);
     }
   };
 
-  /** Aus den zwei Ecken die Mäander-Route bauen und in die Wegpunkte
-   *  übernehmen. Danach in den Route-Modus, damit man sie prüfen, speichern
-   *  und exportieren kann. */
+  /** Aus den Ecken die Mäander-Route bauen und in die Wegpunkte übernehmen.
+   *  Danach in den Route-Modus, damit man sie prüfen, speichern und
+   *  exportieren kann. */
   const rasterErzeugen = () => {
     if (ecken.length < 2) return;
-    const r = erzeugeRaster(ecken[0], ecken[1], { bahnabstandM: bahnabstand, richtung: rasterRichtung });
+    const r = erzeugeVieleckRaster(ecken, { bahnabstandM: effektiverAbstand, richtungGrad, hoeheM: hoehe });
     setWegpunkte(r.wegpunkte);
     setRasterBegrenzt(r.begrenzt);
     setEcken([]);
@@ -244,28 +249,39 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     <Rectangle bounds={[[ecken[0].lat, ecken[0].lon], [ecken[1].lat, ecken[1].lon]]}
                       pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
                   )}
+                  {modus === 'flaeche' && ecken.length >= 3 && (
+                    <Polygon positions={ecken.map(e => [e.lat, e.lon] as [number, number])}
+                      pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
+                  )}
                 </MapContainer>
               </div>
 
               {modus === 'flaeche' && (
                 <div className="rounded-2xl bg-white border border-slate-200 p-3 space-y-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <label className="text-xs font-bold text-slate-600 shrink-0">{t('planer.bahnabstand')}</label>
-                    <div className="flex items-center gap-2 flex-1 justify-end">
-                      <input type="range" min={5} max={100} step={5} value={bahnabstand}
-                        onChange={e => setBahnabstand(Number(e.target.value))} className="flex-1 max-w-[140px]" />
-                      <span className="text-xs font-mono font-bold text-slate-900 w-10 text-right">{bahnabstand} m</span>
-                    </div>
-                  </div>
+                  <Regler label={t('planer.hoehe')} wert={hoehe} einheit="m" min={10} max={120} schritt={5} onChange={setHoehe} />
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                    <input type="checkbox" checked={ausKamera} onChange={e => setAusKamera(e.target.checked)} />
+                    {t('planer.ausKamera')}
+                  </label>
+                  {ausKamera ? (
+                    <>
+                      <Regler label={t('planer.bildwinkel')} wert={bildwinkel} einheit="°" min={30} max={120} schritt={1} onChange={setBildwinkel} />
+                      <Regler label={t('planer.ueberlappung')} wert={ueberlappung} einheit="%" min={0} max={90} schritt={5} onChange={setUeberlappung} />
+                      <p className="text-[11px] text-slate-600 text-right">{t('planer.bahnabstand')}: <span className="font-mono font-bold text-slate-900">{effektiverAbstand} m</span></p>
+                    </>
+                  ) : (
+                    <Regler label={t('planer.bahnabstand')} wert={bahnabstand} einheit="m" min={5} max={100} schritt={5} onChange={setBahnabstand} />
+                  )}
+                  <Regler label={t('planer.flugrichtung')} wert={richtungGrad} einheit="°" min={0} max={175} schritt={5} onChange={setRichtungGrad} />
                   <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-lg p-1">
-                    <button onClick={() => setRasterRichtung('ost-west')}
+                    <button onClick={() => setRichtungGrad(90)}
                       className={cn('py-1.5 rounded-md text-[11px] font-bold transition-colors',
-                        rasterRichtung === 'ost-west' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                        richtungGrad === 90 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500')}>
                       {t('planer.richtungOstWest')}
                     </button>
-                    <button onClick={() => setRasterRichtung('nord-sued')}
+                    <button onClick={() => setRichtungGrad(0)}
                       className={cn('py-1.5 rounded-md text-[11px] font-bold transition-colors',
-                        rasterRichtung === 'nord-sued' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                        richtungGrad === 0 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500')}>
                       {t('planer.richtungNordSued')}
                     </button>
                   </div>
@@ -273,9 +289,15 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     className="w-full bg-brand-blue text-white font-bold py-2.5 rounded-xl text-sm active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5">
                     <Grid3x3 className="w-4 h-4" /> {t('planer.rasterErzeugen')}
                   </button>
-                  <p className="text-[10px] text-slate-400 text-center">
-                    {ecken.length}/2 {t('planer.eckenGesetzt')}
-                  </p>
+                  <div className="flex items-center justify-between text-[11px] text-slate-600">
+                    <span>{ecken.length} {t('planer.eckenGesetzt')}</span>
+                    <span className="flex gap-3">
+                      <button onClick={() => setEcken(e => e.slice(0, -1))} disabled={ecken.length === 0}
+                        className="font-bold disabled:opacity-40">{t('planer.eckeZurueck')}</button>
+                      <button onClick={() => setEcken([])} disabled={ecken.length === 0}
+                        className="font-bold text-brand-red disabled:opacity-40">{t('planer.eckenLoeschen')}</button>
+                    </span>
+                  </div>
                 </div>
               )}
 
@@ -423,6 +445,21 @@ function Kachel({ label, wert }: { label: string; wert: string }) {
     <div className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
       <p className="text-sm font-black text-slate-900">{wert}</p>
       <p className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
+    </div>
+  );
+}
+
+function Regler({ label, wert, einheit, min, max, schritt, onChange }: {
+  label: string; wert: number; einheit: string; min: number; max: number; schritt: number; onChange: (v: number) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <label className="text-xs font-bold text-slate-600 shrink-0">{label}</label>
+      <div className="flex items-center gap-2 flex-1 justify-end">
+        <input type="range" min={min} max={max} step={schritt} value={wert} aria-label={label}
+          onChange={e => onChange(Number(e.target.value))} className="flex-1 max-w-[140px]" />
+        <span className="text-xs font-mono font-bold text-slate-900 w-12 text-right">{wert} {einheit}</span>
+      </div>
     </div>
   );
 }
