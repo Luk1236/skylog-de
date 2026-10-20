@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-20.
+Zuletzt aktualisiert: 2026-10-20 (Runde 4).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -20,6 +20,14 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **500 Unit-Tests** (46 Dateien) ·
 **50 Playwright-Tests** · `npm run build` Exit 0. CI: Job `check` (Typecheck, Lint, Unit) und
 Job `e2e` (Playwright inkl. Kontrast-Wächter). Release per Tag `v*.*.*` (`release.yml`).
+
+Vierte Runde 2026-10-20 (Branch `ausbau/laptop-demo-kalender`):
+- **Laptop (lg+):** Seitenleiste mit allen Ansichten, Werkzeugen und Einstellungen statt Mehr-Popup;
+  Kopfzeile zeigt den Ansichtsnamen; Logbuch ab xl zweispaltig. Werkzeuglisten einmal definiert.
+- **Demo-Modus** (`demoDaten.ts`, IDs mit `demo-`), **Einrichtungs-Assistent**, **.ics-Export** (`kalender.ts`).
+- **Englisch** jetzt auch für die Fach-Dialoge (235 Texte); Rechtstexte bleiben deutsch.
+- **Vercel:** Proxys (Luftfahrtwetter, Zonen, Karten) als Funktionen, Logik gemeinsam mit server.ts
+  in `api/_lib/proxys.ts`. Deployen + `SKYLOG_API_URL` setzen bleibt Aufgabe des Nutzers (Konto).
 
 Dritte Runde 2026-10-20 (Branch `ausbau/veraltet-verbessern-erweitern`):
 - **Updates:** Vite 8, Vitest 5, TypeScript 6 (+ `strict`), ESLint 10, Express 5, lucide 1.x,
@@ -121,7 +129,6 @@ npm run sync:android   # build + cap sync android (für APK)
 - `api/` – Vercel-Funktion + gemeinsame Server-Logik (`_lib/`, nicht als Route veröffentlicht)
 
 ## Noch offen
-- **Englisch für Fach-Dialoge** (SORA, Staffelmatrix, CRM, Vorflug-Check, e-ID, Vorfall-Bericht …).
 - **Release-Workflow** einmal mit echtem Tag ausprobieren (`git tag v1.1.0 && git push origin v1.1.0`).
 - **DJI-SRT-Import mit echter Datei gegenprüfen** (`djiSrt.ts`). Braucht eine Beispiel-SRT
   vom Nutzer. (DJI-Fly-`.txt`/DAT-Logs sind verschlüsselt.)

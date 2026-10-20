@@ -14,6 +14,8 @@ Alle Daten bleiben lokal auf dem Gerät (IndexedDB); es gibt kein Konto und kein
 - **Datensicherung**: vollständiger Export, optional AES-256-verschlüsselt. In der Android-App geht die Datei über das Teilen-Menü direkt nach Google Drive, Nextcloud oder „Dateien“.
 - **Erinnerungen**: in der App und auf Android als echte Benachrichtigung, z. B. Lizenzablauf, Garantie, Wartung und fällige Sicherung.
 - **Hell/Dunkel**, Deutsch/Englisch (Rechtstexte bleiben bewusst deutsch) und eine PIN-Bildschirmsperre.
+- **Demo-Modus** mit Beispieldaten, **geführte Ersteinrichtung** und **Fristen als Kalenderdatei (.ics)**.
+- **Laptop-Layout** mit Seitenleiste für alle Ansichten und einem zweispaltigen Logbuch.
 
 ## Entwicklung
 
@@ -57,8 +59,13 @@ Lokal: `npm run sync:android` baut die Web-App und überträgt sie ins Android-P
 
 ## Server / Deployment
 
-- **Vercel** (empfohlen): Repo importieren und `GEMINI_API_KEY` setzen. `api/safety-check.ts` läuft dann als Serverless-Funktion.
-- **`server.ts`** (Express): stellt zusätzlich Proxys für Luftfahrtwetter, EU-Zonen und Offline-Karten bereit. In der Android-App sind diese nicht nötig, weil dort alles nativ abgerufen wird.
+- **Vercel** (empfohlen):
+  1. Auf [vercel.com](https://vercel.com) „Add New → Project“ wählen und das Repo `Luk1236/skylog-de` importieren. Die Einstellungen stehen in `vercel.json`.
+  2. Unter „Environment Variables“ `GEMINI_API_KEY` setzen.
+  3. Nach dem Deploy die Adresse (z. B. `https://skylog-de.vercel.app`) in GitHub als Repo-Variable `SKYLOG_API_URL` eintragen. Dann funktioniert der KI-Check auch in der APK.
+
+  Auf Vercel laufen alle Server-Teile als Funktionen: `api/safety-check`, `api/aviation/[art]`, `api/zonen/[land]` und `api/karte/[datei]`.
+- **`server.ts`** (Express) bietet dieselben Endpunkte für den Betrieb auf einem eigenen Server. Die Logik liegt gemeinsam in `api/_lib/`. In der Android-App sind die Proxys nicht nötig, weil dort alles nativ abgerufen wird.
 
 ## Aufbau
 
