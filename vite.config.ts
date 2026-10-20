@@ -1,9 +1,26 @@
 /// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
+import { execSync } from 'child_process';
+import { readFileSync } from 'fs';
 import path from 'path';
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+
+/** Version für die Anzeige in der App: im Release-Workflow aus dem Tag
+ *  (SKYLOG_VERSION_NAME), sonst letzter Versions-Tag plus Commit-Zahl
+ *  (= versionCode der APK), notfalls die Version aus package.json. */
+function appVersion(): string {
+  if (process.env.SKYLOG_VERSION_NAME) return process.env.SKYLOG_VERSION_NAME;
+  const paket = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version as string;
+  try {
+    const tag = execSync("git describe --tags --match 'v*.*.*' --abbrev=0", { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim().replace(/^v/, '');
+    const build = execSync('git rev-list --count HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+    return `${tag} (Build ${build})`;
+  } catch {
+    return paket;
+  }
+}
 
 export default defineConfig(() => {
   // Die Basis-URL haengt vom Ziel ab, NICHT davon ob wir in CI laufen:
@@ -16,6 +33,9 @@ export default defineConfig(() => {
   const isGhPages = process.env.DEPLOY_TARGET === 'pages';
   return {
     base: isGhPages ? '/skylog-de/' : '/',
+    define: {
+      __APP_VERSION__: JSON.stringify(appVersion()),
+    },
     // Vitest: die Playwright-Tests (e2e/) laufen separat mit `npm run e2e`.
     test: {
       exclude: ['**/node_modules/**', 'dist/**', 'android/**', 'e2e/**'],
@@ -25,7 +45,7 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg', 'datenschutz.html'],
+        includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'datenschutz.html'],
         manifest: false, // we use our own public/manifest.json
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
@@ -67,7 +87,6 @@ export default defineConfig(() => {
             // recharts bewusst OHNE festen Chunk: sonst zieht der Bundler gemeinsam genutzte
             // Kleinbibliotheken (clsx …) mit hinein und der Erststart laedt ~375 kB Diagramme.
             // Ohne Regel landet recharts nur in den lazy geladenen Ansichten/Dialogen.
-            if (id.includes('framer-motion') || id.includes('/motion/')) return 'vendor-motion';
             return undefined;
           },
         },

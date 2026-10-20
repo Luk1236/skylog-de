@@ -22,9 +22,11 @@ test('App startet und alle Hauptansichten öffnen sich', async ({ page }) => {
   await expect(page.getByRole('heading', { name: 'Logbuch' })).toBeVisible();
   await navigiere(page, 'Flotte');
   await expect(page.getByRole('heading', { name: 'Flotte' })).toBeVisible();
-  await navigiere(page, 'Safety');
-  await expect(page.getByRole('heading', { name: 'Safety Hub' })).toBeVisible();
+  await navigiere(page, 'Sicherheit');
+  await expect(page.getByRole('heading', { name: 'Sicherheit', exact: true })).toBeVisible();
   await oeffneMehr(page, 'Profil');
+  await expect(page.getByRole('heading', { name: 'Pilotenprofil' })).toBeVisible();
+  await oeffneMehr(page, 'Einstellungen');
   await expect(page.getByText('Datensicherung', { exact: true })).toBeVisible();
 });
 
@@ -32,9 +34,9 @@ test('Kartenelemente verdecken keine Dialoge', async ({ page }) => {
   await oeffneApp(page);
   // Vorher: die Kartenelemente liegen sichtbar oben
   const kartenElemente = [
-    page.getByRole('button', { name: 'Schnell-Log: Flug hinzufügen' }),
+    page.getByRole('button', { name: 'Flug loggen' }),
     page.getByRole('button', { name: 'Flugplaner öffnen' }),
-    page.getByRole('button', { name: 'Manuell setzen' }),
+    page.getByRole('button', { name: 'Von Hand' }),
   ];
   for (const el of kartenElemente) expect(await liegtOben(page, el)).toBe(true);
 
@@ -47,9 +49,9 @@ test('Kartenelemente verdecken keine Dialoge', async ({ page }) => {
 test('Ersatzteil anlegen, Bestand ändern, bleibt nach Neuladen erhalten', async ({ page }) => {
   await oeffneApp(page);
   await oeffneMehr(page, 'Inventar');
-  await page.getByRole('button', { name: 'Teil' }).click();
-  await page.getByPlaceholder('Name, z.B. Propeller-Satz Mini 4 Pro').fill('Propeller-Satz');
-  await page.getByPlaceholder('Link zu STL-Datei oder Shop (https://…)').fill('https://example.org/propeller');
+  await page.getByRole('button', { name: 'Teil hinzufügen' }).click();
+  await page.getByLabel('Name', { exact: true }).fill('Propeller-Satz');
+  await page.getByLabel('Link zu STL-Datei oder Shop').fill('https://example.org/propeller');
   await page.getByRole('button', { name: 'Speichern' }).click();
   await expect(page.getByText('Propeller-Satz')).toBeVisible();
   await page.getByRole('button', { name: 'Eins mehr' }).click();
@@ -65,10 +67,10 @@ test('Ersatzteil anlegen, Bestand ändern, bleibt nach Neuladen erhalten', async
 
 test('Bildschirmsperre: einrichten, falsche PIN abweisen, richtige entsperrt', async ({ page }) => {
   await oeffneApp(page);
-  await oeffneMehr(page, 'Profil');
-  await page.getByRole('button', { name: 'Bildschirmsperre (PIN) verwalten' }).click();
+  await oeffneMehr(page, 'Einstellungen');
+  await page.getByRole('button', { name: 'PIN einrichten oder ändern' }).click();
   // Je nach Zustand erst "einrichten" waehlen
-  const einrichten = page.getByRole('button', { name: /einrichten/i });
+  const einrichten = page.getByRole('dialog').getByRole('button', { name: /einrichten/i });
   if (await einrichten.isVisible().catch(() => false)) await einrichten.click();
   await tippePin(page, '2580');
   await tippePin(page, '2580');

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseKoordinaten, sindGueltigeKoordinaten } from './geocode';
+import { kurzerOrtsname, parseKoordinaten, sindGueltigeKoordinaten } from './geocode';
 
 describe('sindGueltigeKoordinaten', () => {
   it('akzeptiert gültige Paare', () => {
@@ -45,5 +45,18 @@ describe('parseKoordinaten', () => {
     expect(parseKoordinaten('Berlin')).toBeNull();
     expect(parseKoordinaten('200, 10')).toBeNull();
     expect(parseKoordinaten('52.52')).toBeNull();
+  });
+});
+
+describe('kurzerOrtsname', () => {
+  it('nimmt Ort und Kreis aus der Adresse', () => {
+    expect(kurzerOrtsname({ address: { town: 'Griesheim', county: 'Landkreis Darmstadt-Dieburg', postcode: '64347' } }))
+      .toBe('Griesheim, Landkreis Darmstadt-Dieburg');
+  });
+  it('fällt auf die ersten zwei Teile des Anzeigenamens zurück', () => {
+    expect(kurzerOrtsname({ display_name: 'Herrngarten, Darmstadt, Hessen, 64283, Deutschland' })).toBe('Herrngarten, Darmstadt');
+  });
+  it('liefert null ohne Daten', () => {
+    expect(kurzerOrtsname(null)).toBeNull();
   });
 });

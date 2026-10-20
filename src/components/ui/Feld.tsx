@@ -42,12 +42,14 @@ export function Abschnitt({ titel, aktion, className }: { titel: ReactNode; akti
 /** Kopf jeder Ansicht: Titel, Untertitel und rechts optional Aktionen. */
 export function SeitenKopf({ titel, untertitel, aktionen }: { titel: ReactNode; untertitel?: ReactNode; aktionen?: ReactNode }) {
   return (
-    <div className="flex items-end justify-between gap-3 mb-6">
+    <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
       <div className="min-w-0">
         <h2 className="text-2xl font-black tracking-tight text-slate-900">{titel}</h2>
         {untertitel && <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{untertitel}</p>}
       </div>
-      {aktionen && <div className="flex items-center gap-2 shrink-0">{aktionen}</div>}
+      {/* Auf schmalen Bildschirmen rutschen die Aktionen in eine eigene Zeile
+          statt aus dem Bild (vorher waren sie im Logbuch nicht erreichbar). */}
+      {aktionen && <div className="flex flex-wrap items-center gap-2 ml-auto">{aktionen}</div>}
     </div>
   );
 }

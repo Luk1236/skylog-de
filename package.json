@@ -1,7 +1,7 @@
 {
   "name": "skylog-de",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.1.0",
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
@@ -37,7 +37,6 @@
     "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
     "lucide-react": "^1.59.0",
-    "motion": "^14.4.0",
     "pmtiles": "^3.2.1",
     "protomaps-leaflet": "^5.1.0",
     "qrcode": "^1.5.4",

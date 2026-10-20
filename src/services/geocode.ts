@@ -82,3 +82,34 @@ export async function sucheOrte(
     return [];
   }
 }
+
+/** Kurzer Ortsname für Koordinaten (umgekehrte Nominatim-Suche), z. B.
+ *  „Griesheim, Darmstadt-Dieburg". Kein Netz oder kein Treffer → null; dann
+ *  zeigt die App weiter die Koordinaten. */
+export async function ortsnameFuer(lat: number, lon: number, signal?: AbortSignal): Promise<string | null> {
+  if (!sindGueltigeKoordinaten(lat, lon)) return null;
+  const url =
+    'https://nominatim.openstreetmap.org/reverse' +
+    `?format=jsonv2&zoom=14&accept-language=de&lat=${lat}&lon=${lon}`;
+  try {
+    const antwort = await fetch(url, { signal, headers: { Accept: 'application/json' } });
+    if (!antwort.ok) return null;
+    return kurzerOrtsname(await antwort.json());
+  } catch {
+    return null;
+  }
+}
+
+/** Aus einer Nominatim-Antwort einen kurzen Namen bauen: Ort und Kreis statt
+ *  der kompletten Adresse mit Postleitzahl. */
+export function kurzerOrtsname(daten: { address?: Record<string, string>; display_name?: string } | null): string | null {
+  const a = daten?.address;
+  if (a) {
+    const ort = a.village || a.town || a.city || a.suburb || a.hamlet || a.municipality;
+    const gebiet = a.county || a.state_district || a.state;
+    const teile = [ort, gebiet].filter((x, i, alle): x is string => !!x && alle.indexOf(x) === i);
+    if (teile.length) return teile.join(', ');
+  }
+  const roh = daten?.display_name?.split(',').slice(0, 2).map(s => s.trim()).filter(Boolean);
+  return roh && roh.length ? roh.join(', ') : null;
+}

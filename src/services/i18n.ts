@@ -28,9 +28,10 @@ export const TEXTE = {
   'nav.logbuch': { de: 'Logbuch', en: 'Logbook' },
   'nav.inventar': { de: 'Inventar', en: 'Inventory' },
   'nav.piloten': { de: 'Piloten', en: 'Pilots' },
-  'nav.lbaInfo': { de: 'LBA Info', en: 'Regulations' },
-  'nav.safety': { de: 'Safety', en: 'Safety' },
+  'nav.lbaInfo': { de: 'Recht & Wissen', en: 'Rules & knowledge' },
+  'nav.safety': { de: 'Sicherheit', en: 'Safety' },
   'nav.profil': { de: 'Profil', en: 'Profile' },
+  'nav.einstellungen': { de: 'Einstellungen', en: 'Settings' },
   'nav.flotte': { de: 'Flotte', en: 'Fleet' },
   'nav.mehr': { de: 'Mehr', en: 'More' },
   'nav.roadmap': { de: 'Roadmap', en: 'Roadmap' },
@@ -43,7 +44,7 @@ export const TEXTE = {
   'mehr.dunkel': { de: 'Dunkel', en: 'Dark' },
 
   // Kopfzeile
-  'app.untertitel': { de: 'LBA Info & Flight Log', en: 'Regulations & Flight Log' },
+  'app.untertitel': { de: 'Drohnen-Flugbuch', en: 'Drone logbook' },
   // Bewusst keine Konformitaets-Behauptung ("LBA Konform") - das kann eine App nicht zusichern.
   'app.lokal': { de: 'Daten nur lokal', en: 'Data stays local' },
 
@@ -51,8 +52,9 @@ export const TEXTE = {
   'view.flotte': { de: 'Flotte', en: 'Fleet' },
   'view.akkus': { de: 'Akkus', en: 'Batteries' },
   'view.logbuch': { de: 'Logbuch', en: 'Logbook' },
-  'view.safetyHub': { de: 'Safety Hub', en: 'Safety Hub' },
-  'view.profil': { de: 'Piloten Profil', en: 'Pilot Profile' },
+  'view.safetyHub': { de: 'Sicherheit', en: 'Safety' },
+  'view.profil': { de: 'Pilotenprofil', en: 'Pilot profile' },
+  'view.einstellungen': { de: 'Einstellungen', en: 'Settings' },
   'view.roadmap': { de: 'Roadmap', en: 'Roadmap' },
   'view.lbaWissen': { de: 'LBA Wissen', en: 'Regulatory Knowledge' },
   'view.ersatzteile': { de: 'Ersatzteile', en: 'Spare parts' },

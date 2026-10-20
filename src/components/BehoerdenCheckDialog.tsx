@@ -1,21 +1,23 @@
 import { useSprache } from '../lib/sprache';
 import { useState, useMemo, useEffect } from 'react';
-import { X, ShieldCheck, AlertTriangle, ChevronDown } from 'lucide-react';
+import { X, ShieldCheck, AlertTriangle, ChevronDown, FileDigit, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
 import { cn } from '../lib/utils';
-import type { UserProfile, Drone } from '../services/db';
+import type { UserProfile, Drone, AppDocument } from '../services/db';
 import { baueBehoerdenCheck } from '../services/authorityCheck';
 
 interface Props {
   profile: UserProfile | null;
   drohnen: Drone[];
+  /** Im Profil gespeicherte PDFs (Versicherungsschein, Nachweis) - offline vorzeigbar. */
+  dokumente?: AppDocument[];
   onClose: () => void;
 }
 
 // Vollbild-Ansicht für eine Polizei-/Behördenkontrolle: große, gut lesbare
 // Nachweise plus QR-Code der Betreiberdaten. Gedacht zum Vorzeigen.
 // Bewusst kein `Dialog` (Vollbild statt Popup), aber hell nach DESIGN.md.
-export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
+export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose }: Props) {
   const { tx } = useSprache();
   const [drohnenId, setDrohnenId] = useState<string>(drohnen[0]?.id ?? '');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
@@ -45,12 +47,12 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
       <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0 bg-white border-b border-slate-200">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />
-          <span className="font-black text-sm uppercase tracking-wider text-slate-900">{tx('Behörden-Check', 'Authority check')}</span>
+          <span className="font-black text-base text-slate-900">{tx('Behörden-Check', 'Authority check')}</span>
         </div>
         <button
           onClick={onClose}
           aria-label={tx('Schließen', 'Close')}
-          className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition-colors"
+          className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition-colors"
         >
           <X className="w-5 h-5" />
         </button>
@@ -118,6 +120,26 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
               <ChevronDown className="w-4 h-4 text-slate-500 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </label>
+        )}
+
+        {dokumente.length > 0 && (
+          <div className="mt-5">
+            <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 px-1 mb-2">{tx('Dokumente zum Vorzeigen', 'Documents to show')}</p>
+            <div className="rounded-3xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-200 overflow-hidden">
+              {dokumente.map(d => (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => window.open(URL.createObjectURL(d.data), '_blank')}
+                  className="w-full flex items-center gap-3 px-4 h-14 text-left hover:bg-slate-50"
+                >
+                  <FileDigit className="w-5 h-5 text-brand-blue shrink-0" />
+                  <span className="flex-1 min-w-0 text-sm font-bold text-slate-900 truncate">{d.name}</span>
+                  <ExternalLink className="w-4 h-4 text-slate-500 shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </div>

@@ -1,27 +1,19 @@
 {
-  "name": "SkyLog DE — Drohnen Flugbuch",
+  "name": "SkyLog DE — Drohnen-Flugbuch",
   "short_name": "SkyLog DE",
-  "description": "Digitales Flugbuch für Drohnenpiloten in Deutschland. LBA-konform, mit NOTAM-Feed, Wartungslogik und Wettervorhersage.",
+  "description": "Digitales Flugbuch für Drohnenpiloten in Deutschland: Logbuch, Flotte, Geozonen, Wetter und Behörden-Check. Alle Daten bleiben auf dem Gerät.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#00387B",
+  "background_color": "#f8fafc",
+  "theme_color": "#1e3a8a",
   "categories": ["utilities", "navigation"],
   "lang": "de",
   "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
   ],
   "screenshots": [],
   "related_applications": []

@@ -65,7 +65,7 @@ export function RoadmapView() {
       <div className="mt-12 p-6 bg-brand-blue/5 rounded-3xl text-center border border-brand-blue/10">
         <Rocket className="w-8 h-8 text-brand-blue mx-auto mb-3" />
         <h4 className="font-bold text-slate-900 mb-1">{tx('Feedback erwünscht!', 'Feedback welcome!')}</h4>
-        <p className="text-xs text-slate-500">{tx('Welche Funktion fehlt Ihnen am meisten? Lassen Sie es uns wissen.', 'Which feature do you miss most? Let us know.')}</p>
+        <p className="text-xs text-slate-500">{tx('Welche Funktion fehlt dir am meisten? Lass es uns wissen.', 'Which feature do you miss most? Let us know.')}</p>
       </div>
     </div>
   );

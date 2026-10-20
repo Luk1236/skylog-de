@@ -5,3 +5,6 @@ interface ImportMetaEnv {
    *  Im Browser leer lassen: dort laufen /api-Aufrufe gegen denselben Server. */
   readonly VITE_API_BASE?: string;
 }
+
+/** Versionsangabe, beim Bauen in vite.config.ts eingesetzt. */
+declare const __APP_VERSION__: string;

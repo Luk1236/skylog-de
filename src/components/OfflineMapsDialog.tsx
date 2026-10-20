@@ -36,7 +36,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
       await aktualisieren();
       onGeaendert();
     } catch (err) {
-      melde((err instanceof Error && err.message) || 'Download fehlgeschlagen.', 'Karte nicht geladen');
+      melde((err instanceof Error && err.message) || tx('Download fehlgeschlagen.', 'Download failed.'), tx('Karte nicht geladen', 'Map not loaded'));
     } finally {
       setLaeuft(null);
       setFortschritt(null);
@@ -44,7 +44,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
   };
 
   const loeschen = async (karte: GespeicherteKarte) => {
-    if (!await bestaetige(`„${karte.name}" vom Gerät löschen?`, { gefaehrlich: true })) return;
+    if (!await bestaetige(tx(`„${karte.name}“ vom Gerät löschen?`, `Delete “${karte.name}” from this device?`), { gefaehrlich: true })) return;
     await dbService.deleteMapRegion(karte.code);
     await aktualisieren();
     onGeaendert();

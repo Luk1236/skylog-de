@@ -31,7 +31,7 @@ export async function setzeTheme(page: Page, theme: 'light' | 'dark') {
 }
 
 /** Einen Reiter der unteren Navigation öffnen. */
-export async function navigiere(page: Page, reiter: 'Karte' | 'Logbuch' | 'Flotte' | 'Safety' | 'Mehr') {
+export async function navigiere(page: Page, reiter: 'Karte' | 'Logbuch' | 'Flotte' | 'Sicherheit' | 'Mehr') {
   await page.locator('nav').getByRole('button', { name: reiter }).first().click();
 }
 

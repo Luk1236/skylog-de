@@ -11,13 +11,14 @@ const ANSICHTEN: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
   { name: 'Karte', oeffnen: p => navigiere(p, 'Karte') },
   { name: 'Logbuch', oeffnen: p => navigiere(p, 'Logbuch') },
   { name: 'Flotte', oeffnen: p => navigiere(p, 'Flotte') },
-  { name: 'Safety', oeffnen: p => navigiere(p, 'Safety') },
+  { name: 'Sicherheit', oeffnen: p => navigiere(p, 'Sicherheit') },
   { name: 'Mehr-Menü', oeffnen: p => navigiere(p, 'Mehr') },
   { name: 'Inventar', oeffnen: p => oeffneMehr(p, 'Inventar') },
   { name: 'Piloten', oeffnen: p => oeffneMehr(p, 'Piloten') },
-  { name: 'LBA Info', oeffnen: p => oeffneMehr(p, 'LBA Info') },
+  { name: 'Recht & Wissen', oeffnen: p => oeffneMehr(p, 'Recht & Wissen') },
   { name: 'Roadmap', oeffnen: p => oeffneMehr(p, 'Roadmap') },
   { name: 'Profil', oeffnen: p => oeffneMehr(p, 'Profil') },
+  { name: 'Einstellungen', oeffnen: p => oeffneMehr(p, 'Einstellungen') },
 ];
 
 const DIALOGE: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
@@ -30,10 +31,12 @@ const DIALOGE: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
   { name: 'Offline-Karten', oeffnen: async p => { await navigiere(p, 'Karte'); await p.getByRole('button', { name: 'Offline-Karten verwalten' }).click(); } },
   { name: 'EU-Zonen', oeffnen: async p => { await navigiere(p, 'Karte'); await p.getByRole('button', { name: 'Zonen anderer Länder' }).click(); } },
   { name: 'Behörden-Check', oeffnen: p => p.getByRole('button', { name: 'Behörden-Check anzeigen' }).click() },
-  { name: 'Risiko-Check', oeffnen: async p => { await navigiere(p, 'Safety'); await p.getByText('Risiko-Check (Betriebskategorie)').click(); } },
-  { name: 'Vorfall-Bericht', oeffnen: async p => { await navigiere(p, 'Safety'); await p.getByText('Vorfall-Bericht erstellen').click(); } },
-  { name: 'e-ID', oeffnen: async p => { await navigiere(p, 'Safety'); await p.getByRole('button', { name: 'e-ID Verwalten' }).click(); } },
-  { name: 'Bildschirmsperre', oeffnen: async p => { await oeffneMehr(p, 'Profil'); await p.getByRole('button', { name: 'Bildschirmsperre (PIN) verwalten' }).click(); } },
+  { name: 'Risiko-Check', oeffnen: async p => { await navigiere(p, 'Sicherheit'); await p.getByText('Risiko-Check (Betriebskategorie)').click(); } },
+  { name: 'Vorfall-Bericht', oeffnen: async p => { await navigiere(p, 'Sicherheit'); await p.getByText('Vorfall-Bericht erstellen').click(); } },
+  { name: 'e-ID', oeffnen: async p => { await navigiere(p, 'Sicherheit'); await p.getByRole('button', { name: 'e-ID verwalten' }).click(); } },
+  { name: 'Bildschirmsperre', oeffnen: async p => { await oeffneMehr(p, 'Einstellungen'); await p.getByRole('button', { name: 'PIN einrichten oder ändern' }).click(); } },
+  { name: 'Logbuch-Werkzeuge', oeffnen: async p => { await navigiere(p, 'Logbuch'); await p.getByRole('button', { name: 'Export, Import und Statistik' }).click(); } },
+  { name: 'Flug eintragen', oeffnen: async p => { await navigiere(p, 'Karte'); await p.getByRole('button', { name: 'Flug loggen' }).click(); } },
 ];
 
 for (const theme of ['light', 'dark'] as const) {
@@ -53,6 +56,7 @@ for (const theme of ['light', 'dark'] as const) {
 // (z.B. stand „Wetter-Warnung" als Bernstein auf Bernstein bei ~2:1).
 const MIT_DATEN: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
   { name: 'Logbuch', oeffnen: p => navigiere(p, 'Logbuch') },
+  { name: 'Logbuch-Hinweise', oeffnen: async p => { await navigiere(p, 'Logbuch'); await p.getByRole('button', { name: /Hinweise/ }).click(); } },
   { name: 'Flotte', oeffnen: p => navigiere(p, 'Flotte') },
   { name: 'Wartungshistorie', oeffnen: async p => { await navigiere(p, 'Flotte'); await p.getByRole('button', { name: 'Wartung', exact: true }).first().click(); } },
   { name: 'Inventar', oeffnen: p => oeffneMehr(p, 'Inventar') },

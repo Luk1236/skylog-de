@@ -196,6 +196,20 @@
   border-top: 1px solid rgba(51, 65, 85, 0.7);
 }
 
+/* Seitenwechsel: kurze Einblendung (ersetzt die motion-Animation in App.tsx,
+   damit die Bibliothek nicht mehr im Erststart geladen wird). Die Regel
+   „Bewegung reduzieren" oben schaltet sie mit ab. */
+@keyframes ansicht-ein {
+  from { opacity: 0; transform: translateX(16px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes ansicht-blenden {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.ansicht-ein { animation: ansicht-ein 0.2s ease-out; }
+.ansicht-blenden { animation: ansicht-blenden 0.2s ease-out; }
+
 /* Touch active scale effect */
 .touch-shrink {
   transition: transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);

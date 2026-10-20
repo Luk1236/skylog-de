@@ -441,6 +441,12 @@ export const dbService = {
     const db = await getDB();
     await db.delete(FLIGHTS_STORE, id);
   },
+  /** Einen gelöschten Flug zurückholen (Rückgängig) - ohne die Akku-Zyklen
+   *  ein zweites Mal hochzuzählen wie saveFlight. */
+  async restoreFlight(flight: Flight): Promise<void> {
+    const db = await getDB();
+    await db.put(FLIGHTS_STORE, flight);
+  },
 
   // Pilots
   async getPilots(): Promise<Pilot[]> {

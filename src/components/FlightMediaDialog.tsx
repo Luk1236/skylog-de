@@ -73,7 +73,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
   };
 
   const entfernen = async (id: string) => {
-    if (!await bestaetige('Dieses Bild vom Flug entfernen?', { gefaehrlich: true })) return;
+    if (!await bestaetige(tx('Dieses Bild vom Flug entfernen?', 'Remove this photo from the flight?'), { gefaehrlich: true })) return;
     await speichern(mediaEntfernen(media, id));
   };
 

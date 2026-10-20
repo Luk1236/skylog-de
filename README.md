@@ -5,16 +5,17 @@ Alle Daten bleiben lokal auf dem Gerät (IndexedDB); es gibt kein Konto und kein
 
 ## Funktionen
 
-- **Logbuch**: Flüge mit Legs, Akku, Wetter, Co-Pilot und Nachtflug. Dazu Statistik, Jahres-PDF (Betriebsnachweis), CSV/KML-Export und Import aus Airdata-CSV und DJI-SRT.
+- **Logbuch**: Flüge mit Legs, Akku, Wetter, Co-Pilot und Nachtflug, Suche und Filter. Dazu Statistik, Jahres-PDF (Betriebsnachweis), CSV/KML-Export und Import aus Airdata-CSV und DJI-SRT. Gelöschtes lässt sich ein paar Sekunden lang zurückholen.
 - **Flotte**: Drohnen, Akkus (Zyklen und Gesundheit), Wartung mit Intervallen, Garantie und Kosten, Ersatzteil-Inventar.
 - **Karte**: DIPUL-Geozonen, Offline-Karten (PMTiles), importierte EU-Geozonen (ED-269) und ein Zonen-Urteil mit Höhengrenzen.
 - **Flug-Assistent**: Wetter mit Wind auf 120 m, bestes Flugfenster, METAR/TAF, NOTAM, Kp-Index, Checklisten und optional ein KI-Sicherheitscheck (Gemini).
 - **Flugplaner**: Wegpunkt-Routen und Flächenraster für Mapping (beliebige Vielecke, freie Flugrichtung, Bahnabstand aus der Kamera). Export als GPX, KML oder Litchi-CSV.
-- **Recht & Sicherheit**: QR-Behördencheck, Vorfall-Bericht für das LBA, SORA 2.5, Risiko-Check (A1/A2/A3/Specific), e-ID sowie ein Verzeichnis von Behörden und Rechtsquellen.
+- **Recht & Sicherheit**: QR-Behördencheck mit den gespeicherten PDF-Dokumenten, Notfall-Leitfaden mit 112-Knopf und Standort, Vorfall-Bericht für das LBA, SORA 2.5, Risiko-Check (A1/A2/A3/Specific), e-ID sowie ein Verzeichnis von Behörden und Rechtsquellen.
 - **Datensicherung**: vollständiger Export, optional AES-256-verschlüsselt. In der Android-App geht die Datei über das Teilen-Menü direkt nach Google Drive, Nextcloud oder „Dateien“.
 - **Erinnerungen**: in der App und auf Android als echte Benachrichtigung, z. B. Lizenzablauf, Garantie, Wartung und fällige Sicherung.
 - **Hell/Dunkel**, Deutsch/Englisch (Rechtstexte bleiben bewusst deutsch) und eine PIN-Bildschirmsperre.
 - **Demo-Modus** mit Beispieldaten, **geführte Ersteinrichtung** und **Fristen als Kalenderdatei (.ics)**.
+- **Ein Menü nach dem Ablauf** (vor dem Flug, nach dem Flug, Verwaltung, Wissen & Konto) – auf dem Handy hinter „Mehr“, auf dem Laptop als Seitenleiste; Einstellungen getrennt vom Pilotenprofil.
 - **Laptop-Layout** mit Seitenleiste für alle Ansichten und einem zweispaltigen Logbuch.
 
 ## Entwicklung

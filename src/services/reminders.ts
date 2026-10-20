@@ -6,6 +6,8 @@ export type ReminderLevel = 'warn' | 'alert';
 export interface Reminder {
   level: ReminderLevel;
   text: string;
+  /** Stabiler Schlüssel (ändert sich nicht mit Zahlen im Text) - zum Ausblenden. */
+  schluessel: string;
 }
 
 const DAY = 1000 * 60 * 60 * 24;
@@ -27,9 +29,9 @@ export function getReminders(
   if (profile?.licenseExpiry) {
     const days = Math.ceil((new Date(profile.licenseExpiry).getTime() - now) / DAY);
     if (days < 0) {
-      reminders.push({ level: 'alert', text: `Dein Fernpilotenzeugnis ist abgelaufen (seit ${Math.abs(days)} Tagen). Vor dem nächsten Flug erneuern!` });
+      reminders.push({ level: 'alert', schluessel: 'lizenz', text: `Dein Fernpilotenzeugnis ist abgelaufen (seit ${Math.abs(days)} Tagen). Vor dem nächsten Flug erneuern!` });
     } else if (days <= 30) {
-      reminders.push({ level: 'warn', text: `Dein Fernpilotenzeugnis läuft in ${days} Tagen ab. Rechtzeitig verlängern.` });
+      reminders.push({ level: 'warn', schluessel: 'lizenz', text: `Dein Fernpilotenzeugnis läuft in ${days} Tagen ab. Rechtzeitig verlängern.` });
     }
   }
 
@@ -37,9 +39,9 @@ export function getReminders(
   for (const b of batteries) {
     const label = b.number ? `Akku ${b.number}` : 'Ein Akku';
     if (typeof b.health === 'number' && b.health > 0 && b.health < 60) {
-      reminders.push({ level: 'alert', text: `${label} hat nur noch ${b.health}% Gesundheit — Austausch prüfen.` });
+      reminders.push({ level: 'alert', schluessel: `akku-gesundheit-${b.id}`, text: `${label} hat nur noch ${b.health}% Gesundheit — Austausch prüfen.` });
     } else if ((b.cycles ?? 0) >= 200) {
-      reminders.push({ level: 'warn', text: `${label} hat ${b.cycles} Ladezyklen — im Auge behalten.` });
+      reminders.push({ level: 'warn', schluessel: `akku-zyklen-${b.id}`, text: `${label} hat ${b.cycles} Ladezyklen — im Auge behalten.` });
     }
   }
 
@@ -48,14 +50,14 @@ export function getReminders(
     if (d.lastMotorClean) {
       const days = Math.floor((now - d.lastMotorClean) / DAY);
       if (days > 90) {
-        reminders.push({ level: 'warn', text: `${d.name || d.model}: letzte Motorreinigung vor ${days} Tagen — Wartung fällig.` });
+        reminders.push({ level: 'warn', schluessel: `motor-${d.id}`, text: `${d.name || d.model}: letzte Motorreinigung vor ${days} Tagen — Wartung fällig.` });
       }
     }
   }
 
   // 4) Versicherung fehlt
   if (profile && !profile.insuranceNumber) {
-    reminders.push({ level: 'warn', text: 'Keine Versicherungsnummer hinterlegt. Für Drohnen in DE ist eine Haftpflicht Pflicht.' });
+    reminders.push({ level: 'warn', schluessel: 'versicherung', text: 'Keine Versicherungsnummer hinterlegt. Für Drohnen in DE ist eine Haftpflicht Pflicht.' });
   }
 
   // 4b) Garantie läuft ab / ist abgelaufen
@@ -63,11 +65,11 @@ export function getReminders(
     const g = garantieStatus(d, now);
     const label = d.name || d.model;
     if (g.status === 'bald') {
-      reminders.push({ level: 'warn', text: `${label}: Garantie läuft in ${g.tage} Tagen ab — offene Reparaturen jetzt einreichen.` });
+      reminders.push({ level: 'warn', schluessel: `garantie-${d.id}`, text: `${label}: Garantie läuft in ${g.tage} Tagen ab — offene Reparaturen jetzt einreichen.` });
     } else if (g.status === 'abgelaufen') {
       // Nur innerhalb der ersten 30 Tage nach Ablauf melden, danach ist es alt.
       if (g.tage !== null && g.tage >= -30) {
-        reminders.push({ level: 'warn', text: `${label}: Garantie ist abgelaufen (seit ${Math.abs(g.tage)} Tagen).` });
+        reminders.push({ level: 'warn', schluessel: `garantie-${d.id}`, text: `${label}: Garantie ist abgelaufen (seit ${Math.abs(g.tage)} Tagen).` });
       }
     }
   }
@@ -81,6 +83,7 @@ export function getReminders(
     if (lastBackupAt === null) {
       reminders.push({
         level: 'warn',
+        schluessel: 'sicherung',
         text: 'Noch nie gesichert. Deine Flugdaten liegen nur in diesem Browser — einmal exportieren.',
       });
     } else {
@@ -88,11 +91,13 @@ export function getReminders(
       if (tage >= Math.max(90, sicherungsIntervallTage * 3)) {
         reminders.push({
           level: 'alert',
+          schluessel: 'sicherung',
           text: `Letzte Sicherung vor ${tage} Tagen. Höchste Zeit für einen Export.`,
         });
       } else if (tage >= sicherungsIntervallTage) {
         reminders.push({
           level: 'warn',
+          schluessel: 'sicherung',
           text: `Letzte Sicherung vor ${tage} Tagen. Ein Export wäre wieder fällig.`,
         });
       }

@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import {
   BadgeAlert, Calendar, Camera, Clock, Plane, Plus, Settings2,
   ShieldAlert, Sparkles, Trash2, Wrench, X, XCircle, Zap,
@@ -8,7 +7,7 @@ import {
   dbService, type Drone, type Battery, type MaintenanceRecord,
   type Flight, type UASClass,
 } from '../services/db';
-import { bestaetige } from '../services/dialog';
+import { zeigeRueckgaengig } from '../services/rueckgaengig';
 import { wartungStatus, garantieStatus, gesamtKosten } from '../services/maintenance';
 import { effektiveGesundheit } from '../services/batteryHealth';
 import { cn } from '../lib/utils';
@@ -249,18 +248,25 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
     onUpdate();
   };
 
+  // Sofort löschen, ein paar Sekunden „Rückgängig“ anbieten (statt vorher zu fragen).
   const handleDelete = async (id: string) => {
-    if (await bestaetige('Drohne wirklich löschen?', { gefaehrlich: true })) {
-      await dbService.deleteDrone(id);
+    const drohne = drones.find(d => d.id === id);
+    await dbService.deleteDrone(id);
+    onUpdate();
+    if (drohne) zeigeRueckgaengig(tx(`${drohne.model} gelöscht`, `${drohne.model} deleted`), async () => {
+      await dbService.saveDrone(drohne);
       onUpdate();
-    }
+    });
   };
 
   const handleDeleteBattery = async (id: string) => {
-    if (await bestaetige('Akku wirklich löschen?', { gefaehrlich: true })) {
-      await dbService.deleteBattery(id);
+    const akku = batteries.find(b => b.id === id);
+    await dbService.deleteBattery(id);
+    onUpdate();
+    if (akku) zeigeRueckgaengig(tx(`Akku ${akku.number} gelöscht`, `Battery ${akku.number} deleted`), async () => {
+      await dbService.saveBattery(akku);
       onUpdate();
-    }
+    });
   };
 
   return (
@@ -288,11 +294,8 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
 
       {/* Sammelhinweis: welche Drohnen Wartung brauchen */}
       {drones.some(d => getMaintenanceAlerts(d.id).length > 0) && (
-        <motion.div
-          initial={{ y: -12, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-3xl"
-        >
+        <div
+          className="ansicht-blenden mb-6 p-4 bg-amber-50 border border-amber-200 rounded-3xl">
           <div className="flex items-center gap-2 mb-1">
             <BadgeAlert className="w-4 h-4 text-amber-800" />
             <h3 className="text-sm font-bold text-amber-800">{tx('Wartung erforderlich', 'Maintenance required')}</h3>
@@ -309,17 +312,11 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               </button>
             ))}
           </div>
-        </motion.div>
+        </div>
       )}
-
-      <AnimatePresence>
         {showAdd && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden mb-6"
-          >
+          <div
+            className="ansicht-blenden overflow-hidden mb-6">
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <h3 className="text-base font-black text-slate-900">
                 {editingDroneId ? tx('Drohne bearbeiten', 'Edit drone') : tx('Neue Drohne registrieren', 'Register new drone')}
@@ -437,9 +434,8 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 {editingDroneId ? tx('Änderungen speichern', 'Save changes') : tx('Drohne registrieren', 'Register drone')}
               </Knopf>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       <div className="space-y-3 mb-10">
         {drones.map(drone => {
@@ -739,9 +735,14 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                     aria-label={tx('Eintrag löschen', 'Delete entry')}
                     className="sm:opacity-0 sm:group-hover:opacity-100"
                     onClick={async () => {
+                      // Wartungseinträge wurden früher ohne Rückfrage endgültig gelöscht.
+                      const drohnenId = selectedDroneId;
                       await dbService.deleteMaintenance(item.id);
-                      const updated = await dbService.getMaintenance(selectedDroneId);
-                      setMaintenance(updated);
+                      setMaintenance(await dbService.getMaintenance(drohnenId));
+                      zeigeRueckgaengig(tx('Wartungseintrag gelöscht', 'Maintenance entry deleted'), async () => {
+                        await dbService.saveMaintenance(item);
+                        setMaintenance(await dbService.getMaintenance(drohnenId));
+                      });
                     }}
                   />
                 </div>
@@ -766,15 +767,9 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
           }
         />
       </div>
-
-      <AnimatePresence>
         {showAddBattery && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden mb-6"
-          >
+          <div
+            className="ansicht-blenden overflow-hidden mb-6">
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <Feld label={tx('Akku Nummer / Name', 'Battery number / name')} htmlFor="ak-name">
                 <input
@@ -788,9 +783,8 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               </Feld>
               <Knopf voll onClick={handleAddBattery}>{tx('Akku registrieren', 'Register battery')}</Knopf>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
 
       <div className="grid grid-cols-2 gap-3">
         {batteries.map(battery => {

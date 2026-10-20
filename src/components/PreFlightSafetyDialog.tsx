@@ -68,8 +68,8 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
 
   return (
     <Dialog
-      titel={tx('Vorflug-Check & Score', 'Pre-flight check & score')}
-      untertitel={tx('Vorflug-Sicherheitsanalyse & Live Kp-Index', 'Pre-flight safety analysis & live Kp index')}
+      titel={tx('Vorflug-Check & Sicherheitswert', 'Pre-flight check & score')}
+      untertitel={tx('Wetter, Wind und aktueller Kp-Index', 'Pre-flight safety analysis & live Kp index')}
       icon={ShieldCheck}
       ton="blau"
       breite="lg"
@@ -86,15 +86,15 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
           <div>
             <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
             <h3 className="text-lg font-black text-slate-900 leading-tight">
-              {safety.status === 'SAFE' && '🟢 Startfreigabe optimal'}
-              {safety.status === 'WARNING' && '🟡 Erhöhte Aufmerksamkeit'}
-              {safety.status === 'CRITICAL' && '🔴 Hohes Risiko – Start abgeraten'}
+              {safety.status === 'SAFE' && tx('Gute Bedingungen', 'Good conditions')}
+              {safety.status === 'WARNING' && tx('Erhöhte Aufmerksamkeit', 'Extra caution')}
+              {safety.status === 'CRITICAL' && tx('Hohes Risiko – vom Start abgeraten', 'High risk – take-off not advised')}
             </h3>
             <p className="text-xs text-slate-500 mt-1">{tx('Wetter · Wind · Solarsturm · Akku', 'Weather · wind · solar storm · battery')}</p>
           </div>
           <div className={`w-20 h-20 shrink-0 rounded-2xl border-2 flex flex-col items-center justify-center font-black ${getScoreColor(safety.score)}`}>
             <span className="text-2xl leading-none">{safety.score}%</span>
-            <span className="text-2xs uppercase tracking-wider mt-1">Score</span>
+            <span className="text-2xs mt-1">{tx('Sicherheit', 'Safety')}</span>
           </div>
         </div>
         {/* Score progress bar */}

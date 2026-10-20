@@ -54,7 +54,7 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
             groesse="sm"
             voll
             icon={RotateCcw}
-            onClick={async () => { if (await bestaetige('Diese Liste auf die Standardpunkte zurücksetzen?')) anwenden(setzeZurueck(art)); }}
+            onClick={async () => { if (await bestaetige(tx('Diese Liste auf die Standardpunkte zurücksetzen?', 'Reset this list to the default items?'))) anwenden(setzeZurueck(art)); }}
           >
             {tx('Auf Standard zurücksetzen', 'Reset to default')}
           </Knopf>

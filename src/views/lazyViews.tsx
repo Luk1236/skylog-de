@@ -38,3 +38,4 @@ export const RoadmapView = lazyAnsicht(() => import('./RoadmapView').then(m => (
 export const KnowledgeView = lazyAnsicht(() => import('./InfoViews').then(m => ({ default: m.KnowledgeView })));
 export const InventoryView = lazyAnsicht(() => import('./InfoViews').then(m => ({ default: m.InventoryView })));
 export const PilotsView = lazyAnsicht(() => import('./InfoViews').then(m => ({ default: m.PilotsView })));
+export const EinstellungenView = lazyAnsicht(() => import('./EinstellungenView').then(m => ({ default: m.EinstellungenView })));

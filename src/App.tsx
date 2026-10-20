@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Package, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Layers, DownloadCloud, Globe2, PlusCircle, DatabaseBackup, type LucideIcon } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import {
+  Plane, Map as MapIcon, Book, Settings, ShieldCheck, AlertTriangle, User, ShieldAlert, Library, History,
+  TrendingUp, Package, QrCode, Route, LayoutGrid, Building2, Shield, Layers, PlusCircle, DatabaseBackup,
+  Scale, ClipboardCheck, CircleUser,
+} from 'lucide-react';
 
-import { cn } from './lib/utils';
-import { Dialog } from './components/ui';
+import { Dialog, Knopf } from './components/ui';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile } from './services/db';
 import { fetchWeather, type WeatherData } from './services/weather';
 
@@ -12,58 +13,35 @@ import { getLastBackupAt } from './services/backup';
 import { getSicherungsIntervall } from './services/sicherungsErinnerung';
 import { planeBenachrichtigungen, synchronisiereBenachrichtigungen } from './services/benachrichtigungen';
 import { getReminders } from './services/reminders';
+import { sichtbareHinweise } from './services/ausgeblendeteHinweise';
+import { startOrt } from './services/startOrt';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
-import { SprachProvider, useSprache } from './lib/sprache';
+import { SprachProvider } from './lib/sprache';
+import type { View } from './lib/ansichten';
 import { DialogHost } from './components/DialogHost';
-
-import { OfflineBasemap } from './components/OfflineBasemap';
-import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from './services/offlineBasemap';
-import { EuZoneLayer } from './components/EuZoneLayer';
-import { zonenInUmkreis, parseEd269, type Ed269Zone } from './services/ed269';
-import { laenderFuerKoordinate, quelleFuer, istErfundeneErsatzzone } from './services/euZones';
-import { Capacitor } from '@capacitor/core';
-import { regionenFuerStandort } from './services/mapRegions';
-import { karteFuerStandort, alsPmtiles } from './services/mapDownload';
-import type { PMTiles } from 'pmtiles';
+import { HinweisLeiste } from './components/HinweisLeiste';
+import { DroneMap } from './components/DroneMap';
+import { MehrSheet, NavButton, SeitenleistenMenue, type MenueEintrag, type MenueGruppe } from './components/AppNavigation';
 
 import { PinLockDialog } from './components/PinLockDialog';
 // Modale Dialoge: lazy geladen, um das Haupt-Bundle klein zu halten (s. lazyDialogs.tsx).
-import { OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog, SoraWizardDialog, DatensicherungDialog, EinrichtungsAssistent, StaffelMatrixDialog, PreFlightSafetyDialog, ManualLocationDialog } from './components/lazyDialogs';
+import {
+  FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog,
+  SoraWizardDialog, DatensicherungDialog, EinrichtungsAssistent, StaffelMatrixDialog, PreFlightSafetyDialog,
+  ManualLocationDialog, RiskAssessmentDialog, IncidentReportDialog,
+} from './components/lazyDialogs';
 // Ansichten ausser der Startkarte: lazy geladen (s. lazyViews.tsx).
 import {
-  KnowledgeView, InventoryView, PilotsView, RoadmapView, SafetyView, ProfileView, GarageView, LogbookView,
+  KnowledgeView, InventoryView, PilotsView, RoadmapView, SafetyView, ProfileView, EinstellungenView, GarageView, LogbookView,
 } from './views/lazyViews';
 import { isPinEnabled } from './services/pinProtection';
 import type { LocationFavorite, Customer } from './services/db';
-import L from 'leaflet';
 
-// Custom Svg Icon for the user location
-const droneIcon = L.divIcon({
-  html: `<div class="bg-brand-blue w-6 h-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-          <div class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-         </div>`,
-  className: 'custom-div-icon',
-  iconSize: [24, 24],
-  iconAnchor: [12, 12]
-});
-
-const flightHistoryIcon = L.divIcon({
-  html: `<div style="background:#10b981;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-  className: 'custom-div-icon',
-  iconSize: [12, 12],
-  iconAnchor: [6, 6]
-});
-
-const favoriteLocationIcon = L.divIcon({
-  html: `<div style="background:#f59e0b;width:18px;height:18px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;">★</div>`,
-  className: 'custom-div-icon',
-  iconSize: [18, 18],
-  iconAnchor: [9, 9]
-});
-
-type View = 'map' | 'garage' | 'logbook' | 'profile' | 'knowledge' | 'roadmap' | 'safety' | 'inventory' | 'pilots';
+// Ansichten, die nicht fest unten stehen, sondern hinter „Mehr" liegen - der
+// „Mehr"-Knopf wird aktiv, sobald eine davon offen ist.
+const MEHR_VIEWS: View[] = ['inventory', 'pilots', 'knowledge', 'roadmap', 'profile', 'settings'];
 
 export default function App() {
   const [activeView, setActiveView] = useState<View>('map');
@@ -74,13 +52,16 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [location, setLocation] = useState<[number, number]>([52.52, 13.40]);
   const [isLocating, setIsLocating] = useState(false);
-  const [gpsError, setGpsError] = useState<string | null>(null);
+  const [gpsFehler, setGpsFehler] = useState<'verweigert' | 'timeout' | null>(null);
   const [showManualLocation, setShowManualLocation] = useState(false);
   // Merkt sich, ob der Standort von Hand gesetzt wurde. Dann nervt die
   // wiederkehrende GPS-Abfrage nicht mehr mit dem Fehler-Banner und
   // überschreibt den gewählten Ort nicht. Ref statt State, weil die
   // Tracking-Schleife (useEffect mit []) den aktuellen Wert lesen muss.
   const manuellerStandort = useRef(false);
+  // Echtes GPS hat Vorrang vor dem Startort aus den eigenen Flügen.
+  const gpsFix = useRef(false);
+  const startOrtGeprueft = useRef(false);
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -96,8 +77,12 @@ export default function App() {
   const [showCloudBackup, setShowCloudBackup] = useState(false);
   const [showStaffelMatrix, setShowStaffelMatrix] = useState(false);
   const [showPreFlightSafety, setShowPreFlightSafety] = useState(false);
+  const [showRisiko, setShowRisiko] = useState(false);
+  const [showVorfall, setShowVorfall] = useState(false);
   const [showMehr, setShowMehr] = useState(false);
   const [showPlaner, setShowPlaner] = useState(false);
+  // „Flug loggen" auf der Karte öffnet das Logbuch gleich mit dem Formular.
+  const [logbuchMitFormular, setLogbuchMitFormular] = useState(false);
   const [theme, setTheme] = useState<Theme>(() => ladeTheme());
   const [sprache, setSprache] = useState<Sprache>(() => ladeSprache());
   // Kurzform fuer die Uebersetzung in dieser Komponente.
@@ -131,9 +116,10 @@ export default function App() {
         (pos) => {
           // Echtes GPS ist verfügbar — es hat Vorrang, der Handbetrieb endet.
           manuellerStandort.current = false;
+          gpsFix.current = true;
           const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
           setLocation(newLoc);
-          setGpsError(null);
+          setGpsFehler(null);
           setIsLocating(false);
           // Update weather on first call, then every 6th tick (= every 60 seconds)
           if (weatherTickCounter === 0) {
@@ -145,8 +131,8 @@ export default function App() {
           setIsLocating(false);
           // Nach manuell gesetztem Standort nicht weiter mit dem Banner nerven.
           if (manuellerStandort.current) return;
-          if (err.code === 1) setGpsError('GPS-Zugriff verweigert. Bitte Standort in den Browser-Einstellungen erlauben.');
-          else if (err.code === 3) setGpsError('GPS-Timeout. Standort konnte nicht ermittelt werden.');
+          if (err.code === 1) setGpsFehler('verweigert');
+          else if (err.code === 3) setGpsFehler('timeout');
         },
         { enableHighAccuracy: true, timeout: 8000 }
       );
@@ -174,6 +160,8 @@ export default function App() {
       setShowCloudBackup(false);
       setShowStaffelMatrix(false);
       setShowPreFlightSafety(false);
+      setShowRisiko(false);
+      setShowVorfall(false);
       setShowMehr(false);
       setShowPlaner(false);
     };
@@ -200,6 +188,15 @@ export default function App() {
     setCustomers(custs);
     setIsLoading(false);
     if (!p && d.length === 0) setShowOnboarding(true);
+    // Ohne GPS nicht in Berlin starten, sondern dort, wo geflogen wird.
+    if (!startOrtGeprueft.current) {
+      startOrtGeprueft.current = true;
+      const ort = !gpsFix.current && !manuellerStandort.current ? startOrt(favs, f) : null;
+      if (ort) {
+        setLocation(ort);
+        fetchWeather(ort[0], ort[1]).then(setWeather);
+      }
+    }
   }
 
   const handleLocate = () => {
@@ -207,6 +204,7 @@ export default function App() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        gpsFix.current = true;
         setLocation(newLoc);
         fetchWeather(newLoc[0], newLoc[1]).then(setWeather);
         setIsLocating(false);
@@ -216,29 +214,64 @@ export default function App() {
     );
   };
 
-  // Reminders in Root-Scope: wird für NavBar-Badges benötigt
+  // Reminders in Root-Scope: wird für NavBar-Badges benötigt. Ausgeblendete
+  // („in 7 Tagen erinnern") zählen nicht mit.
   const appReminders = useMemo(
-    () => getReminders(profile, drones, batteries, getLastBackupAt(), Date.now(), getSicherungsIntervall()),
+    () => sichtbareHinweise(getReminders(profile, drones, batteries, getLastBackupAt(), Date.now(), getSicherungsIntervall())),
     [profile, drones, batteries]
   );
   // Dringende Erinnerungen (level 'alert') als roter Zaehler in der Navigation.
-  // Frueher stand hier r.priority === 'high' - das Feld gibt es nicht, der Zaehler blieb immer leer.
   const highPrioCount = appReminders.filter(r => r.level === 'alert').length;
 
   const ansichtTitel: string = {
     map: t('nav.karte'), logbook: t('nav.logbuch'), garage: t('nav.flotte'), safety: t('nav.safety'),
     inventory: t('nav.inventar'), pilots: t('nav.piloten'), knowledge: t('nav.lbaInfo'),
-    roadmap: t('nav.roadmap'), profile: t('nav.profil'),
+    roadmap: t('nav.roadmap'), profile: t('nav.profil'), settings: t('nav.einstellungen'),
   }[activeView];
 
-  // Werkzeuge hinter „Mehr" (Handy) bzw. direkt in der Seitenleiste (Laptop).
-  const werkzeuge: Werkzeug[] = [
-    { icon: ShieldCheck, farbe: 'text-brand-blue', label: tx('Vorflug-Check & Kp-Index', 'Pre-flight check & Kp index'), oeffnen: () => setShowPreFlightSafety(true) },
-    { icon: Building2, farbe: 'text-brand-blue', label: tx('Kunden (CRM)', 'Customers (CRM)'), oeffnen: () => setShowCustomerManager(true) },
-    { icon: Shield, farbe: 'text-brand-blue', label: tx('SORA-2.5-Assistent (PDF)', 'SORA 2.5 assistant (PDF)'), oeffnen: () => setShowSoraWizard(true) },
-    { icon: DatabaseBackup, farbe: 'text-brand-blue', label: tx('Datensicherung & Erinnerung', 'Backup & reminder'), oeffnen: () => setShowCloudBackup(true) },
-    { icon: Layers, farbe: 'text-brand-blue', label: tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix'), oeffnen: () => setShowStaffelMatrix(true) },
+  // Ein Menü für alles, nach dem Ablauf geordnet - im Mehr-Blatt (Handy) und
+  // in der Seitenleiste (Laptop) gleich.
+  const menue: MenueGruppe[] = [
+    {
+      titel: tx('Vor dem Flug', 'Before the flight'),
+      eintraege: [
+        { id: 'vorflug', icon: ShieldCheck, label: tx('Vorflug-Check & Kp-Index', 'Pre-flight check & Kp index'), oeffnen: () => setShowPreFlightSafety(true) },
+        { id: 'planer', icon: Route, label: tx('Flugplaner', 'Flight planner'), oeffnen: () => setShowPlaner(true) },
+        { id: 'risiko', icon: Scale, label: tx('Risiko-Check', 'Risk check'), oeffnen: () => setShowRisiko(true) },
+        { id: 'sora', icon: Shield, label: tx('SORA-2.5-Assistent (PDF)', 'SORA 2.5 assistant (PDF)'), oeffnen: () => setShowSoraWizard(true) },
+      ],
+    },
+    {
+      titel: tx('Nach dem Flug', 'After the flight'),
+      eintraege: [
+        { id: 'vorfall', icon: ClipboardCheck, label: tx('Vorfall-Bericht', 'Incident report'), oeffnen: () => setShowVorfall(true) },
+        { id: 'sicherung', icon: DatabaseBackup, label: tx('Datensicherung & Erinnerung', 'Backup & reminder'), oeffnen: () => setShowCloudBackup(true) },
+      ],
+    },
+    {
+      titel: tx('Verwaltung', 'Management'),
+      eintraege: [
+        { id: 'inventory', icon: Package, label: t('nav.inventar'), view: 'inventory' },
+        { id: 'pilots', icon: User, label: t('nav.piloten'), view: 'pilots' },
+        { id: 'kunden', icon: Building2, label: tx('Kunden (CRM)', 'Customers (CRM)'), oeffnen: () => setShowCustomerManager(true) },
+        { id: 'staffel', icon: Layers, label: tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix'), oeffnen: () => setShowStaffelMatrix(true) },
+      ],
+    },
+    {
+      titel: tx('Wissen & Konto', 'Knowledge & account'),
+      eintraege: [
+        { id: 'knowledge', icon: Library, label: t('nav.lbaInfo'), view: 'knowledge' },
+        { id: 'profile', icon: CircleUser, label: t('nav.profil'), view: 'profile' },
+        { id: 'settings', icon: Settings, label: t('nav.einstellungen'), view: 'settings' },
+        { id: 'roadmap', icon: TrendingUp, label: t('nav.roadmap'), view: 'roadmap' },
+      ],
+    },
   ];
+  const waehle = (e: MenueEintrag) => {
+    setShowMehr(false);
+    if (e.view) setActiveView(e.view);
+    else e.oeffnen?.();
+  };
 
   // Android: Fristen als echte Benachrichtigungen planen (im Browser ohne Wirkung).
   // Erst nach dem Laden - sonst wuerden leere Listen alle geplanten Termine loeschen.
@@ -256,10 +289,18 @@ export default function App() {
           <Plane className="w-14 h-14 text-white animate-pulse" />
         </div>
         <h1 className="text-white font-black text-2xl tracking-tight">SkyLog DE</h1>
-        <p className="text-blue-200 text-xs font-bold uppercase tracking-wider">{tx('Wird geladen…', 'Loading…')}</p>
+        <p className="text-blue-200 text-sm font-bold">{tx('Wird geladen …', 'Loading …')}</p>
       </div>
     );
   }
+
+  const lizenzTage = profile?.licenseExpiry
+    ? Math.ceil((new Date(profile.licenseExpiry).getTime() - Date.now()) / 86400000)
+    : null;
+  const letzterFlug = [...flights].sort((a, b) => b.createdAt - a.createdAt)[0];
+  const letzteDrohne = letzterFlug ? drones.find(d => d.id === letzterFlug.droneId) : undefined;
+  // Seitenwechsel: kurze Einblendung per CSS (vorher die motion-Bibliothek im Erststart).
+  const ansichtKlasse = 'absolute inset-0 overflow-y-auto p-4 bg-slate-50 ansicht-ein';
 
   return (
     <SprachProvider sprache={sprache}>
@@ -271,49 +312,50 @@ export default function App() {
       {!isOnline && (
         <div className="bg-amber-700 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 z-50">
           <AlertTriangle className="w-4 h-4 shrink-0" />
-          {tx('Kein Internet — Wetter & NOTAM nicht verfügbar. Logbuch funktioniert offline.', 'No internet — weather & NOTAMs unavailable. The logbook works offline.')}
+          {tx('Kein Internet – Wetter & NOTAM nicht verfügbar. Das Logbuch funktioniert offline.', 'No internet – weather & NOTAMs unavailable. The logbook works offline.')}
         </div>
       )}
 
-      {/* Onboarding Modal */}
+      {/* Begrüßung beim ersten Start - im selben Dialog-Stil wie der Rest */}
       {showOnboarding && (
-        <div className="fixed inset-0 z-[200] bg-brand-blue/95 flex flex-col items-center justify-center p-8 text-center">
-          <div className="bg-white/20 p-5 rounded-3xl mb-6">
-            <Plane className="w-14 h-14 text-white" />
-          </div>
-          <h1 className="text-white font-black text-3xl tracking-tight mb-2">{tx('Willkommen bei', 'Welcome to')}<br/>SkyLog DE</h1>
-          <p className="text-blue-200 text-sm leading-relaxed mb-8 max-w-xs">{tx('Dein digitales Flugbuch für Drohnen. Starte mit deinem Piloten-Profil.', 'Your digital drone logbook. Start with your pilot profile.')}</p>
-          <div className="space-y-3 w-full max-w-xs">
-            <button
-              onClick={() => { setShowOnboarding(false); setShowEinrichtung(true); }}
-              className="w-full bg-white text-brand-blue font-black py-4 rounded-2xl shadow-xl text-sm uppercase tracking-wider active:scale-95 transition-all"
-            >
+        <Dialog
+          titel={tx('Willkommen bei SkyLog DE', 'Welcome to SkyLog DE')}
+          untertitel={tx('Dein digitales Flugbuch für Drohnen', 'Your digital drone logbook')}
+          icon={Plane}
+          breite="sm"
+          onClose={() => setShowOnboarding(false)}
+          schliesstBeiKlickDaneben={false}
+        >
+          <p className="text-sm text-slate-600 leading-relaxed">
+            {tx('Leg dein Pilotenprofil an – oder schau dir die App erst mit Beispieldaten an. Alles lässt sich später ändern.', 'Set up your pilot profile – or try the app with sample data first. You can change everything later.')}
+          </p>
+          <div className="space-y-2">
+            <Knopf voll onClick={() => { setShowOnboarding(false); setShowEinrichtung(true); }}>
               {tx('Profil einrichten', 'Set up profile')}
-            </button>
-            <button
+            </Knopf>
+            <Knopf
+              variante="sekundaer"
+              voll
               disabled={ladeDemo}
               onClick={async () => {
                 setLadeDemo(true);
                 const { ladeBeispieldaten } = await import('./services/demoDaten');
                 await ladeBeispieldaten();
+                startOrtGeprueft.current = false;
                 await loadData();
                 setLadeDemo(false);
                 setShowOnboarding(false);
                 setActiveView('logbook');
               }}
-              className="w-full bg-white/15 text-white font-bold py-3 rounded-2xl text-xs uppercase tracking-wider border border-white/30 active:scale-95 transition-all disabled:opacity-60"
             >
               {ladeDemo ? tx('Lädt …', 'Loading …') : tx('Mit Beispieldaten ausprobieren', 'Try with sample data')}
-            </button>
-            <button
-              onClick={() => setShowOnboarding(false)}
-              className="w-full text-blue-200 font-bold py-2 text-xs uppercase tracking-wider"
-            >
+            </Knopf>
+            <Knopf variante="geist" voll onClick={() => setShowOnboarding(false)}>
               {tx('Später', 'Later')}
-            </button>
+            </Knopf>
           </div>
-          <p className="text-blue-300 text-2xs mt-8">{tx('Alle Daten bleiben lokal auf deinem Gerät', 'All data stays on your device')}</p>
-        </div>
+          <p className="text-xs text-slate-500 text-center">{tx('Alle Daten bleiben lokal auf deinem Gerät.', 'All data stays on your device.')}</p>
+        </Dialog>
       )}
 
       {/* Header */}
@@ -328,7 +370,7 @@ export default function App() {
           </div>
           <div>
             <h1 className="font-bold text-lg leading-none tracking-tight">SkyLog DE</h1>
-            <p className="text-2xs text-blue-200 uppercase tracking-wider font-medium">{t('app.untertitel')}</p>
+            <p className="text-xs text-blue-200 font-medium mt-0.5">{t('app.untertitel')}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -342,7 +384,8 @@ export default function App() {
           <button
             onClick={() => setShowBehoerdenCheck(true)}
             aria-label={t('a11y.behoerdenCheck')}
-            className="p-2 hover:bg-white/10 rounded-full transition-colors"
+            title={t('a11y.behoerdenCheck')}
+            className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors"
           >
             <QrCode className="w-5 h-5" />
           </button>
@@ -350,183 +393,144 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      {/* Kein mode="wait": bei einer Tab-Leiste soll der Wechsel sofort
-          passieren, nicht erst nach der Ausblend-Animation der alten View.
-          Mit mode="wait" blieb der Wechsel hängen, wenn die Exit-Animation
-          der (schweren) Karten-View nicht sauber abschloss. */}
       <main className="flex-1 relative overflow-hidden">
-        <AnimatePresence>
           {activeView === 'map' && (
-            <motion.div 
-              key="map"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="absolute inset-0"
-            >
+            <div key="map" className="absolute inset-0 ansicht-blenden">
               <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} locationFavorites={locationFavorites} onPlaner={() => setShowPlaner(true)} />
               {/* Kartenelemente bewusst nur z-20/z-30: genug, um ueber der Karte
                   (.leaflet-container z-index 1) zu liegen, aber unter allen Dialogen
-                  (ab z-[60]). Frueher z-[400]/z-[500] - sie verdeckten offene Dialoge. */}
-              {gpsError && (
-                <div className="absolute top-4 left-4 right-4 z-30 bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
+                  (ab z-[60]). */}
+              {gpsFehler && (
+                <div className="absolute top-4 left-4 right-20 z-30 bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span className="flex-1">{gpsError}</span>
+                  <span className="flex-1">
+                    {gpsFehler === 'verweigert'
+                      ? tx('Kein GPS-Zugriff. Erlaube den Standort in den Einstellungen oder setz ihn von Hand.', 'No GPS access. Allow location in your settings or set it by hand.')
+                      : tx('GPS antwortet nicht. Standort konnte nicht ermittelt werden.', 'GPS is not responding. Location could not be determined.')}
+                  </span>
                   <button
                     onClick={() => setShowManualLocation(true)}
-                    className="shrink-0 bg-black/15 hover:bg-black/25 rounded-lg px-2 py-1 text-2xs font-bold"
+                    className="shrink-0 bg-black/15 hover:bg-black/25 rounded-lg px-2 h-8 text-xs font-bold"
                   >
-                    {tx('Manuell setzen', 'Set manually')}
+                    {tx('Von Hand', 'Set manually')}
                   </button>
                 </div>
               )}
-              {(() => {
-                if (!profile?.licenseExpiry) return null;
-                const daysLeft = Math.ceil((new Date(profile.licenseExpiry).getTime() - Date.now()) / 86400000);
-                if (daysLeft > 60) return null;
-                return (
-                  <div className={`absolute ${gpsError ? 'top-16' : 'top-4'} left-4 right-4 z-30 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 ${daysLeft <= 0 ? 'bg-brand-red' : 'bg-amber-500'}`}>
-                    <ShieldAlert className="w-4 h-4 shrink-0" />
-                    {daysLeft <= 0
-                      ? `Fernpiloten-Lizenz abgelaufen! (${profile.licenseType})`
-                      : `Lizenz läuft in ${daysLeft} Tagen ab — ${profile.licenseType}`}
+              {lizenzTage !== null && lizenzTage <= 60 && (
+                <div className={`absolute ${gpsFehler ? 'top-20' : 'top-4'} left-4 right-20 z-30 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 ${lizenzTage <= 0 ? 'bg-brand-red' : 'bg-amber-700'}`}>
+                  <ShieldAlert className="w-4 h-4 shrink-0" />
+                  {lizenzTage <= 0
+                    ? tx(`Kompetenznachweis abgelaufen (${profile?.licenseType})`, `Certificate expired (${profile?.licenseType})`)
+                    : tx(`Kompetenznachweis läuft in ${lizenzTage} Tagen ab (${profile?.licenseType})`, `Certificate expires in ${lizenzTage} days (${profile?.licenseType})`)}
+                </div>
+              )}
+              {/* Letzter Flug: Tipp öffnet das Logbuch */}
+              {letzterFlug && (
+                <button
+                  type="button"
+                  onClick={() => { setLogbuchMitFormular(false); setActiveView('logbook'); }}
+                  className="absolute bottom-24 left-4 right-4 z-20 bg-white/95 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-200 px-4 py-3 flex items-center gap-3 text-left"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0 overflow-hidden">
+                    {letzteDrohne?.photoUrl
+                      ? <img src={letzteDrohne.photoUrl} alt="" className="w-full h-full object-cover" />
+                      : <Plane className="w-4 h-4 text-brand-blue" />}
                   </div>
-                );
-              })()}
-              {/* Letzter Flug Karte */}
-              {(() => {
-                const last = [...flights].sort((a, b) => b.createdAt - a.createdAt)[0];
-                if (!last) return null;
-                const drone = drones.find(d => d.id === last.droneId);
-                return (
-                  <div className="absolute bottom-20 left-4 right-4 z-20 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-100 px-4 py-3 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0">
-                      {drone?.photoUrl
-                        ? <img src={drone.photoUrl} alt="" className="w-full h-full object-cover rounded-xl" />
-                        : <Plane className="w-4 h-4 text-brand-blue" />}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-2xs font-black text-slate-400 uppercase tracking-wider">{tx('Letzter Flug', 'Last flight')}</p>
-                      <p className="text-xs font-bold text-slate-900 truncate">{last.locationName}</p>
-                      <p className="text-2xs text-slate-400">{new Date(last.date).toLocaleDateString('de-DE')} · {last.duration} min · {drone?.model || '—'}</p>
-                    </div>
-                    <History className="w-4 h-4 text-slate-300 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Letzter Flug', 'Last flight')}</p>
+                    <p className="text-sm font-bold text-slate-900 truncate">{letzterFlug.locationName}</p>
+                    <p className="text-xs text-slate-500 truncate">{new Date(letzterFlug.date).toLocaleDateString(sprache === 'en' ? 'en-GB' : 'de-DE')} · {letzterFlug.duration} min · {letzteDrohne?.model || '—'}</p>
                   </div>
-                );
-              })()}
-              {/* Schnell-Log FAB */}
+                  <History className="w-4 h-4 text-slate-400 shrink-0" />
+                </button>
+              )}
+              {/* Flug loggen: öffnet das Logbuch direkt mit dem Formular */}
               <button
-                onClick={() => { setActiveView('logbook'); }}
-                className="absolute bottom-36 right-4 z-20 flex items-center gap-2 bg-brand-blue text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-brand-blue/40 active:scale-95 transition-all hover:bg-brand-blue/90"
-                aria-label={tx('Schnell-Log: Flug hinzufügen', 'Quick log: add flight')}
+                onClick={() => { setLogbuchMitFormular(true); setActiveView('logbook'); }}
+                className={`absolute ${letzterFlug ? 'bottom-44' : 'bottom-24'} right-4 z-20 flex items-center gap-2 bg-brand-blue text-white font-bold text-sm px-4 h-11 rounded-2xl shadow-xl shadow-brand-blue/30 active:scale-95 transition-all hover:bg-brand-blue/90`}
               >
                 <PlusCircle className="w-4 h-4" />
                 {tx('Flug loggen', 'Log flight')}
               </button>
-            </motion.div>
+            </div>
           )}
 
           {activeView === 'garage' && (
-            <motion.div 
-              key="garage"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
+            <div key="garage" className={ansichtKlasse}>
               <GarageView drones={drones} flights={flights} batteries={batteries} onUpdate={loadData} />
-            </motion.div>
+            </div>
           )}
 
           {activeView === 'logbook' && (
-            <motion.div 
-              key="logbook"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
-              <LogbookView flights={flights} drones={drones} batteries={batteries} profile={profile} locationFavorites={locationFavorites} onUpdate={loadData} currentLocation={location} onOpenFavorites={() => setShowLocationFavoritesDialog(true)} />
-            </motion.div>
+            <div key="logbook" className={ansichtKlasse}>
+              <LogbookView flights={flights} drones={drones} batteries={batteries} profile={profile} locationFavorites={locationFavorites} onUpdate={loadData} currentLocation={location} onOpenFavorites={() => setShowLocationFavoritesDialog(true)} formularStart={logbuchMitFormular} />
+            </div>
           )}
 
           {activeView === 'profile' && (
-            <motion.div 
-              key="profile"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
-              <ProfileView profile={profile} documents={documents} onUpdate={loadData} onOpenEid={() => setShowEidDialog(true)} onOpenPinSetup={() => setShowPinSetup(true)} />
-            </motion.div>
+            <div key="profile" className={ansichtKlasse}>
+              <ProfileView profile={profile} documents={documents} onUpdate={loadData} onOpenEid={() => setShowEidDialog(true)} />
+            </div>
+          )}
+
+          {activeView === 'settings' && (
+            <div key="settings" className={ansichtKlasse}>
+              <EinstellungenView
+                profile={profile}
+                onUpdate={loadData}
+                onOpenPinSetup={() => setShowPinSetup(true)}
+                onOpenDatensicherung={() => setShowCloudBackup(true)}
+                sprache={sprache}
+                onSprache={spracheWechseln}
+                theme={theme}
+                onTheme={() => setTheme(toggleTheme(theme))}
+              />
+            </div>
           )}
 
           {activeView === 'knowledge' && (
-            <motion.div 
-              key="knowledge"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
+            <div key="knowledge" className={ansichtKlasse}>
               <KnowledgeView />
-            </motion.div>
+            </div>
           )}
 
           {activeView === 'roadmap' && (
-            <motion.div 
-              key="roadmap"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
+            <div key="roadmap" className={ansichtKlasse}>
               <RoadmapView />
-            </motion.div>
+            </div>
           )}
 
           {activeView === 'safety' && (
-            <motion.div 
-              key="safety"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
-              <SafetyView profile={profile} drones={drones} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} onOpenEid={() => setShowEidDialog(true)} />
-            </motion.div>
+            <div key="safety" className={ansichtKlasse}>
+              <SafetyView profile={profile} drones={drones} standort={location} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} onOpenEid={() => setShowEidDialog(true)} />
+            </div>
           )}
 
           {activeView === 'inventory' && (
-            <motion.div 
-              key="inventory"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
+            <div key="inventory" className={ansichtKlasse}>
               <InventoryView />
-            </motion.div>
+            </div>
           )}
 
           {activeView === 'pilots' && (
-            <motion.div 
-              key="pilots"
-              initial={{ x: 50, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              className="absolute inset-0 overflow-y-auto p-4 bg-slate-50"
-            >
+            <div key="pilots" className={ansichtKlasse}>
               <PilotsView />
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </main>
       </div>
 
       {/* Navigation: unten als Leiste (Handy), links als Seitenleiste (Tablet/
-          Desktop, lg+). Fünf feste Punkte; seltenere Ansichten hinter „Mehr". */}
-      <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:order-first lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:grid-cols-1 lg:content-start lg:border-t-0 lg:border-r lg:pt-6 lg:px-3 lg:gap-1 lg:shadow-none">
+          Desktop, lg+). Fünf feste Punkte; alles Weitere im Menü. */}
+      <nav className="bg-white border-t border-slate-200 px-1 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:order-first lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:grid-cols-1 lg:content-start lg:border-t-0 lg:border-r lg:pt-6 lg:px-3 lg:gap-1 lg:shadow-none">
         {/* Marke: nur in der Desktop-Seitenleiste, zur Orientierung. */}
-        <div className="hidden lg:flex items-center gap-2.5 px-3 pb-4 mb-2 border-b border-slate-100">
+        <div className="hidden lg:flex items-center gap-2.5 px-3 pb-4 mb-2 border-b border-slate-200">
           <div className="bg-brand-blue p-2 rounded-xl shrink-0">
             <Plane className="w-5 h-5 text-white" />
           </div>
           <div className="min-w-0">
             <p className="font-black text-slate-900 leading-none truncate">SkyLog DE</p>
-            <p className="text-2xs text-slate-400 uppercase tracking-wider mt-1">{tx('Flugbuch', 'Logbook')}</p>
+            <p className="text-xs text-slate-500 mt-1">{tx('Drohnen-Flugbuch', 'Drone logbook')}</p>
           </div>
         </div>
         <NavButton
@@ -537,7 +541,7 @@ export default function App() {
         />
         <NavButton
           active={activeView === 'logbook'}
-          onClick={() => setActiveView('logbook')}
+          onClick={() => { setLogbuchMitFormular(false); setActiveView('logbook'); }}
           icon={Book}
           label={t('nav.logbuch')}
           badge={highPrioCount || undefined}
@@ -559,37 +563,18 @@ export default function App() {
           onClick={() => setShowMehr(true)}
           icon={LayoutGrid}
           label={t('nav.mehr')}
-          badge={highPrioCount || undefined}
           className="lg:hidden"
         />
-        {/* Laptop: genug Platz - die seltenen Ansichten, Werkzeuge und
-            Einstellungen stehen direkt hier statt hinter einem Popup. */}
-        <div className="hidden lg:block mt-3 pt-3 border-t border-slate-100 space-y-1">
-          {mehrAnsichten(t).map(({ view, icon, label }) => (
-            <NavButton key={view} active={activeView === view} onClick={() => setActiveView(view)} icon={icon} label={label} />
-          ))}
-          <p className="px-4 pt-4 pb-1 text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Werkzeuge', 'Tools')}</p>
-          {werkzeuge.map(w => (
-            <button key={w.label} onClick={w.oeffnen}
-              className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
-              <w.icon className={cn('w-4 h-4 shrink-0', w.farbe)} />
-              <span className="truncate">{w.label}</span>
-            </button>
-          ))}
-          <p className="px-4 pt-4 pb-1 text-2xs font-bold text-slate-500 uppercase tracking-wider">{t('mehr.einstellungen')}</p>
-          <button onClick={spracheWechseln}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-sm font-bold text-slate-600 hover:bg-slate-50">
-            <Languages className="w-4 h-4 shrink-0 text-slate-500" />
-            <span className="flex-1">{t('mehr.sprache')}</span>
-            <span className="text-xs font-black text-brand-blue">{sprache.toUpperCase()}</span>
-          </button>
-          <button onClick={() => setTheme(toggleTheme(theme))}
-            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-sm font-bold text-slate-600 hover:bg-slate-50">
-            {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0 text-slate-500" /> : <Moon className="w-4 h-4 shrink-0 text-slate-500" />}
-            <span className="flex-1">{t('mehr.design')}</span>
-            <span className="text-xs font-bold text-slate-500">{theme === 'dark' ? t('mehr.dunkel') : t('mehr.hell')}</span>
-          </button>
-        </div>
+        {/* Laptop: genug Platz - das ganze Menü steht direkt hier. */}
+        <SeitenleistenMenue
+          gruppen={menue}
+          activeView={activeView}
+          onWaehle={waehle}
+          theme={theme}
+          sprache={sprache}
+          onTheme={() => setTheme(toggleTheme(theme))}
+          onSprache={spracheWechseln}
+        />
       </nav>
 
       {showPlaner && (
@@ -607,7 +592,7 @@ export default function App() {
           onPick={(lat, lon) => {
             manuellerStandort.current = true;
             setLocation([lat, lon]);
-            setGpsError(null);
+            setGpsFehler(null);
             fetchWeather(lat, lon).then(setWeather);
             setShowManualLocation(false);
           }}
@@ -619,6 +604,7 @@ export default function App() {
         <BehoerdenCheckDialog
           profile={profile}
           drohnen={drones}
+          dokumente={documents}
           onClose={() => setShowBehoerdenCheck(false)}
         />
       )}
@@ -716,7 +702,16 @@ export default function App() {
         />
       )}
 
+      {showRisiko && (
+        <RiskAssessmentDialog drohnen={drones} onClose={() => setShowRisiko(false)} />
+      )}
+
+      {showVorfall && (
+        <IncidentReportDialog profile={profile} drohnen={drones} onClose={() => setShowVorfall(false)} />
+      )}
+
       <DialogHost />
+      <HinweisLeiste />
 
       {showEinrichtung && (
         <EinrichtungsAssistent
@@ -727,461 +722,17 @@ export default function App() {
 
       {showMehr && (
         <MehrSheet
+          gruppen={menue}
           activeView={activeView}
+          onWaehle={waehle}
+          onClose={() => setShowMehr(false)}
           theme={theme}
           sprache={sprache}
-          onWaehle={(v) => { setActiveView(v); setShowMehr(false); }}
           onTheme={() => setTheme(toggleTheme(theme))}
           onSprache={spracheWechseln}
-          werkzeuge={werkzeuge.map(w => ({ ...w, oeffnen: () => { setShowMehr(false); w.oeffnen(); } }))}
-          onClose={() => setShowMehr(false)}
         />
       )}
     </div>
     </SprachProvider>
   );
 }
-
-// Ansichten, die nicht mehr fest unten stehen, sondern hinter „Mehr" liegen.
-// Eigene Konstante, damit der „Mehr"-Knopf zuverlässig aktiv wird, sobald eine
-// davon offen ist — ohne die Liste an zwei Stellen pflegen zu müssen.
-const MEHR_VIEWS: View[] = ['inventory', 'pilots', 'knowledge', 'roadmap', 'profile'];
-
-interface Werkzeug { icon: LucideIcon; farbe: string; label: string; oeffnen: () => void }
-
-/** Die selteneren Ansichten - im Mehr-Blatt (Handy) und in der Seitenleiste (Laptop). */
-function mehrAnsichten(t: (key: string) => string): { view: View; icon: LucideIcon; label: string }[] {
-  return [
-    { view: 'inventory', icon: Package, label: t('nav.inventar') },
-    { view: 'pilots', icon: User, label: t('nav.piloten') },
-    { view: 'knowledge', icon: Library, label: t('nav.lbaInfo') },
-    { view: 'roadmap', icon: TrendingUp, label: t('nav.roadmap') },
-    { view: 'profile', icon: Settings, label: t('nav.profil') },
-  ];
-}
-
-/** Das „Mehr"-Blatt (nur Handy): die selteneren Ansichten, die Werkzeuge und
- *  die zwei Schnelleinstellungen (Sprache, Design). */
-function MehrSheet({
-  activeView,
-  theme,
-  sprache,
-  onWaehle,
-  onTheme,
-  onSprache,
-  werkzeuge,
-  onClose,
-}: {
-  activeView: View;
-  theme: Theme;
-  sprache: Sprache;
-  onWaehle: (v: View) => void;
-  onTheme: () => void;
-  onSprache: () => void;
-  werkzeuge: Werkzeug[];
-  onClose: () => void;
-}) {
-  const { t, tx } = useSprache();
-  const eintraege = mehrAnsichten(t);
-
-  return (
-    <Dialog titel={t('nav.mehr')} icon={LayoutGrid} onClose={onClose}>
-          <div>
-            <p className="text-2xs font-bold text-brand-blue uppercase tracking-wider px-1 mb-1.5">{tx('Werkzeuge', 'Tools')}</p>
-            <div className="space-y-1.5">
-              {werkzeuge.map(w => (
-                <button
-                  key={w.label}
-                  onClick={w.oeffnen}
-                  className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-                >
-                  <w.icon className={cn('w-5 h-5 shrink-0', w.farbe)} />
-                  <span className="text-sm font-bold flex-1 text-slate-800">{w.label}</span>
-                  <ChevronRight className="w-4 h-4 text-slate-300" />
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Ansichten */}
-          <div className="space-y-1.5">
-            {eintraege.map(({ view, icon: Icon, label }) => (
-              <button
-                key={view}
-                onClick={() => onWaehle(view)}
-                className={cn(
-                  'w-full flex items-center gap-3 rounded-2xl border px-4 py-3 text-left transition-colors',
-                  activeView === view
-                    ? 'bg-brand-blue/10 border-brand-blue/30'
-                    : 'bg-white border-slate-200 hover:bg-slate-50'
-                )}
-              >
-                <Icon className={cn('w-5 h-5 shrink-0', activeView === view ? 'text-brand-blue' : 'text-slate-400')} />
-                <span className={cn('text-sm font-bold flex-1', activeView === view ? 'text-brand-blue' : 'text-slate-700')}>{label}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </button>
-            ))}
-          </div>
-
-          {/* Schnelleinstellungen */}
-          <div>
-            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">{t('mehr.einstellungen')}</p>
-            <div className="space-y-1.5">
-              <button
-                onClick={onSprache}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                <Languages className="w-5 h-5 shrink-0 text-slate-400" />
-                <span className="text-sm font-bold flex-1 text-slate-700">{t('mehr.sprache')}</span>
-                <span className="text-xs font-black text-brand-blue tracking-wider">{sprache.toUpperCase()}</span>
-              </button>
-              <button
-                onClick={onTheme}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0 text-slate-400" /> : <Moon className="w-5 h-5 shrink-0 text-slate-400" />}
-                <span className="text-sm font-bold flex-1 text-slate-700">{t('mehr.design')}</span>
-                <span className="text-xs font-bold text-slate-400">
-                  {theme === 'dark' ? t('mehr.dunkel') : t('mehr.hell')}
-                </span>
-              </button>
-            </div>
-          </div>
-    </Dialog>
-  );
-}
-
-function NavButton({ active, onClick, icon: Icon, label, badge, className }: { active: boolean, onClick: () => void, icon: LucideIcon, label: string, badge?: number, className?: string }) {
-  return (
-    <button 
-      onClick={onClick}
-      className={cn(
-        className,
-        "flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-2xl transition-all duration-200 touch-shrink relative",
-        "lg:flex-row lg:justify-start lg:gap-3 lg:w-full lg:px-4 lg:py-2.5 lg:rounded-xl",
-        active ? "text-brand-blue lg:bg-brand-blue/10" : "text-slate-400 hover:text-slate-600 lg:hover:bg-slate-50"
-      )}
-    >
-      {active && (
-        <span className="absolute -top-1 w-6 h-1 bg-brand-blue rounded-full shadow-sm shadow-brand-blue/50 lg:top-1/2 lg:-translate-y-1/2 lg:left-0 lg:w-1 lg:h-7" />
-      )}
-      <div className={cn(
-        "p-1.5 rounded-xl transition-all duration-200 relative",
-        active ? "bg-brand-blue/12 scale-110 shadow-sm" : "bg-transparent"
-      )}>
-        <Icon className={cn("w-5 h-5 transition-transform", active ? "stroke-[2.5px]" : "stroke-[1.75px]")} />
-        {badge != null && badge > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] bg-red-500 text-white text-2xs font-black rounded-full flex items-center justify-center px-[3px] leading-none shadow-md border border-white">
-            {badge > 9 ? '9+' : badge}
-          </span>
-        )}
-      </div>
-      <span className={cn("text-2xs lg:text-sm font-bold uppercase tracking-wider transition-opacity", active ? "opacity-100 font-extrabold" : "opacity-70")}>{label}</span>
-    </button>
-  );
-}
-
-function DroneMap({ location, onLocate, isLocating, weather, flights, locationFavorites = [], onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], locationFavorites?: LocationFavorite[], onPlaner: () => void }) {
-  const { t, tx } = useSprache();
-  const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
-  // Grundkarte waehlen. Reihenfolge: heruntergeladene Region (beste, weil
-  // offline und vom Nutzer bewusst geholt) > mitgelieferte Datei > online.
-  const [offlineKarte, setOfflineKarte] = useState(false);
-  const [geladeneKarte, setGeladeneKarte] = useState<PMTiles | null>(null);
-  const [zeigeKarten, setZeigeKarten] = useState(false);
-
-  const pruefeKarten = async () => {
-    const codes = regionenFuerStandort(location[0], location[1]).map(r => r.code);
-    const karte = await karteFuerStandort(codes);
-    setGeladeneKarte(karte ? alsPmtiles(karte) : null);
-  };
-
-  // Importierte Zonen fremder Laender. Nur die im Umkreis werden gezeichnet —
-  // ein ganzes Land waeren mehrere hundert Polygone.
-  const [euZonen, setEuZonen] = useState<Ed269Zone[]>([]);
-  const [zeigeEuZonen, setZeigeEuZonen] = useState(false);
-  const [zeigePreFlightSafety, setZeigePreFlightSafety] = useState(false);
-
-  const ladeEuZonen = async () => {
-    // Frueher erfundene Ersatzzonen entfernen (blockieren sonst den echten Import).
-    for (const e of await dbService.getEuZonen()) {
-      if (istErfundeneErsatzzone(e)) await dbService.deleteEuZonen(e.land);
-    }
-    const laender = laenderFuerKoordinate(location[0], location[1]);
-    for (const code of laender) {
-      const quelle = quelleFuer(code);
-      if (quelle?.direktUrl) {
-        try {
-          const vorhanden = await dbService.getEuZonen();
-          if (!vorhanden.some(v => v.land === code)) {
-            // Nativ direkt (CapacitorHttp, kein CORS); im Browser ueber den Proxy.
-            const url = Capacitor.isNativePlatform() ? quelle.direktUrl : `/api/zonen/${code}`;
-            const res = await fetch(url);
-            if (res.ok) {
-              const text = await res.text();
-              const zonen = parseEd269(text);
-              await dbService.saveEuZonen({ land: code, zonen, anzahl: zonen.length, importiertAm: Date.now() });
-            }
-          }
-        } catch (err) {
-          console.warn(`Auto-Fetch für Geozonen ${code} fehlgeschlagen:`, err);
-        }
-      }
-    }
-    const eintraege = await dbService.getEuZonen();
-    const alle = eintraege.flatMap(e => e.zonen as Ed269Zone[]);
-    setEuZonen(zonenInUmkreis(alle, location[0], location[1]));
-  };
-
-  useEffect(() => { pruefeOfflineKarte().then(setOfflineKarte); }, []);
-  // Bewusst nur bei Positionswechsel: pruefeKarten/ladeEuZonen sind pro Render neu
-  // erzeugte Funktionen und wuerden sonst bei jedem Render erneut laden.
-  const [lat, lon] = location;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { pruefeKarten(); }, [lat, lon]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { ladeEuZonen(); }, [lat, lon]);
-
-  function MapEvents() {
-    useMapEvents({
-      click(e) {
-        setInfoPoint([e.latlng.lat, e.latlng.lng]);
-      }
-    });
-    return null;
-  }
-
-  function Recenter({ center }: { center: [number, number] }) {
-    const map = useMap();
-    useEffect(() => {
-      map.setView(center, 13);
-    }, [map, center]);
-    return null;
-  }
-
-  return (
-    <div className="w-full h-full relative">
-      <MapContainer 
-        center={location} 
-        zoom={13} 
-        className="w-full h-full"
-        zoomControl={false}
-      >
-        {/* Grundkarte: Liegt die mitgelieferte Offline-Karte vor (wird beim Bau
-            erzeugt, siehe scripts/karte-extrahieren.mjs), wird sie benutzt —
-            sonst wie bisher die Online-Kacheln. Kein Bruch, wenn die Datei
-            fehlt; beim Entwickeln ist das der Normalfall. */}
-        {geladeneKarte
-          ? <OfflineBasemap url={geladeneKarte} />
-          : offlineKarte
-            ? <OfflineBasemap url={OFFLINE_KARTE_URL} />
-            : (
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-              />
-            )}
-        
-        {/* DIPUL Geo-Zonen (DFS/dipul).
-            Zwei Fallstricke, beide am 2026-07-23 gegen den Live-Dienst geprüft:
-            1) Der Pfad heißt /geoservices/ — das frühere /geoserver/ liefert
-               seit einer Umstellung 404 (HTML-Startseite).
-            2) Einen Sammel-Layer "dipul:geozonen" gibt es nicht mehr; der
-               Dienst gibt die Zonen einzeln aus. Beides zusammen führte dazu,
-               dass das Overlay still leer blieb.
-            WMS akzeptiert eine kommagetrennte Layerliste. */}
-        <WMSTileLayer
-          url="https://uas-betrieb.de/geoservices/dipul/wms"
-          layers={[
-            'dipul:flugbeschraenkungsgebiete',
-            'dipul:kontrollzonen',
-            'dipul:flughaefen',
-            'dipul:flugplaetze',
-            'dipul:naturschutzgebiete',
-            'dipul:nationalparks',
-            'dipul:militaerische_anlagen',
-            'dipul:krankenhaeuser',
-            'dipul:industrieanlagen',
-            'dipul:kraftwerke',
-            'dipul:justizvollzugsanstalten',
-            'dipul:freibaeder',
-            'dipul:bahnanlagen',
-            'dipul:stromleitungen',
-          ].join(',')}
-          format="image/png"
-          transparent={true}
-          version="1.3.0"
-          opacity={0.6}
-        />
-
-        {/* Zonen fremder Laender (importiert). Liegen ueber der Grundkarte,
-            genau wie das deutsche Overlay. */}
-        <EuZoneLayer zonen={euZonen} />
-
-        <Marker position={location} icon={droneIcon}>
-          <Popup>{tx('Ihr Standort', 'Your location')}</Popup>
-        </Marker>
-
-        {/* Past flight locations */}
-        {flights.filter(f => f.coordinates).slice(0, 30).map(f => (
-          <Marker key={f.id} position={f.coordinates} icon={flightHistoryIcon}>
-            <Popup>
-              <div className="p-1 text-xs min-w-[140px]">
-                <p className="font-bold text-slate-800 mb-1">{f.locationName || 'Unbekannter Ort'}</p>
-                <p className="text-slate-500">{f.date} · {f.duration} min</p>
-                {f.pilotName && <p className="text-slate-400 text-2xs mt-0.5">{f.pilotName}</p>}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* Saved Favorite Locations */}
-        {locationFavorites.map(fav => (
-          <Marker key={fav.id} position={fav.coordinates} icon={favoriteLocationIcon}>
-            <Popup>
-              <div className="p-1 text-xs min-w-[150px]">
-                <div className="flex items-center gap-1 mb-1">
-                  <span className="text-amber-500 font-bold">★</span>
-                  <p className="font-bold text-slate-900">{fav.name}</p>
-                </div>
-                <p className="text-slate-500 font-medium">{fav.locationName}</p>
-                {fav.notes && <p className="text-slate-400 italic text-2xs mt-1">{fav.notes}</p>}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        <MapEvents />
-        <Recenter center={location} />
-
-        {infoPoint && (
-          <Popup position={infoPoint} eventHandlers={{ remove: () => setInfoPoint(null) }}>
-            <div className="p-1 min-w-[200px]">
-              <div className="flex items-center gap-2 mb-2">
-                <Info className="w-4 h-4 text-brand-blue" />
-                <h3 className="font-bold text-sm">{tx('Zone Information', 'Zone information')}</h3>
-              </div>
-              <div className="space-y-2 text-xs text-slate-600">
-                <p>{tx('Besuchen Sie', 'Visit')} <span className="font-semibold text-brand-blue">dipul.de</span> {tx('für detaillierte Verbote am Standort [', 'for detailed restrictions at [')}{infoPoint[0].toFixed(4)}, {infoPoint[1].toFixed(4)}].</p>
-                <div className="flex flex-col gap-1 mt-2">
-                  <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 rounded">
-                    <div className="w-2.5 h-2.5 rounded-full bg-brand-red" />
-                    <span className="font-medium">{tx('Flugbeschränkung möglich', 'Flight restriction possible')}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Popup>
-        )}
-      </MapContainer>
-
-      {/* Map UI Overlays */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
-        <button 
-          onClick={onLocate}
-          className={cn(
-            "bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center",
-            isLocating ? "animate-pulse brightness-95" : ""
-          )}
-        >
-          <Navigation className={cn("w-6 h-6", isLocating ? "text-slate-400" : "text-brand-blue")} />
-        </button>
-
-        {/* Flugplaner: Route vorab auf der Karte anlegen */}
-        <button
-          onClick={onPlaner}
-          aria-label={t('a11y.planer')}
-          className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
-        >
-          <Route className="w-6 h-6 text-brand-blue" />
-        </button>
-
-        {/* Offline-Karten verwalten. Gruen, sobald fuer den Standort eine
-            Karte auf dem Geraet liegt — das ist die Information, die vor dem
-            Losfahren ins Funkloch zaehlt. */}
-        <button
-          onClick={() => setZeigeKarten(true)}
-          aria-label={tx('Offline-Karten verwalten', 'Manage offline maps')}
-          className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
-        >
-          <DownloadCloud className={cn('w-6 h-6', geladeneKarte ? 'text-brand-green' : 'text-slate-400')} />
-        </button>
-
-        {/* Zonen fremder Laender. Gruen, sobald welche importiert sind. */}
-        <button
-          onClick={() => setZeigeEuZonen(true)}
-          aria-label={tx('Zonen anderer Länder', 'Zones of other countries')}
-          className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 transition-all active:scale-95 flex items-center justify-center"
-        >
-          <Globe2 className={cn('w-6 h-6', euZonen.length > 0 ? 'text-brand-green' : 'text-slate-400')} />
-        </button>
-
-        {weather && (
-          <div className="bg-white p-3 rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-4 items-center">
-            <div className="flex flex-col items-center gap-1">
-              <Wind className={cn("w-5 h-5", weather.windSpeed > 15 ? "text-brand-red" : "text-brand-green")} />
-              <span className="text-2xs font-bold text-slate-600">{weather.windSpeed} km/h</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 border-t border-slate-100 pt-3">
-              <Thermometer className="w-5 h-5 text-slate-400" />
-              <span className="text-2xs font-bold text-slate-600">{weather.temp}°C</span>
-            </div>
-            <div className="flex flex-col items-center gap-1 border-t border-slate-100 pt-3">
-              <CloudRain className="w-5 h-5 text-blue-400" />
-              <span className="text-2xs font-bold text-slate-500 leading-tight text-center">{weather.condition}</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="absolute bottom-6 left-4 right-4 z-20">
-        <button 
-          onClick={() => setZeigePreFlightSafety(true)}
-          className="w-full bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-white/50 flex items-center justify-between hover:bg-white active:scale-[0.98] transition-all text-left group"
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-              <ShieldCheck className="w-6 h-6 text-emerald-500" />
-            </div>
-            <div>
-              <p className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                {tx('Vorflug-Sicherheitsanalyse & Kp-Index', 'Pre-flight safety analysis & Kp index')}
-              </p>
-              <p className="text-2xs text-slate-500 font-medium">{tx('Klick für 0-100% Sicherheits-Check', 'Tap for a 0–100% safety check')}</p>
-            </div>
-          </div>
-          <span className="bg-emerald-700 text-white px-3 py-1.5 rounded-xl text-xs font-black shadow-md shadow-emerald-500/20 group-hover:bg-emerald-800 transition-colors">
-            Score
-          </span>
-        </button>
-      </div>
-
-      {zeigeKarten && (
-        <OfflineMapsDialog
-          lat={location[0]}
-          lon={location[1]}
-          onClose={() => setZeigeKarten(false)}
-          onGeaendert={pruefeKarten}
-        />
-      )}
-
-      {zeigeEuZonen && (
-        <EuZonesDialog
-          onClose={() => setZeigeEuZonen(false)}
-          onGeaendert={ladeEuZonen}
-        />
-      )}
-
-      {zeigePreFlightSafety && (
-        <PreFlightSafetyDialog
-          weather={weather}
-          drone={null}
-          battery={null}
-          profile={null}
-          onClose={() => setZeigePreFlightSafety(false)}
-        />
-      )}
-    </div>
-  );
-}
-

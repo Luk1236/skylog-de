@@ -49,7 +49,7 @@ export function DatensicherungDialog({ onClose }: Props) {
       setPasswort2('');
     } catch (err) {
       console.error(err);
-      melde((err instanceof Error && err.message) || 'Export fehlgeschlagen.');
+      melde((err instanceof Error && err.message) || tx('Export fehlgeschlagen.', 'Export failed.'));
     } finally {
       setLaeuft(false);
     }

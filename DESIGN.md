@@ -40,6 +40,9 @@ Klassen. Ausnahme: Diagramm-/Kartenfarben, die als Daten-Kodierung dienen.
 
 Gewichte: `font-black` nur für Titel und große Zahlen, sonst `font-bold`/`font-medium`.
 
+Versalien (`uppercase`) nur für Eyebrows und kleine Abzeichen-Beschriftungen, nie für Karten-
+oder Abschnittstitel und nie für Knöpfe. Die untere Navigation steht in normaler Schreibung.
+
 ## Formen und Abstände
 
 | Stufe | Rundung | Einsatz |
@@ -74,13 +77,24 @@ import { Dialog, Knopf, Feld, eingabe, SeitenKopf, Abschnitt } from '../componen
 | `Feld` + `eingabe` | – | Beschriftung über dem Feld, `htmlFor`/`id` setzen. |
 | `SeitenKopf` | `titel`, `untertitel`, `aktionen` | Kopf jeder Ansicht. |
 | `Abschnitt` | `titel`, `aktion` | Eyebrow-Überschrift über einer Gruppe. |
+| `HinweisLeiste` + `zeigeRueckgaengig()` | – | „… gelöscht – Rückgängig“. Löschen geschieht sofort; statt einer Rückfrage gibt es einige Sekunden zum Zurückholen. Rückfragen nur noch, wo nichts zurückzuholen ist (z. B. Sicherung ersetzen). |
+
+## Kopfzeilen und Aktionen
+
+- Jede Ansicht beginnt mit `SeitenKopf`. Die Aktionen rutschen auf schmalen Bildschirmen in eine
+  eigene Zeile – nie mehr als drei Knöpfe; Seltenes (Export, Import, Statistik) gehört in einen
+  „⋯“-Knopf mit Dialog.
+- Symbol-Knöpfe brauchen immer `aria-label` (bei `IconKnopf` Pflicht) und auf der Karte zusätzlich `title`.
+- Hinweise und Erinnerungen werden zusammengefasst (eine Karte „N Hinweise“), nicht gestapelt.
 
 ## Ausnahmen (bewusst eigener Aufbau)
 
 - **Behörden-Check:** Vollbild zum Vorzeigen bei einer Kontrolle; QR-Code immer auf Weiß.
 - **PIN-Sperre beim Entsperren:** `Dialog` mit `schliessbar={false}` vor deckendem Hintergrund.
 - **Bestätigungsdialog** (`DialogHost`): kompakter Alert über allen Dialogen (z-[90]).
-- **Bild-Vollansicht** und **Fehlerseite**: Vollbild.
+- **Bild-Vollansicht**, **Flug-Assistent** und **Fehlerseite**: Vollbild.
+- **Notfall-Leitfaden**: die eine bewusst laute rote Fläche der App.
+- **Diagramme**: Farben über CSS-Variablen (`var(--color-brand-blue)`), damit sie den Dunkelmodus mitmachen; Achsentext mindestens 11 px.
 
 ## Prüfen
 

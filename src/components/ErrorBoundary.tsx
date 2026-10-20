@@ -99,15 +99,15 @@ export class ErrorBoundary extends React.Component<Props, State> {
           </div>
           <h1 className="text-lg font-black text-slate-900 mb-2">{t.titel}</h1>
           <p className="text-sm text-slate-600 leading-relaxed mb-1">{t.beruhigung}</p>
-          <p className="text-xs text-slate-400 mb-5">{t.hinweis}</p>
+          <p className="text-xs text-slate-500 mb-5">{t.hinweis}</p>
           <button
             onClick={this.neuladen}
-            className="w-full bg-brand-blue text-white font-bold py-3 rounded-2xl active:scale-95 transition-transform"
+            className="w-full h-11 bg-brand-blue text-white font-bold rounded-xl active:scale-95 transition-transform"
           >
             {t.neuladen}
           </button>
           {this.state.message && (
-            <p className="mt-4 text-2xs text-slate-300 font-mono break-words">{this.state.message}</p>
+            <p className="mt-4 text-2xs text-slate-500 font-mono break-words">{this.state.message}</p>
           )}
         </div>
       </div>

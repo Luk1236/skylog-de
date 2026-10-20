@@ -38,7 +38,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
     try {
       const zonen = parseEd269(await datei.text());
       if (zonen.length === 0) {
-        melde('In der Datei waren keine darstellbaren Zonen.', 'Nichts importiert');
+        melde(tx('In der Datei waren keine darstellbaren Zonen.', 'The file contained no zones that can be shown.'), tx('Nichts importiert', 'Nothing imported'));
         return;
       }
       // Land aus den Daten selbst nehmen, nicht aus dem Dateinamen raten.
@@ -52,9 +52,9 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
       });
       await aktualisieren();
       onGeaendert();
-      melde(`${zonen.length} Zonen für ${land} übernommen.`, 'Import erfolgreich');
+      melde(tx(`${zonen.length} Zonen für ${land} übernommen.`, `${zonen.length} zones imported for ${land}.`), tx('Import erfolgreich', 'Import successful'));
     } catch (err) {
-      melde((err instanceof Error && err.message) || 'Die Datei konnte nicht gelesen werden.', 'Import fehlgeschlagen');
+      melde((err instanceof Error && err.message) || tx('Die Datei konnte nicht gelesen werden.', 'The file could not be read.'), tx('Import fehlgeschlagen', 'Import failed'));
     } finally {
       setLaeuft(false);
     }
@@ -73,7 +73,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
       if (!antwort.ok) throw new Error(`Quelle antwortete mit ${antwort.status}.`);
       const zonen = parseEd269(await antwort.text());
       if (zonen.length === 0) {
-        melde('Die Quelle lieferte keine darstellbaren Zonen.', 'Nichts geladen');
+        melde(tx('Die Quelle lieferte keine darstellbaren Zonen.', 'The source returned no zones that can be shown.'), tx('Nichts geladen', 'Nothing loaded'));
         return;
       }
       const land = zonen[0].land || quelle.code;
@@ -82,16 +82,16 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
       });
       await aktualisieren();
       onGeaendert();
-      melde(`${zonen.length} Zonen für ${quelle.land} geladen.`, 'Aktualisiert');
+      melde(tx(`${zonen.length} Zonen für ${quelle.land} geladen.`, `${zonen.length} zones loaded for ${quelle.land}.`), tx('Aktualisiert', 'Updated'));
     } catch (err) {
-      melde((err instanceof Error && err.message) || 'Die Quelle war nicht erreichbar.', 'Laden fehlgeschlagen');
+      melde((err instanceof Error && err.message) || tx('Die Quelle war nicht erreichbar.', 'The source could not be reached.'), tx('Laden fehlgeschlagen', 'Loading failed'));
     } finally {
       setLaeuft(false);
     }
   };
 
   const loeschen = async (eintrag: GespeicherteZonen) => {
-    if (!await bestaetige(`Zonen für ${eintrag.land} löschen?`, { gefaehrlich: true })) return;
+    if (!await bestaetige(tx(`Zonen für ${eintrag.land} löschen?`, `Delete zones for ${eintrag.land}?`), { gefaehrlich: true })) return;
     await dbService.deleteEuZonen(eintrag.land);
     await aktualisieren();
     onGeaendert();
