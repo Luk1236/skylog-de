@@ -224,7 +224,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
   const maxMins = Math.max(...yearlyData.map(m => m.minutes), 1);
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
+    <div className="max-w-md lg:max-w-3xl xl:max-w-6xl mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.logbuch')}</h2>
@@ -292,6 +292,9 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
         </div>
       </div>
 
+      {/* Breiter Bildschirm (xl): links Kennzahlen und Diagramme, rechts die Flugliste */}
+      <div className="xl:grid xl:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] xl:gap-8 xl:items-start">
+      <div className="xl:sticky xl:top-0">
       {/* Erinnerungen */}
       {reminders.length > 0 && (
         <div className="mb-6 space-y-2">
@@ -442,6 +445,10 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
         </div>
       </div>
 
+      </div>
+
+      {/* Rechte Spalte: Flugliste */}
+      <div>
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-bold text-slate-900 text-xs uppercase tracking-widest">{tx('Alle Einträge', 'All entries')}</h3>
         <span className="text-[10px] font-bold text-slate-400">{validFlights.length} {tx('Einträge', 'entries')}</span>
@@ -701,6 +708,8 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
             <p className="text-slate-400 text-xs mt-1">{tx('Starten Sie Ihren ersten Flug und dokumentieren Sie ihn hier.', 'Start your first flight and record it here.')}</p>
           </div>
         )}
+      </div>
+      </div>
       </div>
 
       {trackFlight && (
