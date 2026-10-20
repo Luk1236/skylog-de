@@ -29,7 +29,7 @@ import type { PMTiles } from 'pmtiles';
 
 import { PinLockDialog } from './components/PinLockDialog';
 // Modale Dialoge: lazy geladen, um das Haupt-Bundle klein zu halten (s. lazyDialogs.tsx).
-import { OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog, SoraWizardDialog, DatensicherungDialog, StaffelMatrixDialog, PreFlightSafetyDialog, ManualLocationDialog } from './components/lazyDialogs';
+import { OfflineMapsDialog, EuZonesDialog, FlightPlannerDialog, BehoerdenCheckDialog, EidDialog, LocationFavoritesDialog, CustomerManagerDialog, SoraWizardDialog, DatensicherungDialog, EinrichtungsAssistent, StaffelMatrixDialog, PreFlightSafetyDialog, ManualLocationDialog } from './components/lazyDialogs';
 // Ansichten ausser der Startkarte: lazy geladen (s. lazyViews.tsx).
 import {
   KnowledgeView, InventoryView, PilotsView, RoadmapView, SafetyView, ProfileView, GarageView, LogbookView,
@@ -109,6 +109,8 @@ export default function App() {
     setSprache(neu);
   };
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showEinrichtung, setShowEinrichtung] = useState(false);
+  const [ladeDemo, setLadeDemo] = useState(false);
 
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
@@ -282,10 +284,25 @@ export default function App() {
           <p className="text-blue-200 text-sm leading-relaxed mb-8 max-w-xs">{tx('Dein digitales Flugbuch für Drohnen. Starte mit deinem Piloten-Profil.', 'Your digital drone logbook. Start with your pilot profile.')}</p>
           <div className="space-y-3 w-full max-w-xs">
             <button
-              onClick={() => { setShowOnboarding(false); setActiveView('profile'); }}
+              onClick={() => { setShowOnboarding(false); setShowEinrichtung(true); }}
               className="w-full bg-white text-brand-blue font-black py-4 rounded-2xl shadow-xl text-sm uppercase tracking-widest active:scale-95 transition-all"
             >
               {tx('Profil einrichten', 'Set up profile')}
+            </button>
+            <button
+              disabled={ladeDemo}
+              onClick={async () => {
+                setLadeDemo(true);
+                const { ladeBeispieldaten } = await import('./services/demoDaten');
+                await ladeBeispieldaten();
+                await loadData();
+                setLadeDemo(false);
+                setShowOnboarding(false);
+                setActiveView('logbook');
+              }}
+              className="w-full bg-white/15 text-white font-bold py-3 rounded-2xl text-xs uppercase tracking-widest border border-white/30 active:scale-95 transition-all disabled:opacity-60"
+            >
+              {ladeDemo ? tx('Lädt …', 'Loading …') : tx('Mit Beispieldaten ausprobieren', 'Try with sample data')}
             </button>
             <button
               onClick={() => setShowOnboarding(false)}
@@ -699,6 +716,13 @@ export default function App() {
       )}
 
       <DialogHost />
+
+      {showEinrichtung && (
+        <EinrichtungsAssistent
+          onFertig={() => { setShowEinrichtung(false); loadData(); }}
+          onAbbrechen={() => setShowEinrichtung(false)}
+        />
+      )}
 
       {showMehr && (
         <MehrSheet

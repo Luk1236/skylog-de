@@ -394,6 +394,8 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         )}
       </div>
 
+      <BeispieldatenKarte onUpdate={onUpdate} />
+
       {/* Datensicherung */}
       <div className="mt-10">
         <div className="flex items-center gap-2 mb-3">
@@ -539,4 +541,43 @@ function EidQrCode({ eid }: { eid: string }) {
   }, [eid]);
   if (!bild) return <div className="w-32 h-32 rounded-xl bg-white" aria-hidden />;
   return <img src={bild} alt="LBA e-ID QR-Code" className="w-32 h-32 rounded-xl bg-white p-1" />;
+}
+
+/** Beispieldaten zum Ausprobieren laden oder wieder entfernen (nur demo-Einträge). */
+function BeispieldatenKarte({ onUpdate }: { onUpdate: () => void }) {
+  const { tx } = useSprache();
+  const [vorhanden, setVorhanden] = useState<boolean | null>(null);
+  const [laeuft, setLaeuft] = useState(false);
+
+  useEffect(() => {
+    import('../services/demoDaten').then(m => m.hatBeispieldaten()).then(setVorhanden).catch(() => setVorhanden(false));
+  }, []);
+
+  const umschalten = async () => {
+    setLaeuft(true);
+    const m = await import('../services/demoDaten');
+    if (vorhanden) await m.entferneBeispieldaten(); else await m.ladeBeispieldaten();
+    setVorhanden(!vorhanden);
+    setLaeuft(false);
+    onUpdate();
+  };
+
+  return (
+    <div className="mt-10 p-5 bg-white rounded-3xl border border-slate-200">
+      <h3 className="font-bold text-slate-900 text-sm mb-1">{tx('Beispieldaten', 'Sample data')}</h3>
+      <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+        {vorhanden
+          ? tx('Beispieldaten sind geladen (2 Drohnen, 4 Akkus, 14 Flüge …). Entfernen löscht nur diese – deine eigenen Einträge bleiben.', 'Sample data is loaded (2 drones, 4 batteries, 14 flights …). Removing deletes only these – your own entries stay.')
+          : tx('Zum Ausprobieren: lädt Beispiel-Drohnen, Akkus, Flüge, Wartung und Ersatzteile. Lässt sich jederzeit wieder entfernen.', 'For trying things out: loads sample drones, batteries, flights, maintenance and spare parts. Can be removed at any time.')}
+      </p>
+      <button
+        onClick={umschalten}
+        disabled={laeuft || vorhanden === null}
+        className={cn('w-full py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-50',
+          vorhanden ? 'bg-slate-100 text-slate-700' : 'bg-brand-blue text-white')}
+      >
+        {laeuft ? tx('Lädt …', 'Loading …') : vorhanden ? tx('Beispieldaten entfernen', 'Remove sample data') : tx('Beispieldaten laden', 'Load sample data')}
+      </button>
+    </div>
+  );
 }

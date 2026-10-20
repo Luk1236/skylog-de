@@ -65,6 +65,8 @@ export const CustomerManagerDialog = lazyDialog(() =>
   import('./CustomerManagerDialog').then(m => ({ default: m.CustomerManagerDialog })));
 export const SoraWizardDialog = lazyDialog(() =>
   import('./SoraWizardDialog').then(m => ({ default: m.SoraWizardDialog })));
+export const EinrichtungsAssistent = lazyDialog(() =>
+  import('./EinrichtungsAssistent').then(m => ({ default: m.EinrichtungsAssistent })));
 export const DatensicherungDialog = lazyDialog(() =>
   import('./DatensicherungDialog').then(m => ({ default: m.DatensicherungDialog })));
 export const StaffelMatrixDialog = lazyDialog(() =>
