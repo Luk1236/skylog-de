@@ -42,8 +42,8 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
     [battery]
   );
 
-  // Diagrammfarbe als Daten-Kodierung (Hex bleibt bewusst).
-  const farbe = bewertung.level === 'austausch' ? '#b91c1c' : bewertung.level === 'beobachten' ? '#f59e0b' : '#059669';
+  // Diagrammfarbe als Daten-Kodierung - über die Palette, damit sie den Dunkelmodus mitmacht.
+  const farbe = bewertung.level === 'austausch' ? 'var(--color-brand-red)' : bewertung.level === 'beobachten' ? 'var(--color-amber-500)' : 'var(--color-brand-green)';
   const stufe = STUFE[bewertung.level === 'austausch' ? 'austausch' : bewertung.level === 'beobachten' ? 'beobachten' : 'ok'];
 
   const messungSpeichern = async () => {

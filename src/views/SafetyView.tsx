@@ -1,14 +1,19 @@
 import { useState } from 'react';
-import { ShieldCheck, Scale, AlertTriangle, ClipboardCheck, ArrowRight, ExternalLink, Phone, Copy, Check } from 'lucide-react';
+import { ShieldCheck, Scale, AlertTriangle, ClipboardCheck, ArrowRight, ExternalLink, Phone, Copy, Check, LocateFixed } from 'lucide-react';
 import type { UserProfile, Drone } from '../services/db';
 import { useSprache } from '../lib/sprache';
 import { IncidentReportDialog, RiskAssessmentDialog } from '../components/lazyDialogs';
 import { Knopf, SeitenKopf } from '../components/ui';
 
-export function SafetyView({ profile, drones, standort, onBehoerdenCheck, onOpenEid }: {
+export function SafetyView({ profile, drones, standort, ortet, onStandortFreigeben, onBehoerdenCheck, onOpenEid }: {
   profile: UserProfile | null, drones: Drone[],
-  /** Aktueller Standort - im Notfall zum Durchgeben an die Leitstelle. */
+  /** Echter Standort (GPS oder von Hand) - im Notfall zum Durchgeben an die
+   *  Leitstelle. Fehlt er, stehen hier keine geratenen Koordinaten. */
   standort?: [number, number],
+  /** GPS sucht gerade. */
+  ortet?: boolean,
+  /** Standort noch nicht freigegeben: Knopf zum Freigeben anbieten. */
+  onStandortFreigeben?: () => void,
   onBehoerdenCheck: () => void, onOpenEid?: () => void,
 }) {
   const { t, tx } = useSprache();
@@ -44,7 +49,7 @@ export function SafetyView({ profile, drones, standort, onBehoerdenCheck, onOpen
   };
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-20">
       <SeitenKopf
         titel={t('view.safetyHub')}
         untertitel={tx('Notfall, Behördenkontrolle & LBA-Meldung', 'Emergency, inspections & LBA reporting')}
@@ -100,6 +105,24 @@ export function SafetyView({ profile, drones, standort, onBehoerdenCheck, onOpen
         >
           <Phone className="w-5 h-5" /> {tx('112 anrufen', 'Call 112')}
         </a>
+        {!koordinaten && (
+          <div className="flex items-center gap-3 mb-4 p-3 rounded-2xl bg-black/15">
+            <p className="flex-1 text-xs font-medium leading-snug">
+              {ortet
+                ? tx('Standort wird ermittelt …', 'Determining location …')
+                : tx('Standort nicht bekannt. Beschreibe der Leitstelle den Ort und markante Punkte.', 'Location unknown. Describe the place and landmarks to the dispatcher.')}
+            </p>
+            {onStandortFreigeben && (
+              <button
+                type="button"
+                onClick={onStandortFreigeben}
+                className="shrink-0 flex items-center gap-1.5 h-10 px-3 rounded-xl bg-black/15 text-sm font-bold"
+              >
+                <LocateFixed className="w-4 h-4" /> {tx('Orten', 'Locate')}
+              </button>
+            )}
+          </div>
+        )}
         {koordinaten && (
           <div className="flex items-center gap-2 mb-4 p-3 rounded-2xl bg-black/15">
             <div className="flex-1 min-w-0">

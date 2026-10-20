@@ -1,8 +1,22 @@
 import { describe, it, expect } from 'vitest';
 import {
-  standardPunkte, punktHinzufuegen, punktEntfernen, punktBearbeiten, verschiebe,
+  standardPunkte, punktHinzufuegen, punktEntfernen, punktBearbeiten, verschiebe, punktText,
   DEFAULT_PREFLIGHT, DEFAULT_POSTFLIGHT,
 } from './checklists';
+
+describe('punktText', () => {
+  it('übersetzt jeden Standardpunkt ins Englische', () => {
+    for (const text of [...DEFAULT_PREFLIGHT, ...DEFAULT_POSTFLIGHT]) {
+      const en = punktText({ id: 'x', text }, 'en');
+      expect(en, text).not.toBe(text);
+      expect(en.length).toBeGreaterThan(5);
+    }
+  });
+  it('lässt deutsche Anzeige und eigene Punkte unverändert', () => {
+    expect(punktText({ id: 'x', text: DEFAULT_PREFLIGHT[0] }, 'de')).toBe(DEFAULT_PREFLIGHT[0]);
+    expect(punktText({ id: 'x', text: 'Eigener Punkt' }, 'en')).toBe('Eigener Punkt');
+  });
+});
 
 describe('standardPunkte', () => {
   it('liefert die Vorflug-Standardliste mit IDs', () => {

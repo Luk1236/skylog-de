@@ -50,6 +50,8 @@ export function garantieStatus(drone: Drone, now: number = Date.now()): Garantie
 export interface WartungInfo {
   level: 'ok' | 'warn' | 'alert';
   gruende: string[];
+  /** Englische Fassung der Gründe. */
+  gruendeEn: string[];
   tageSeitLetzter: number | null;
   stundenSeitLetzter: number | null;
 }
@@ -64,6 +66,7 @@ export function wartungStatus(
   now: number = Date.now()
 ): WartungInfo {
   const gruende: string[] = [];
+  const gruendeEn: string[] = [];
   let level: WartungInfo['level'] = 'ok';
   const anheben = (l: WartungInfo['level']) => {
     if (l === 'alert' || (l === 'warn' && level === 'ok')) level = l;
@@ -86,9 +89,11 @@ export function wartungStatus(
     const grenze = drone.maintenanceIntervalDays;
     if (tageSeitLetzter >= grenze) {
       gruende.push(`Kalender-Wartung überfällig (${tageSeitLetzter} von ${grenze} Tagen).`);
+      gruendeEn.push(`Calendar maintenance overdue (${tageSeitLetzter} of ${grenze} days).`);
       anheben('alert');
     } else if (tageSeitLetzter >= grenze - 7) {
       gruende.push(`Kalender-Wartung bald fällig (${tageSeitLetzter} von ${grenze} Tagen).`);
+      gruendeEn.push(`Calendar maintenance due soon (${tageSeitLetzter} of ${grenze} days).`);
       anheben('warn');
     }
   }
@@ -102,12 +107,14 @@ export function wartungStatus(
     const grenze = drone.maintenanceIntervalHours;
     if (stundenSeitLetzter >= grenze) {
       gruende.push(`Stunden-Wartung überfällig (${stundenSeitLetzter} von ${grenze} h).`);
+      gruendeEn.push(`Hour-based maintenance overdue (${stundenSeitLetzter} of ${grenze} h).`);
       anheben('alert');
     } else if (stundenSeitLetzter >= grenze * 0.9) {
       gruende.push(`Stunden-Wartung bald fällig (${stundenSeitLetzter} von ${grenze} h).`);
+      gruendeEn.push(`Hour-based maintenance due soon (${stundenSeitLetzter} of ${grenze} h).`);
       anheben('warn');
     }
   }
 
-  return { level, gruende, tageSeitLetzter, stundenSeitLetzter };
+  return { level, gruende, gruendeEn, tageSeitLetzter, stundenSeitLetzter };
 }

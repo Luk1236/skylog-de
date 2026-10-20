@@ -18,6 +18,13 @@ describe('behoerden-Verzeichnis', () => {
     }
   });
 
+  it('hat für jeden Eintrag eine englische Beschreibung und nur https-Links', () => {
+    for (const l of alle) {
+      expect(l.beschreibungEn.trim()).not.toBe('');
+      if (l.urlEn) expect(l.urlEn).toMatch(/^https:\/\//);
+    }
+  });
+
   it('hat keine doppelten URLs', () => {
     const urls = alle.map(l => l.url);
     expect(new Set(urls).size).toBe(urls.length);

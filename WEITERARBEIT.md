@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-20 (Runde 7: dringende Befunde aus Software-Check 2).
+Zuletzt aktualisiert: 2026-10-21 (Runde 8: restliche Befunde aus Software-Check 2).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -14,10 +14,41 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **APK vom 22.05.2026 gesichert:** `../SkyLog-Sicherung/skylog-handy-2026-05-22.apk`
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
-## Stand 2026-10-20
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **529 Unit-Tests** (54 Dateien) ·
-**74 Playwright-Tests** inkl. Kontrast-Wächter, Handy-Abläufen (`e2e/ablauf.spec.ts`) und
-Ebenen/Zurück (`e2e/ebenen.spec.ts`). Erststart ~173 kB gzip.
+## Stand 2026-10-21
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **586 Unit-Tests** (56 Dateien) ·
+**74 Playwright-Tests** inkl. Kontrast-Wächter (jetzt WCAG AA 4,5 : 1), Handy-Abläufen
+(`e2e/ablauf.spec.ts`) und Ebenen/Zurück (`e2e/ebenen.spec.ts`). Erststart ~173 kB gzip.
+Release v1.2.0 ist veröffentlicht (Runde 7).
+
+Runde 8 (Branch `check2/restliche-befunde`), restliche Befunde N07–N23 aus dem zweiten Check:
+- **N10 eine Checkliste:** Der Flug-Assistent nutzt nur noch die anpassbare Vorflug-Liste als
+  Startfreigabe („Startklar – Flug starten"); die fest eingebaute 13-Punkte-Liste ist weg.
+  Standardliste um Fernsteuerung, Gimbal-Schutz und Homepoint/120 m ergänzt, Standardpunkte
+  erscheinen auf Englisch übersetzt (`punktText` in `checklists.ts`).
+- **N11 Standort:** Abfrage erst nach Erklärung (Hinweis „Standort freigeben?" auf der Karte,
+  `services/standortFreigabe.ts`); Nutzer mit erteilter Freigabe sehen ihn nicht. Notfall-
+  Koordinaten nur, wenn der Standort echt ist (GPS oder von Hand) – nie Startort oder Berlin.
+- **N12 Speicher:** installierte Web-App fordert dauerhaften Speicher an; Einstellungen zeigen
+  Status, Belegung und einen Knopf (`services/speicherSchutz.ts`).
+- **N13 Header:** CSP, nosniff, Referrer-/Permissions-Policy, Frame-Schutz und ein Jahr Cache
+  für `/assets` in `vercel.json` und `server.ts` (eine Liste: `api/_lib/sicherheitsHeader.ts`,
+  Abgleich-Test in `konfiguration.test.ts`). Neue externe Dienste dort in `connect-src` ergänzen!
+  KI-Endpunkt prüft die Herkunft (`herkunftErlaubt`, Zusatz-Adressen per `SAFETY_CHECK_ORIGINS`).
+  Lokal mit Service Worker und PDF-Export ohne CSP-Verstöße getestet. `server.ts` nimmt `PORT`.
+- **N14 Tests + SORA-Korrekturen:** SORA 27 → 97 %, CRM 6 → 96 % Abdeckung. Dabei gefunden und
+  behoben: SAIL-Matrix wich von JARUS SORA 2.5 ab (ARC-d gab SAIL V statt VI, ARC-c mit kleinem
+  GRC SAIL III statt IV); OSO-Liste war frei nummeriert – jetzt die OSO-Tabelle der
+  EASA-Übersicht mit Robustheit je SAIL; M3 entfällt (in SORA 2.5 gestrichen, Notfallplan in
+  OSO #08); 250-g-Regel; ARC-c über besiedeltem Gebiet; GRC > 7 als „außerhalb SORA".
+- **N09 Kontrast:** `slate-400`/`slate-500` im hellen Modus abgedunkelt (≥ 4,7 : 1 auch auf
+  `slate-100`), Zähler-Abzeichen auf `brand-red`, Kontrast-Wächter auf 4,5 : 1.
+- **N15 Englisch:** Erinnerungen, Wartungshinweise und -gründe, Wetter, Zonen-Urteil und
+  -typen, Luftfahrtwetter, Behördenverzeichnis, Roadmap, Vorflug-Sicherheitscheck, EU-Zonen.
+  Ein Scan im englischen Modus findet nur noch Nutzer- und amtliche Zonendaten.
+- **Kleinere:** N07 Beschriftungen im Assistenten, N08 Ansichten per Tastatur scrollbar,
+  N16 Text zur Android-Sicherung, N17 Tablet-Breite, N18 Marker-Namen und Überschriften,
+  N20 `npm audit` 0 (Override für `uuid`), N21 Titel/Beschreibung/robots.txt, N22 KI-Knopf
+  ohne Dauerpulsieren, N23 Panel-Farben aus der Palette.
 
 Runde 7 (Branch `design/einheitliches-design`), Befunde N01–N06 aus dem zweiten Check:
 - **N01 Android-Standort:** ACCESS_FINE/COARSE_LOCATION + `uses-feature gps required=false`
@@ -67,6 +98,13 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
   Manifest ohne „LBA-konform", Theme-Farbe = Markenblau, PDFs im Markenblau.
 
 ## Noch offen (braucht dich)
+- **SORA-Boden-Risiko (iGRC)** ist weiter vereinfacht (Masse + Umgebung statt SORA-2.5-Tabelle
+  mit Spannweite, Geschwindigkeit, Bevölkerungsdichte; M1/M2 pauschal −1). Der Dialog sagt das
+  jetzt. Ob die volle Tabelle kommt, ist eine Produktentscheidung.
+- **N16 Android-Sicherung:** bewusst entscheiden, ob `dataExtractionRules` die App-Daten von der
+  Google-Sicherung ausnehmen sollen.
+- **N19 große Dateien** (FlightAssistant, GarageView, App, LogbookView) aufteilen.
+- **Nach dem Vercel-Deploy:** einmal die Browser-Konsole auf CSP-Meldungen prüfen.
 - **Vercel-Deployment** einrichten (GEMINI_API_KEY dort setzen), dann Repo-Variable
   `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK.
 - **Projekt aus OneDrive verschieben** (Ort bestimmst du) – OneDrive stellt gelöschte Dateien
@@ -74,7 +112,7 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
 - **Datenschutzerklärung und Rechtstexte gegenlesen lassen** (`public/datenschutz.html`,
   Verbotszonen in `SafetyView.tsx`) – vor einer öffentlichen Verteilung.
 - **DJI-SRT-Import mit echter Datei gegenprüfen** (`djiSrt.ts`).
-- **Neues Release** (z. B. `v1.2.0`) nach dem Merge.
+- **Neues Release** (z. B. `v1.3.0`) nach dem Merge von Runde 8.
 
 ## Technik-Stack
 - **Frontend:** React 19 + Vite 8 + TypeScript 6 (strict) + Tailwind 4

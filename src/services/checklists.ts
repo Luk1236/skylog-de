@@ -9,15 +9,21 @@ export interface ChecklistPunkt {
 
 export type ChecklistArt = 'preflight' | 'postflight';
 
+// Die Vorflug-Liste ist im Flug-Assistenten Pflicht vor dem Start. Sie enthält
+// auch die wichtigen Punkte der früheren fest eingebauten Liste (Fernsteuerung,
+// Gimbal-Schutz, Homepoint/Höhenlimit).
 export const DEFAULT_PREFLIGHT: string[] = [
   'Akkus voll geladen & Zustand geprüft',
+  'Fernsteuerung & Smartphone geladen',
   'Propeller fest & unbeschädigt',
+  'Gimbal-Schutz entfernt',
   'Firmware & App aktuell',
   'Wetter im Limit (Wind, Sicht, kein Regen)',
   'Flugzone geprüft (dipul / NOTAM)',
   'e-ID an der Drohne angebracht',
   'Speicherkarte & Speicherplatz ok',
   'Umgebung frei von Menschen & Hindernissen',
+  'Homepoint gesetzt & Höhenlimit max. 120 m',
 ];
 
 export const DEFAULT_POSTFLIGHT: string[] = [
@@ -27,6 +33,33 @@ export const DEFAULT_POSTFLIGHT: string[] = [
   'Auffälligkeiten im Logbuch notiert',
   'Gimbal-Sperre angebracht, Drohne verstaut',
 ];
+
+// Englische Fassung der Standardpunkte. Gespeichert wird der deutsche Text;
+// solange ein Punkt unverändert ist, zeigt die englische Oberfläche diese Übersetzung.
+const STANDARD_EN: Record<string, string> = {
+  'Akkus voll geladen & Zustand geprüft': 'Batteries fully charged & condition checked',
+  'Fernsteuerung & Smartphone geladen': 'Remote controller & smartphone charged',
+  'Propeller fest & unbeschädigt': 'Propellers secure & undamaged',
+  'Gimbal-Schutz entfernt': 'Gimbal guard removed',
+  'Firmware & App aktuell': 'Firmware & app up to date',
+  'Wetter im Limit (Wind, Sicht, kein Regen)': 'Weather within limits (wind, visibility, no rain)',
+  'Flugzone geprüft (dipul / NOTAM)': 'Flight zone checked (dipul / NOTAM)',
+  'e-ID an der Drohne angebracht': 'e-ID attached to the drone',
+  'Speicherkarte & Speicherplatz ok': 'Memory card & storage OK',
+  'Umgebung frei von Menschen & Hindernissen': 'Surroundings clear of people & obstacles',
+  'Homepoint gesetzt & Höhenlimit max. 120 m': 'Home point set & altitude limit max. 120 m',
+  'Drohne & Propeller auf Schäden geprüft': 'Drone & propellers checked for damage',
+  'Akkus entnommen, auf Lagerladung gebracht': 'Batteries removed and set to storage charge',
+  'Aufnahmen gesichert / Speicherkarte geleert': 'Footage backed up / memory card cleared',
+  'Auffälligkeiten im Logbuch notiert': 'Anomalies noted in the logbook',
+  'Gimbal-Sperre angebracht, Drohne verstaut': 'Gimbal lock fitted, drone packed away',
+};
+
+/** Anzeigetext eines Punkts: Standardpunkte erscheinen auf Englisch übersetzt,
+ *  eigene Punkte so, wie der Nutzer sie geschrieben hat. */
+export function punktText(punkt: ChecklistPunkt, sprache: 'de' | 'en'): string {
+  return sprache === 'en' ? STANDARD_EN[punkt.text] ?? punkt.text : punkt.text;
+}
 
 function neueId(): string {
   return (crypto.randomUUID?.() ?? String(Math.random())).slice(0, 8);

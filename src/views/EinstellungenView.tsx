@@ -1,14 +1,16 @@
 import { useEffect, useState, type ChangeEvent, type ReactNode } from 'react';
 import {
-  CalendarDays, ChevronDown, DatabaseBackup, Download, ExternalLink, FlaskConical, Info,
-  KeyRound, Languages, Lock, Moon, ShieldAlert, Sun, Upload,
+  CalendarDays, ChevronDown, DatabaseBackup, Download, ExternalLink, FlaskConical, HardDrive, Info,
+  KeyRound, Languages, Lock, Moon, ShieldAlert, ShieldCheck, Sun, Upload,
 } from 'lucide-react';
+import { Capacitor } from '@capacitor/core';
 import { dbService, type UserProfile } from '../services/db';
 import { melde, bestaetige } from '../services/dialog';
 import { exportBackup, importBackup, PasswortNoetigFehler } from '../services/backup';
 import type { Theme } from '../services/theme';
 import type { Sprache } from '../services/i18n';
 import { APP_VERSION, plattform } from '../lib/appInfo';
+import { dauerhaftAnfordern, formatiereBytes, leseSpeicherStatus, type SpeicherStatus } from '../services/speicherSchutz';
 import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
 import { Dialog, Feld, Knopf, SeitenKopf, eingabe, knopfKlassen } from '../components/ui';
@@ -88,7 +90,7 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
   const zeile = 'w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-slate-50 transition-colors';
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-20 space-y-6">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-20 space-y-6">
       <SeitenKopf titel={t('view.einstellungen')} untertitel={tx('Darstellung, Sicherheit & Daten', 'Display, security & data')} />
 
       {/* Darstellung */}
@@ -133,6 +135,7 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
         </p>
       </Karte>
 
+      <SpeicherKarte />
       <NotamKarte profile={profile} onUpdate={onUpdate} />
       <KalenderKarte profile={profile} />
       <BeispieldatenKarte onUpdate={onUpdate} />
@@ -140,7 +143,7 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
       <div className="p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
         <ShieldAlert className="w-6 h-6 text-amber-800 shrink-0" />
         <p className="text-sm text-amber-800 leading-relaxed">
-          {tx('Deine Daten liegen nur auf diesem Gerät. SkyLog DE sendet keine Flugdaten an einen Server.', 'Your data stays on this device. SkyLog DE sends no flight data to a server.')}
+          {tx('Deine Daten liegen nur auf diesem Gerät. SkyLog DE sendet keine Flugdaten an einen Server. Auf Android kann zusätzlich die Systemsicherung deines Google-Kontos die App-Daten sichern – das steuerst du in den Android-Einstellungen.', 'Your data stays on this device. SkyLog DE sends no flight data to a server. On Android, your Google account system backup may also back up the app data – you control this in the Android settings.')}
         </p>
       </div>
 
@@ -225,6 +228,59 @@ function Karte({ titel, icon: Icon, children }: { titel: string; icon?: typeof L
       </h3>
       {children}
     </section>
+  );
+}
+
+/** Speicherplatz: Darf der Browser die Daten bei Speichermangel löschen? */
+function SpeicherKarte() {
+  const { tx, sprache } = useSprache();
+  const nativ = Capacitor.isNativePlatform();
+  const [status, setStatus] = useState<SpeicherStatus | null>(null);
+  useEffect(() => { void leseSpeicherStatus().then(setStatus); }, []);
+
+  const anfordern = async () => {
+    const gewaehrt = await dauerhaftAnfordern();
+    setStatus(await leseSpeicherStatus());
+    if (!gewaehrt) {
+      melde(tx(
+        'Der Browser hat dauerhaften Speicher nicht gewährt. Chrome gewährt ihn meist, sobald die App installiert ist („Zum Startbildschirm hinzufügen“). Bis dahin schützt dich eine regelmäßige Sicherung.',
+        'The browser did not grant persistent storage. Chrome usually grants it once the app is installed (“Add to home screen”). Until then, a regular backup protects you.',
+      ));
+    }
+  };
+
+  return (
+    <Karte titel={tx('Speicherplatz', 'Storage')} icon={HardDrive}>
+      {nativ ? (
+        <p className="text-sm text-slate-600">
+          {tx('Die App speichert im App-Speicher von Android. Gelöscht wird er nur, wenn du die App-Daten löschst oder die App entfernst.', 'The app stores its data in Android app storage. It is only deleted if you clear the app data or remove the app.')}
+        </p>
+      ) : status?.dauerhaft === true ? (
+        <p className="flex items-start gap-2 text-sm font-bold text-brand-green">
+          <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+          {tx('Dauerhaft gespeichert – der Browser löscht die Daten nicht von sich aus.', 'Stored persistently – the browser will not delete the data on its own.')}
+        </p>
+      ) : status?.dauerhaft === false ? (
+        <>
+          <p className="text-sm text-slate-600">
+            {tx('Der Browser darf die Daten bei Speichermangel löschen. Fordere dauerhaften Speicher an – und exportiere trotzdem regelmäßig eine Sicherung.', 'The browser may delete the data when storage runs low. Request persistent storage – and still export a backup regularly.')}
+          </p>
+          <Knopf variante="sekundaer" voll icon={ShieldCheck} onClick={() => void anfordern()}>
+            {tx('Dauerhaft speichern', 'Store persistently')}
+          </Knopf>
+        </>
+      ) : status ? (
+        <p className="text-sm text-slate-600">
+          {tx('Dieser Browser meldet nicht, ob die Daten dauerhaft gespeichert sind. Exportiere regelmäßig eine Sicherung.', 'This browser does not report whether the data is stored persistently. Export a backup regularly.')}
+        </p>
+      ) : null}
+      {!nativ && status?.belegt !== undefined && (
+        <p className="text-xs text-slate-500">
+          {tx('Belegt', 'Used')}: {formatiereBytes(status.belegt, sprache)}
+          {status.gesamt ? ` ${tx('von', 'of')} ${formatiereBytes(status.gesamt, sprache)} ${tx('möglich', 'available')}` : ''}
+        </p>
+      )}
+    </Karte>
   );
 }
 

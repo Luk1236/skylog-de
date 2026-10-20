@@ -9,13 +9,15 @@
   /* orange-700 statt -600: weiße Schrift darauf ~5.2 statt ~3.6 Kontrast. */
   --color-brand-orange: #c2410c;
 
-  /* Gedämpfter Text: Tailwinds slate-400 kommt auf Weiß nur auf ~2.5 Kontrast.
-     slate-400 steht in der App ausschließlich als Textfarbe (text-slate-400) -
-     meist auf hellen Flächen, in einigen Dialogen aber auf dunklem slate-800/900.
-     Ein Wert kann nicht auf beidem 4.5 schaffen; dieser Kompromiss liegt auf
-     Weiß bei ~4.1 und auf slate-900 bei ~4.4 (vorher 2.5 / 7.0).
-     Der Dunkelmodus setzt unten eigene Werte. */
-  --color-slate-400: #717f96;
+  /* Gedämpfter und sekundärer Text erfüllen WCAG AA (4.5:1) - auch auf den
+     hellgrauen und getönten Flächen (slate-100, blue-50, amber-50 …).
+     slate-400/500 stehen in der App nur als Text- und Symbolfarbe.
+     slate-400: Weiß 5.1, slate-50 4.9, slate-100 4.7 (Tailwind: 2.5)
+     slate-500: Weiß 5.9, slate-100 5.4, slate-200 4.8 (Tailwind: 4.8 / 4.3 / 3.9)
+     Früher galt für slate-400 ein Kompromiss (~4.1), weil er auch auf dunklen
+     Flächen stand - das tut er nicht mehr. Der Dunkelmodus setzt unten eigene Werte. */
+  --color-slate-400: #5f6f86;
+  --color-slate-500: #56657b;
 
   /* Kleinste Schriftstufe (Badges, Achsen, Eyebrows): 11 px - nie kleiner.
      Vorher standen 7-10 px im Code (über 300 Stellen), auf dem Handy kaum lesbar.

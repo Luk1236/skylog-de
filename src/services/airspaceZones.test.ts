@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   bboxUmPunkt, zuZone, hoeheInMeter, formatGrenzen, betrifftHoehe,
-  bewerteZonen, ZONEN_LAYER, type Zone,
+  bewerteZonen, zonenLabel, ZONEN_LAYER, type Zone,
 } from './airspaceZones';
 
 const CTR = ZONEN_LAYER.find(l => l.layer === 'kontrollzonen')!;
@@ -101,7 +101,31 @@ describe('betrifftHoehe', () => {
   });
 });
 
+describe('zonenLabel', () => {
+  it('übersetzt bekannte Zonentypen und lässt sonst den deutschen Namen', () => {
+    expect(zonenLabel(zone(), 'en')).toBe('Control zone (CTR)');
+    expect(zonenLabel(zone(), 'de')).toBe('Kontrollzone (CTR)');
+    expect(zonenLabel(zone({ layer: 'unbekannt', label: 'Sonstiges' }), 'en')).toBe('Sonstiges');
+  });
+
+  it('hat für jeden Layer eine englische Bezeichnung', () => {
+    for (const l of ZONEN_LAYER) expect(l.labelEn.trim()).not.toBe('');
+  });
+});
+
+describe('formatGrenzen auf Englisch', () => {
+  it('übersetzt die Platzhalter', () => {
+    expect(formatGrenzen(zone({ obenWert: null }), 'en')).toContain('unlimited');
+    expect(formatGrenzen(zone({ untenWert: null, obenWert: null }), 'en')).toBe('no altitude given');
+  });
+});
+
 describe('bewerteZonen', () => {
+  it('liefert das Urteil auch auf Englisch', () => {
+    expect(bewerteZonen([]).textEn).toMatch(/No registered geo-zone/);
+    expect(bewerteZonen([zone()]).textEn).toMatch(/1 zone\(s\) with a flight ban/);
+  });
+
   it('meldet frei ohne Treffer', () => {
     expect(bewerteZonen([]).stufe).toBe('frei');
   });

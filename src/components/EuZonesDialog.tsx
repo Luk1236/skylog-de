@@ -15,11 +15,11 @@ interface Props {
 }
 
 /** Wie alt ist der Stand? Zonendaten veralten — das muss sichtbar sein. */
-function alterText(importiertAm: number): { text: string; warnen: boolean } {
+function alterText(importiertAm: number, tx: (de: string, en: string) => string): { text: string; warnen: boolean } {
   const tage = Math.floor((Date.now() - importiertAm) / 86_400_000);
-  if (tage <= 0) return { text: 'heute importiert', warnen: false };
-  if (tage === 1) return { text: 'gestern importiert', warnen: false };
-  return { text: `vor ${tage} Tagen importiert`, warnen: tage > 30 };
+  if (tage <= 0) return { text: tx('heute importiert', 'imported today'), warnen: false };
+  if (tage === 1) return { text: tx('gestern importiert', 'imported yesterday'), warnen: false };
+  return { text: tx(`vor ${tage} Tagen importiert`, `imported ${tage} days ago`), warnen: tage > 30 };
 }
 
 export function EuZonesDialog({ onClose, onGeaendert }: Props) {
@@ -121,16 +121,16 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
           <Abschnitt titel={tx('Importiert', 'Imported')} />
           <div className="space-y-2">
             {gespeichert.map(e => {
-              const alter = alterText(e.importiertAm);
+              const alter = alterText(e.importiertAm, tx);
               return (
                 <div key={e.land} className="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2">
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900">{e.land} · {e.anzahl} {tx('Zonen', 'Zones')}</p>
                     <p className={alter.warnen ? 'text-xs text-brand-red font-bold' : 'text-xs text-slate-500'}>
-                      {alter.text}{alter.warnen && ' — bitte erneuern'}
+                      {alter.text}{alter.warnen && tx(' — bitte erneuern', ' — please renew')}
                     </p>
                   </div>
-                  <button onClick={() => loeschen(e)} aria-label={`Zonen ${e.land} löschen`}
+                  <button onClick={() => loeschen(e)} aria-label={tx(`Zonen ${e.land} löschen`, `Delete zones ${e.land}`)}
                     className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-brand-red shrink-0">
                     <Trash2 className="w-4 h-4" />
                   </button>

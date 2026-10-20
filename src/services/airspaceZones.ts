@@ -17,26 +17,27 @@ export type ZonenStufe = 'kritisch' | 'hinweis';
 interface LayerDef {
   layer: string;
   label: string;
+  labelEn: string;
   stufe: ZonenStufe;
 }
 
 // Kuratierte Auswahl. „kritisch“ = Flug dort grundsätzlich untersagt oder nur
 // mit Freigabe; „hinweis“ = Einschränkung/Auflage, die man kennen muss.
 export const ZONEN_LAYER: LayerDef[] = [
-  { layer: 'flugbeschraenkungsgebiete', label: 'Flugbeschränkungsgebiet', stufe: 'kritisch' },
-  { layer: 'kontrollzonen',             label: 'Kontrollzone (CTR)',       stufe: 'kritisch' },
-  { layer: 'flughaefen',                label: 'Flughafen',                stufe: 'kritisch' },
-  { layer: 'flugplaetze',               label: 'Flugplatz',                stufe: 'kritisch' },
-  { layer: 'militaerische_anlagen',     label: 'Militärische Anlage',      stufe: 'kritisch' },
-  { layer: 'naturschutzgebiete',        label: 'Naturschutzgebiet',        stufe: 'hinweis' },
-  { layer: 'nationalparks',             label: 'Nationalpark',             stufe: 'hinweis' },
-  { layer: 'krankenhaeuser',            label: 'Krankenhaus',              stufe: 'hinweis' },
-  { layer: 'justizvollzugsanstalten',   label: 'Justizvollzugsanstalt',    stufe: 'hinweis' },
-  { layer: 'industrieanlagen',          label: 'Industrieanlage',          stufe: 'hinweis' },
-  { layer: 'kraftwerke',                label: 'Kraftwerk',                stufe: 'hinweis' },
-  { layer: 'freibaeder',                label: 'Freibad',                  stufe: 'hinweis' },
-  { layer: 'bahnanlagen',               label: 'Bahnanlage',               stufe: 'hinweis' },
-  { layer: 'stromleitungen',            label: 'Stromleitung',             stufe: 'hinweis' },
+  { layer: 'flugbeschraenkungsgebiete', label: 'Flugbeschränkungsgebiet', labelEn: 'Flight restriction area', stufe: 'kritisch' },
+  { layer: 'kontrollzonen',             label: 'Kontrollzone (CTR)',       labelEn: 'Control zone (CTR)',      stufe: 'kritisch' },
+  { layer: 'flughaefen',                label: 'Flughafen',                labelEn: 'Airport',                 stufe: 'kritisch' },
+  { layer: 'flugplaetze',               label: 'Flugplatz',                labelEn: 'Airfield',                stufe: 'kritisch' },
+  { layer: 'militaerische_anlagen',     label: 'Militärische Anlage',      labelEn: 'Military site',           stufe: 'kritisch' },
+  { layer: 'naturschutzgebiete',        label: 'Naturschutzgebiet',        labelEn: 'Nature reserve',          stufe: 'hinweis' },
+  { layer: 'nationalparks',             label: 'Nationalpark',             labelEn: 'National park',           stufe: 'hinweis' },
+  { layer: 'krankenhaeuser',            label: 'Krankenhaus',              labelEn: 'Hospital',                stufe: 'hinweis' },
+  { layer: 'justizvollzugsanstalten',   label: 'Justizvollzugsanstalt',    labelEn: 'Prison',                  stufe: 'hinweis' },
+  { layer: 'industrieanlagen',          label: 'Industrieanlage',          labelEn: 'Industrial site',         stufe: 'hinweis' },
+  { layer: 'kraftwerke',                label: 'Kraftwerk',                labelEn: 'Power plant',             stufe: 'hinweis' },
+  { layer: 'freibaeder',                label: 'Freibad',                  labelEn: 'Outdoor pool',            stufe: 'hinweis' },
+  { layer: 'bahnanlagen',               label: 'Bahnanlage',               labelEn: 'Railway',                 stufe: 'hinweis' },
+  { layer: 'stromleitungen',            label: 'Stromleitung',             labelEn: 'Power line',              stufe: 'hinweis' },
 ];
 
 export interface Zone {
@@ -96,13 +97,13 @@ export function hoeheInMeter(wert: number | null, einheit: string | null): numbe
 }
 
 /** "0 m AGL – 2500 ft MSL" für die Anzeige. */
-export function formatGrenzen(z: Zone): string {
+export function formatGrenzen(z: Zone, sprache: 'de' | 'en' = 'de'): string {
   const teil = (w: number | null, e: string | null, b: string | null) =>
     w === null ? null : `${w} ${e ?? 'm'}${b ? ' ' + b : ''}`;
   const unten = teil(z.untenWert, z.untenEinheit, z.untenBezug);
   const oben = teil(z.obenWert, z.obenEinheit, z.obenBezug);
-  if (!unten && !oben) return 'keine Höhenangabe';
-  return `${unten ?? '—'} – ${oben ?? 'unbegrenzt'}`;
+  if (!unten && !oben) return sprache === 'en' ? 'no altitude given' : 'keine Höhenangabe';
+  return `${unten ?? '—'} – ${oben ?? (sprache === 'en' ? 'unlimited' : 'unbegrenzt')}`;
 }
 
 /** Liegt die geplante Flughöhe (m über Grund) im vertikalen Bereich der Zone?
@@ -119,22 +120,35 @@ export function betrifftHoehe(z: Zone, planHoeheM: number): boolean {
 export interface ZonenUrteil {
   stufe: 'frei' | 'hinweis' | 'kritisch';
   text: string;
+  textEn: string;
+}
+
+/** Zonentyp in der gewählten Sprache. */
+export function zonenLabel(z: Pick<Zone, 'layer' | 'label'>, sprache: 'de' | 'en'): string {
+  if (sprache !== 'en') return z.label;
+  return ZONEN_LAYER.find(l => l.layer === z.layer)?.labelEn ?? z.label;
 }
 
 export function bewerteZonen(zonen: Zone[]): ZonenUrteil {
   if (zonen.length === 0) {
-    return { stufe: 'frei', text: 'Keine eingetragene Geo-Zone am Standort gefunden.' };
+    return {
+      stufe: 'frei',
+      text: 'Keine eingetragene Geo-Zone am Standort gefunden.',
+      textEn: 'No registered geo-zone found at this location.',
+    };
   }
   const kritisch = zonen.filter(z => z.stufe === 'kritisch');
   if (kritisch.length > 0) {
     return {
       stufe: 'kritisch',
       text: `${kritisch.length} Zone(n) mit Flugverbot oder Freigabepflicht — vor dem Start klären.`,
+      textEn: `${kritisch.length} zone(s) with a flight ban or approval requirement — clarify before take-off.`,
     };
   }
   return {
     stufe: 'hinweis',
     text: `${zonen.length} Zone(n) mit Auflagen — Bedingungen beachten.`,
+    textEn: `${zonen.length} zone(s) with conditions — observe the requirements.`,
   };
 }
 

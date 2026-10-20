@@ -111,6 +111,37 @@ export function createDefaultRateLimiter() {
   });
 }
 
+// Feste Herkünfte der eigenen Apps: Android-WebView (androidScheme https) und iOS.
+const APP_HERKUENFTE = ['https://localhost', 'capacitor://localhost', 'http://localhost'];
+
+/**
+ * Darf eine Anfrage mit diesem Origin den KI-Check nutzen? Erlaubt sind die
+ * eigene Seite (gleicher Host), die Apps und per SAFETY_CHECK_ORIGINS
+ * (kommagetrennt) weitere Adressen. Ohne Origin-Header (Server, CapacitorHttp)
+ * entscheidet allein das Rate-Limit - außerhalb des Browsers lässt sich der
+ * Header ohnehin fälschen. Die Prüfung verhindert, dass fremde Webseiten das
+ * Kontingent über die Browser ihrer Besucher aufbrauchen.
+ */
+export function herkunftErlaubt(
+  origin: string | undefined,
+  host: string | undefined,
+  zusaetzlich: string = process.env.SAFETY_CHECK_ORIGINS ?? '',
+): boolean {
+  if (!origin) return true;
+  if (APP_HERKUENFTE.includes(origin)) return true;
+  if (zusaetzlich.split(',').map(s => s.trim()).filter(Boolean).includes(origin)) return true;
+  try {
+    return !!host && new URL(origin).host === host;
+  } catch {
+    return false; // z. B. Origin "null" aus einer Datei oder Sandbox
+  }
+}
+
+/** Ersten Wert eines Headers lesen (Node liefert manche als Liste). */
+export function headerWert(wert: string | string[] | undefined): string | undefined {
+  return Array.isArray(wert) ? wert[0] : wert;
+}
+
 /** Client-Kennung aus x-forwarded-for (Vercel/Proxy) oder der Socket-Adresse. */
 export function clientKeyFrom(headers: Record<string, string | string[] | undefined>, fallback?: string): string {
   const forwarded = headers['x-forwarded-for'];

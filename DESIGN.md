@@ -26,6 +26,11 @@ aufgehellt) – Komponenten verwenden dafür keine eigenen `dark:`-Klassen.
 Nicht verwenden: `sky-*`, `indigo-*`, `cyan-*`, `violet-*` als Akzente, feste Hex-Werte in
 Klassen. Ausnahme: Diagramm-/Kartenfarben, die als Daten-Kodierung dienen.
 
+Gedämpfter Text (`text-slate-400`) und Meta-Text (`text-slate-500`) erfüllen WCAG AA
+(4,5 : 1) auch auf `slate-100` und den getönten `-50`-Flächen; die Werte stehen in
+`src/index.css`. Weiße Schrift nur auf `brand-*`- oder `-700`-Flächen, nicht auf `red-500`.
+Symbol-Knöpfe ohne Text brauchen mindestens 3 : 1 – also nicht `text-slate-300`.
+
 ## Typografie
 
 | Rolle | Klassen |
@@ -111,4 +116,8 @@ erst dort aus der App.
 ## Prüfen
 
 `npm run e2e` misst den Kontrast aller Ansichten und wichtigen Dialoge in hell und dunkel
-(Grenze 3,8 : 1). Neue Dialoge dort in `e2e/kontrast.spec.ts` ergänzen.
+(Grenze WCAG AA 4,5 : 1). Neue Dialoge dort in `e2e/kontrast.spec.ts` ergänzen.
+
+Abhakbare Listen (Vor-/Nachflug-Checkliste) sind Knöpfe mit `role="checkbox"` und
+`aria-checked`, mindestens 44 px hoch. Texte aus Fachmodulen kommen zweisprachig
+(`text`/`textEn`, `titel`/`titelEn`); übersetzt wird in der Oberfläche.

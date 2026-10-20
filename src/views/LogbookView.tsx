@@ -302,7 +302,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
   );
 
   return (
-    <div className="max-w-md lg:max-w-3xl xl:max-w-6xl mx-auto pb-20">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl xl:max-w-6xl mx-auto pb-20">
       <SeitenKopf
         titel={t('view.logbuch')}
         untertitel={tx('Statistik & Dokumentation', 'Statistics & documentation')}
@@ -400,7 +400,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
               <span className="block text-sm font-bold text-slate-900">
                 {hinweise.length === 1 ? tx('1 Hinweis', '1 reminder') : `${hinweise.length} ${tx('Hinweise', 'reminders')}`}
               </span>
-              <span className={cn('block text-xs text-slate-600', !hinweiseOffen && 'truncate')}>{hinweise[0].text}</span>
+              <span className={cn('block text-xs text-slate-600', !hinweiseOffen && 'truncate')}>{sprache === 'en' ? hinweise[0].textEn : hinweise[0].text}</span>
             </span>
             <ChevronDown className={cn('w-4 h-4 text-slate-500 shrink-0 transition-transform', hinweiseOffen && 'rotate-180')} />
           </button>
@@ -409,7 +409,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
               {hinweise.map(h => (
                 <li key={h.schluessel} className="flex items-start gap-3 px-4 py-3">
                   <span className={cn('w-2 h-2 rounded-full mt-1.5 shrink-0', h.level === 'alert' ? 'bg-brand-red' : 'bg-amber-500')} />
-                  <p className="flex-1 text-sm text-slate-700">{h.text}</p>
+                  <p className="flex-1 text-sm text-slate-700">{sprache === 'en' ? h.textEn : h.text}</p>
                   <Knopf variante="geist" groesse="sm" icon={BellOff} className="shrink-0 -my-1" onClick={() => { blendeAus(h.schluessel); setHinweisStand(s => s + 1); }}>
                     {tx('In 7 Tagen', 'In 7 days')}
                   </Knopf>

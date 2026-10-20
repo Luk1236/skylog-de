@@ -127,7 +127,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid }: { profi
   };
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-20">
       <SeitenKopf
         titel={t('view.profil')}
         untertitel={tx('Stammdaten, Nachweise & Dokumente', 'Personal data, certificates & documents')}

@@ -20,7 +20,7 @@ interface Props {
  *  Datei geht im Browser in den Download-Ordner, in der Android-App über das
  *  Teilen-Menü - z.B. direkt nach Google Drive oder Nextcloud. */
 export function DatensicherungDialog({ onClose }: Props) {
-  const { tx } = useSprache();
+  const { tx, sprache } = useSprache();
   const [intervall, setIntervall] = useState(getSicherungsIntervall);
   const [letzte, setLetzte] = useState(getLastBackupAt);
   const [mitPasswort, setMitPasswort] = useState(false);
@@ -139,8 +139,8 @@ export function DatensicherungDialog({ onClose }: Props) {
         </select>
         <p className="text-2xs text-slate-600">
           {letzte
-            ? `Letzte Sicherung: ${new Date(letzte).toLocaleString('de-DE')}`
-            : 'Auf diesem Gerät wurde noch keine Sicherung erstellt.'}
+            ? `${tx('Letzte Sicherung', 'Last backup')}: ${new Date(letzte).toLocaleString(sprache === 'en' ? 'en-GB' : 'de-DE')}`
+            : tx('Auf diesem Gerät wurde noch keine Sicherung erstellt.', 'No backup has been made on this device yet.')}
         </p>
       </div>
     </Dialog>

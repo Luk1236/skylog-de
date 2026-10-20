@@ -1,15 +1,19 @@
 import type { WeatherData } from './weather';
 import type { Battery, UserProfile, Drone } from './db';
 
+export interface SafetyCheckItem {
+  id: string;
+  title: string;
+  titleEn: string;
+  status: 'pass' | 'warn' | 'fail';
+  detail: string;
+  detailEn: string;
+}
+
 export interface SafetyCheckResult {
   score: number; // 0 - 100
   status: 'SAFE' | 'WARNING' | 'CRITICAL';
-  items: {
-    id: string;
-    title: string;
-    status: 'pass' | 'warn' | 'fail';
-    detail: string;
-  }[];
+  items: SafetyCheckItem[];
 }
 
 export function calculatePreFlightSafetyScore(
@@ -19,136 +23,113 @@ export function calculatePreFlightSafetyScore(
   profile: UserProfile | null,
   kpIndex: number = 2
 ): SafetyCheckResult {
-  const items: SafetyCheckResult['items'] = [];
+  const items: SafetyCheckItem[] = [];
   let score = 100;
+  // Jeder Prüfpunkt auf Deutsch und Englisch - die Oberfläche wählt nach Sprache.
+  const punkt = (id: string, status: SafetyCheckItem['status'], title: [string, string], detail: [string, string]) => {
+    items.push({ id, status, title: title[0], titleEn: title[1], detail: detail[0], detailEn: detail[1] });
+  };
 
   // 1. Wind & Gusts
   const maxWind = drone?.maxWindSpeed || 35;
   const wind120 = weather?.windSpeed120 || weather?.windSpeed || 0;
   if (wind120 > maxWind) {
     score -= 30;
-    items.push({
-      id: 'wind',
-      title: 'Windgeschwindigkeit in 120m Höhe',
-      status: 'fail',
-      detail: `Wind (${wind120} km/h) übersteigt die Drohnen-Herstellergrenze (${maxWind} km/h). Riskant!`,
-    });
+    punkt('wind', 'fail', ['Windgeschwindigkeit in 120 m Höhe', 'Wind speed at 120 m'], [
+      `Wind (${wind120} km/h) übersteigt die Drohnen-Herstellergrenze (${maxWind} km/h). Riskant!`,
+      `Wind (${wind120} km/h) exceeds the manufacturer limit of the drone (${maxWind} km/h). Risky!`,
+    ]);
   } else if (wind120 > maxWind * 0.75) {
     score -= 15;
-    items.push({
-      id: 'wind',
-      title: 'Windgeschwindigkeit in 120m Höhe',
-      status: 'warn',
-      detail: `Wind (${wind120} km/h) liegt nahe am Maximum (${maxWind} km/h). Auf Böen achten.`,
-    });
+    punkt('wind', 'warn', ['Windgeschwindigkeit in 120 m Höhe', 'Wind speed at 120 m'], [
+      `Wind (${wind120} km/h) liegt nahe am Maximum (${maxWind} km/h). Auf Böen achten.`,
+      `Wind (${wind120} km/h) is close to the maximum (${maxWind} km/h). Watch out for gusts.`,
+    ]);
   } else {
-    items.push({
-      id: 'wind',
-      title: 'Wind & Böen (120m)',
-      status: 'pass',
-      detail: `Wind mit ${wind120} km/h im grünen Bereich (Max: ${maxWind} km/h).`,
-    });
+    punkt('wind', 'pass', ['Wind & Böen (120 m)', 'Wind & gusts (120 m)'], [
+      `Wind mit ${wind120} km/h im grünen Bereich (Max: ${maxWind} km/h).`,
+      `Wind at ${wind120} km/h is within limits (max: ${maxWind} km/h).`,
+    ]);
   }
 
   // 2. Solar Storm / Kp Index (GPS Störung)
+  const kpTitel: [string, string] = ['Geomagnetischer Kp-Index (GPS)', 'Geomagnetic Kp index (GPS)'];
   if (kpIndex >= 6) {
     score -= 35;
-    items.push({
-      id: 'kp',
-      title: 'Geomagnetischer Kp-Index (GPS)',
-      status: 'fail',
-      detail: `Starker Sonnensturm (Kp ${kpIndex}). Hohe Gefahr von GPS-Abfällen & Kompass-Störungen!`,
-    });
+    punkt('kp', 'fail', kpTitel, [
+      `Starker Sonnensturm (Kp ${kpIndex}). Hohe Gefahr von GPS-Abfällen & Kompass-Störungen!`,
+      `Strong solar storm (Kp ${kpIndex}). High risk of GPS dropouts & compass interference!`,
+    ]);
   } else if (kpIndex >= 4) {
     score -= 15;
-    items.push({
-      id: 'kp',
-      title: 'Geomagnetischer Kp-Index (GPS)',
-      status: 'warn',
-      detail: `Erhöhte Sonnenaktivität (Kp ${kpIndex}). GPS-Genauigkeit genau beobachten.`,
-    });
+    punkt('kp', 'warn', kpTitel, [
+      `Erhöhte Sonnenaktivität (Kp ${kpIndex}). GPS-Genauigkeit genau beobachten.`,
+      `Increased solar activity (Kp ${kpIndex}). Keep a close eye on GPS accuracy.`,
+    ]);
   } else {
-    items.push({
-      id: 'kp',
-      title: 'Geomagnetischer Kp-Index (GPS)',
-      status: 'pass',
-      detail: `Ruhiges Weltraumwetter (Kp ${kpIndex}). Ungestörter GPS-Empfang zu erwarten.`,
-    });
+    punkt('kp', 'pass', kpTitel, [
+      `Ruhiges Weltraumwetter (Kp ${kpIndex}). Ungestörter GPS-Empfang zu erwarten.`,
+      `Quiet space weather (Kp ${kpIndex}). Undisturbed GPS reception expected.`,
+    ]);
   }
 
   // 3. Temperatur (Akku-Leistung)
   const temp = weather?.temp ?? 20;
+  const tempTitel: [string, string] = ['Umgebungstemperatur', 'Ambient temperature'];
   if (temp < 0 || temp > 42) {
     score -= 25;
-    items.push({
-      id: 'temp',
-      title: 'Umgebungstemperatur',
-      status: 'fail',
-      detail: `Extremtemperatur (${temp}°C). Starker Akku-Spannungsabfall droht!`,
-    });
+    punkt('temp', 'fail', tempTitel, [
+      `Extremtemperatur (${temp}°C). Starker Akku-Spannungsabfall droht!`,
+      `Extreme temperature (${temp}°C). Severe battery voltage drop likely!`,
+    ]);
   } else if (temp < 8) {
     score -= 10;
-    items.push({
-      id: 'temp',
-      title: 'Umgebungstemperatur',
-      status: 'warn',
-      detail: `Niedrige Temperatur (${temp}°C). Akkus vor dem Start vorwärmen.`,
-    });
+    punkt('temp', 'warn', tempTitel, [
+      `Niedrige Temperatur (${temp}°C). Akkus vor dem Start vorwärmen.`,
+      `Low temperature (${temp}°C). Pre-warm the batteries before take-off.`,
+    ]);
   } else {
-    items.push({
-      id: 'temp',
-      title: 'Umgebungstemperatur',
-      status: 'pass',
-      detail: `Optimaler Bereich (${temp}°C).`,
-    });
+    punkt('temp', 'pass', tempTitel, [`Optimaler Bereich (${temp}°C).`, `Optimal range (${temp}°C).`]);
   }
 
   // 4. Akku-Gesundheit (SOH)
   if (battery) {
     const soh = battery.health ?? 100;
+    const akkuTitel: [string, string] = ['Akku-Zustand (SOH)', 'Battery health (SOH)'];
     if (soh < 60) {
       score -= 30;
-      items.push({
-        id: 'battery',
-        title: 'Akku-Zustand (SOH)',
-        status: 'fail',
-        detail: `Akku-Gesundheit kritisch low (${soh}% SOH). Akku aussondern!`,
-      });
+      punkt('battery', 'fail', akkuTitel, [
+        `Akku-Gesundheit kritisch niedrig (${soh}% SOH). Akku aussondern!`,
+        `Battery health critically low (${soh}% SOH). Retire the battery!`,
+      ]);
     } else if (soh < 80) {
       score -= 15;
-      items.push({
-        id: 'battery',
-        title: 'Akku-Zustand (SOH)',
-        status: 'warn',
-        detail: `Akku-Gesundheit bei ${soh}% SOH. Flugzeiten reduzieren.`,
-      });
+      punkt('battery', 'warn', akkuTitel, [
+        `Akku-Gesundheit bei ${soh}% SOH. Flugzeiten reduzieren.`,
+        `Battery health at ${soh}% SOH. Reduce flight times.`,
+      ]);
     } else {
-      items.push({
-        id: 'battery',
-        title: 'Akku-Zustand (SOH)',
-        status: 'pass',
-        detail: `Akku in hervorragendem Zustand (${soh}% SOH).`,
-      });
+      punkt('battery', 'pass', akkuTitel, [
+        `Akku in hervorragendem Zustand (${soh}% SOH).`,
+        `Battery in excellent condition (${soh}% SOH).`,
+      ]);
     }
   }
 
   // 5. Pilotenlizenz
   if (profile) {
+    const lizenzTitel: [string, string] = ['Fernpiloten-Nachweis', 'Remote pilot certificate'];
     if (profile.licenseType === 'None') {
       score -= 10;
-      items.push({
-        id: 'license',
-        title: 'Fernpiloten-Nachweis',
-        status: 'warn',
-        detail: 'Kein Führerschein angegeben (Nur Open A1/A3 C0/Legacy <250g erlaubt).',
-      });
+      punkt('license', 'warn', lizenzTitel, [
+        'Kein Kompetenznachweis angegeben (nur Open A1/A3 mit C0/Bestand <250 g erlaubt).',
+        'No certificate of competency stored (only Open A1/A3 with C0/legacy <250 g allowed).',
+      ]);
     } else {
-      items.push({
-        id: 'license',
-        title: 'Fernpiloten-Nachweis',
-        status: 'pass',
-        detail: `Gültiger Nachweis (${profile.licenseType}) eingetragen.`,
-      });
+      punkt('license', 'pass', lizenzTitel, [
+        `Gültiger Nachweis (${profile.licenseType}) eingetragen.`,
+        `Valid certificate (${profile.licenseType}) stored.`,
+      ]);
     }
   }
 

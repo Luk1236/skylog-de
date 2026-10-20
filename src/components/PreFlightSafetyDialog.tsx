@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClose }: Props) {
-  const { tx } = useSprache();
+  const { tx, sprache } = useSprache();
   const [kpData, setKpData] = useState<KpData | null>(null);
   const [kpLoading, setKpLoading] = useState(true);
 
@@ -156,8 +156,8 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
           <div key={item.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
             {getStatusIcon(item.status)}
             <div className="flex-1">
-              <h5 className="font-bold text-slate-900 text-sm">{item.title}</h5>
-              <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">{item.detail}</p>
+              <h3 className="font-bold text-slate-900 text-sm">{sprache === 'en' ? item.titleEn : item.title}</h3>
+              <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">{sprache === 'en' ? item.detailEn : item.detail}</p>
             </div>
           </div>
         ))}

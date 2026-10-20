@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { minutesUntilSunset } from './weather';
+import { minutesUntilSunset, wetterText } from './weather';
 
 describe('minutesUntilSunset', () => {
   const jetzt = new Date('2026-07-19T19:00:00Z');
@@ -18,5 +18,16 @@ describe('minutesUntilSunset', () => {
 
   it('liefert null bei unbrauchbarem Zeitstempel statt NaN', () => {
     expect(minutesUntilSunset('kaputt', jetzt)).toBeNull();
+  });
+});
+
+describe('wetterText', () => {
+  it('übersetzt gespeicherte Wetter- und Sichtangaben', () => {
+    expect(wetterText('Leicht bewölkt', 'en')).toBe('Partly cloudy');
+    expect(wetterText('Sehr gut', 'en')).toBe('Very good');
+    expect(wetterText('Leicht bewölkt', 'de')).toBe('Leicht bewölkt');
+  });
+  it('lässt unbekannte Texte stehen', () => {
+    expect(wetterText('Hagel', 'en')).toBe('Hagel');
   });
 });

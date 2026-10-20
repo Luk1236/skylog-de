@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Radio, RefreshCw, AlertTriangle, ChevronDown } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useSprache } from '../lib/sprache';
 import {
   holeMetar, holeTaf, bewerteFltCat, knotenInKmh,
   type MetarStation, type TafMeldung,
@@ -11,17 +12,19 @@ interface Props {
   lon: number;
 }
 
-const LAGE_FARBE: Record<string, string> = {
-  gut: '#059669',
-  eingeschraenkt: '#f59e0b',
-  schlecht: '#b91c1c',
-  unbekannt: '#94a3b8',
+// Bedeutungsfarben aus der Palette (DESIGN.md) - passen sich dem Dunkelmodus an.
+const LAGE_KLASSE: Record<string, string> = {
+  gut: 'bg-emerald-50 border-emerald-100 text-brand-green',
+  eingeschraenkt: 'bg-amber-50 border-amber-100 text-amber-800',
+  schlecht: 'bg-red-50 border-red-100 text-brand-red',
+  unbekannt: 'bg-slate-50 border-slate-200 text-slate-600',
 };
 
 // Luftfahrtwetter der nächstgelegenen Flugplatz-Station. Ergänzt das
 // Punktwetter (open-meteo) um das, was die Luftfahrt tatsächlich meldet:
 // Sicht, Wolkenuntergrenze und die zusammenfassende Kategorie.
 export function AviationWeatherPanel({ lat, lon }: Props) {
+  const { tx, sprache } = useSprache();
   const [station, setStation] = useState<MetarStation | null>(null);
   const [taf, setTaf] = useState<TafMeldung | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -39,7 +42,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
         try { setTaf(await holeTaf(s.icaoId)); } catch { setTaf(null); }
       }
     } catch {
-      setFehler('Luftfahrtwetter nicht erreichbar.');
+      setFehler(tx('Luftfahrtwetter nicht erreichbar.', 'Aviation weather unavailable.'));
     } finally {
       setLaeuft(false);
     }
@@ -52,17 +55,17 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
   }, [lat, lon]);
 
   const bewertung = bewerteFltCat(station?.fltCat ?? null);
-  const farbe = LAGE_FARBE[bewertung.lage];
+  const lageKlasse = LAGE_KLASSE[bewertung.lage];
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Radio className="w-4 h-4 text-brand-blue" />
-          <span className="text-2xs font-black text-slate-900 uppercase tracking-wider">Luftfahrtwetter</span>
+          <span className="text-2xs font-black text-slate-900 uppercase tracking-wider">{tx('Luftfahrtwetter', 'Aviation weather')}</span>
         </div>
-        <button onClick={laden} aria-label="Neu laden" disabled={laeuft}
-          className="p-1 text-slate-300 hover:text-brand-blue disabled:opacity-40">
+        <button onClick={laden} aria-label={tx('Luftfahrtwetter neu laden', 'Reload aviation weather')} disabled={laeuft}
+          className="p-1 text-slate-500 hover:text-brand-blue disabled:opacity-40">
           <RefreshCw className={cn('w-4 h-4', laeuft && 'animate-spin')} />
         </button>
       </div>
@@ -74,7 +77,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
       )}
 
       {!fehler && !station && !laeuft && (
-        <p className="text-2xs text-slate-400">Keine Station in Reichweite gefunden.</p>
+        <p className="text-2xs text-slate-400">{tx('Keine Station in Reichweite gefunden.', 'No station found within range.')}</p>
       )}
 
       {station && (
@@ -84,16 +87,16 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
               {station.icaoId} · {station.name.split(',')[0]}
             </span>
             {station.entfernungKm !== undefined && (
-              <span className="text-2xs text-slate-400">{station.entfernungKm} km entfernt</span>
+              <span className="text-2xs text-slate-400">{tx(`${station.entfernungKm} km entfernt`, `${station.entfernungKm} km away`)}</span>
             )}
           </div>
 
-          <div className="rounded-xl p-3 mb-3" style={{ background: `${farbe}12`, border: `1px solid ${farbe}33` }}>
+          <div className={`rounded-xl p-3 mb-3 border ${lageKlasse}`}>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black" style={{ color: farbe }}>
+              <span className="text-xs font-black">
                 {station.fltCat ?? '—'}
               </span>
-              <span className="text-2xs text-slate-600 leading-snug">{bewertung.text}</span>
+              <span className="text-2xs text-slate-600 leading-snug">{sprache === 'en' ? bewertung.textEn : bewertung.text}</span>
             </div>
           </div>
 
@@ -103,7 +106,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
                 ? `${station.wdir ?? '—'}° / ${knotenInKmh(station.wspd)} km/h`
                 : '—'
             } />
-            <Wert label="Sicht" wert={station.visib ?? '—'} />
+            <Wert label={tx('Sicht', 'Visib.')} wert={station.visib ?? '—'} />
             <Wert label="Temp" wert={station.temp !== null ? `${station.temp}°C` : '—'} />
             <Wert label="QNH" wert={station.altim !== null ? `${Math.round(station.altim)}` : '—'} />
           </div>
@@ -119,7 +122,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
               <button onClick={() => setTafOffen(o => !o)}
                 className="flex items-center gap-1 text-2xs font-bold text-slate-400 uppercase tracking-wider">
                 <ChevronDown className={cn('w-3 h-3 transition-transform', tafOffen && 'rotate-180')} />
-                Vorhersage (TAF)
+                {tx('Vorhersage (TAF)', 'Forecast (TAF)')}
               </button>
               {tafOffen && (
                 <p className="mt-1 text-2xs font-mono text-slate-400 leading-relaxed break-all bg-slate-50 rounded-lg p-2">
@@ -130,8 +133,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
           )}
 
           <p className="text-2xs text-slate-400 mt-2 leading-relaxed">
-            Meldung eines Flugplatzes in der Nähe — beschreibt nicht zwingend deinen
-            genauen Standort, ist aber der verlässlichste Anhalt für Sicht und Wolken.
+            {tx('Meldung eines Flugplatzes in der Nähe — beschreibt nicht zwingend deinen genauen Standort, ist aber der verlässlichste Anhalt für Sicht und Wolken.', 'Report from a nearby airfield — it does not necessarily describe your exact location, but it is the most reliable reference for visibility and clouds.')}
           </p>
         </>
       )}

@@ -1,0 +1,3 @@
+# SkyLog DE ist eine App ohne öffentliche Inhaltsseiten; alles darf gelesen werden.
+User-agent: *
+Allow: /

@@ -16,7 +16,7 @@ import { Feld, IconKnopf, Knopf, SeitenKopf, eingabe } from '../components/ui';
 import { cn } from '../lib/utils';
 
 export function KnowledgeView() {
-  const { t, tx } = useSprache();
+  const { t, tx, sprache } = useSprache();
   const sections = [
     {
       title: tx('Die offene Kategorie', 'The open category'),
@@ -48,7 +48,7 @@ export function KnowledgeView() {
   ];
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-12">
       <SeitenKopf titel={t('view.lbaWissen')} untertitel={tx('Regeln, Behörden & Rechtsquellen', 'Rules, authorities & legal sources')} />
 
       <div className="space-y-8">
@@ -95,7 +95,7 @@ export function KnowledgeView() {
                 rel="noopener noreferrer"
                 className="flex items-center justify-between gap-3 px-4 h-12 hover:bg-slate-50"
               >
-                <span className="text-sm font-bold text-slate-700">{q.land}</span>
+                <span className="text-sm font-bold text-slate-700">{sprache === 'en' ? q.landEn : q.land}</span>
                 <ExternalLink className="w-4 h-4 text-slate-400 shrink-0" />
               </a>
             ))}
@@ -119,6 +119,8 @@ function AmtslinkGruppe({ titel, icon: Icon, links }: {
   icon: typeof Scale;
   links: Amtslink[];
 }) {
+  const { sprache } = useSprache();
+  const en = sprache === 'en';
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
@@ -131,14 +133,14 @@ function AmtslinkGruppe({ titel, icon: Icon, links }: {
         {links.map((l) => (
           <a
             key={l.url}
-            href={l.url}
+            href={en ? l.urlEn ?? l.url : l.url}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-start gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:border-brand-blue/40"
           >
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-slate-900 leading-snug">{l.name}</p>
-              <p className="text-xs text-slate-500 leading-relaxed mt-1">{l.beschreibung}</p>
+              <p className="text-sm font-bold text-slate-900 leading-snug">{en ? l.nameEn ?? l.name : l.name}</p>
+              <p className="text-xs text-slate-500 leading-relaxed mt-1">{en ? l.beschreibungEn : l.beschreibung}</p>
             </div>
             <ExternalLink className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
           </a>
@@ -202,7 +204,7 @@ export function InventoryView() {
   const drohnenName = (id?: string) => drohnen.find(d => d.id === id)?.name;
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-12">
       <SeitenKopf
         titel={t('view.ersatzteile')}
         untertitel={tx('Ersatzteile, Bestand & Links', 'Spare parts, stock & links')}
@@ -256,7 +258,7 @@ export function InventoryView() {
           {teile.map(teil => (
             <div key={teil.id} className={cn('bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-3', knapp(teil) ? 'border-amber-300' : 'border-slate-200')}>
               <div className="min-w-0 flex-1">
-                <h4 className="font-bold text-slate-900 text-sm truncate">{teil.name}</h4>
+                <h3 className="font-bold text-slate-900 text-sm truncate">{teil.name}</h3>
                 {teil.beschreibung && <p className="text-xs text-slate-500 truncate">{teil.beschreibung}</p>}
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {drohnenName(teil.droneId) && (
@@ -325,7 +327,7 @@ export function PilotsView() {
   };
 
   return (
-    <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
+    <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-12">
       <SeitenKopf
         titel={t('view.pilotenManagement')}
         untertitel={tx('Weitere Piloten & Gäste', 'Additional pilots & guests')}
@@ -335,7 +337,7 @@ export function PilotsView() {
       <div className="space-y-3">
         {showAdd && (
           <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-3">
-            <h4 className="text-base font-black text-slate-900">{tx('Gast-Piloten hinzufügen', 'Add guest pilot')}</h4>
+            <h3 className="text-base font-black text-slate-900">{tx('Gast-Piloten hinzufügen', 'Add guest pilot')}</h3>
             <Feld label={tx('Name', 'Name')} htmlFor="pi-name">
               <input id="pi-name" type="text" className={eingabe} value={newPilot.name || ''} onChange={e => setNewPilot({ ...newPilot, name: e.target.value })} />
             </Feld>
@@ -364,7 +366,7 @@ export function PilotsView() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <h4 className="font-bold text-slate-900 text-sm truncate">{pilot.name}</h4>
+                <h3 className="font-bold text-slate-900 text-sm truncate">{pilot.name}</h3>
                 {pilot.isGuest && <span className="text-2xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">{tx('Gast', 'Guest')}</span>}
               </div>
               <p className="text-xs text-slate-500 font-mono truncate flex items-center gap-1">
@@ -379,7 +381,7 @@ export function PilotsView() {
       <div className="mt-8 p-5 bg-amber-50 border border-amber-100 rounded-3xl flex gap-3">
         <Info className="w-5 h-5 text-amber-800 shrink-0" />
         <div className="space-y-1">
-          <h4 className="text-sm font-bold text-amber-800">{tx('Versicherungs-Hinweis', 'Insurance note')}</h4>
+          <h3 className="text-sm font-bold text-amber-800">{tx('Versicherungs-Hinweis', 'Insurance note')}</h3>
           <p className="text-sm text-amber-800 leading-relaxed">
             {tx('Stelle sicher, dass Gast-Piloten durch deine Drohnen-Haftpflicht mitversichert sind. Die e-ID des verantwortlichen Betreibers muss am Gerät bleiben.', 'Make sure guest pilots are covered by your drone liability insurance. The e-ID of the responsible operator must remain on the aircraft.')}
           </p>

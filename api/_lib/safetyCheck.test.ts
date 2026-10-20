@@ -3,6 +3,8 @@ import {
   clientKeyFrom,
   createRateLimiter,
   handleSafetyCheck,
+  headerWert,
+  herkunftErlaubt,
   sanitizeLocationName,
   validateSafetyRequest,
 } from './safetyCheck';
@@ -58,6 +60,38 @@ describe('createRateLimiter', () => {
     expect(check('d').allowed).toBe(false);
     t = 24 * 60 * 60 * 1000;
     expect(check('d').allowed).toBe(true);
+  });
+});
+
+describe('herkunftErlaubt', () => {
+  it('lässt die eigene Seite und die Apps zu', () => {
+    expect(herkunftErlaubt('https://skylog.vercel.app', 'skylog.vercel.app', '')).toBe(true);
+    expect(herkunftErlaubt('http://localhost:3000', 'localhost:3000', '')).toBe(true);
+    expect(herkunftErlaubt('https://localhost', 'skylog.vercel.app', '')).toBe(true);
+    expect(herkunftErlaubt('capacitor://localhost', 'skylog.vercel.app', '')).toBe(true);
+  });
+
+  it('erlaubt Anfragen ohne Origin (Server, native App) - dort bremst das Rate-Limit', () => {
+    expect(herkunftErlaubt(undefined, 'skylog.vercel.app', '')).toBe(true);
+  });
+
+  it('weist fremde Seiten und kaputte Origins ab', () => {
+    expect(herkunftErlaubt('https://fremd.example', 'skylog.vercel.app', '')).toBe(false);
+    expect(herkunftErlaubt('https://skylog.vercel.app.fremd.example', 'skylog.vercel.app', '')).toBe(false);
+    expect(herkunftErlaubt('null', 'skylog.vercel.app', '')).toBe(false);
+    expect(herkunftErlaubt('https://fremd.example', undefined, '')).toBe(false);
+  });
+
+  it('nimmt zusätzliche Adressen aus der Umgebung an', () => {
+    expect(herkunftErlaubt('https://skylog.example.de', 'skylog.vercel.app', 'https://a.example, https://skylog.example.de')).toBe(true);
+  });
+});
+
+describe('headerWert', () => {
+  it('liest den ersten Wert', () => {
+    expect(headerWert(['a', 'b'])).toBe('a');
+    expect(headerWert('x')).toBe('x');
+    expect(headerWert(undefined)).toBeUndefined();
   });
 });
 

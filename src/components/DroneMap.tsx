@@ -7,7 +7,7 @@ import L from 'leaflet';
 import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
 import { dbService, type Flight, type LocationFavorite, type GespeicherteKarte } from '../services/db';
-import type { WeatherData } from '../services/weather';
+import { wetterText, type WeatherData } from '../services/weather';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from '../services/offlineBasemap';
 import { EuZoneLayer } from './EuZoneLayer';
 import { zonenInUmkreis, parseEd269, type Ed269Zone } from '../services/ed269';
@@ -186,13 +186,13 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
             genau wie das deutsche Overlay. */}
         <EuZoneLayer zonen={euZonen} />
 
-        <Marker position={location} icon={droneIcon}>
+        <Marker position={location} icon={droneIcon} title={tx('Dein Standort', 'Your location')} alt={tx('Dein Standort', 'Your location')}>
           <Popup>{tx('Dein Standort', 'Your location')}</Popup>
         </Marker>
 
         {/* Past flight locations */}
         {flights.filter(f => f.coordinates).slice(0, 30).map(f => (
-          <Marker key={f.id} position={f.coordinates} icon={flightHistoryIcon}>
+          <Marker key={f.id} position={f.coordinates} icon={flightHistoryIcon} title={`${tx('Flug', 'Flight')}: ${f.locationName || tx('Unbekannter Ort', 'Unknown place')}`} alt={f.locationName || tx('Flugort', 'Flight location')}>
             <Popup>
               <div className="p-1 text-xs min-w-[140px]">
                 <p className="font-bold text-slate-800 mb-1">{f.locationName || tx('Unbekannter Ort', 'Unknown place')}</p>
@@ -205,7 +205,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
 
         {/* Saved Favorite Locations */}
         {locationFavorites.map(fav => (
-          <Marker key={fav.id} position={fav.coordinates} icon={favoriteLocationIcon}>
+          <Marker key={fav.id} position={fav.coordinates} icon={favoriteLocationIcon} title={`${tx('Lieblingsort', 'Favourite')}: ${fav.name}`} alt={fav.name}>
             <Popup>
               <div className="p-1 text-xs min-w-[150px]">
                 <div className="flex items-center gap-1 mb-1">
@@ -301,7 +301,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
             </div>
             <div className="flex flex-col items-center gap-1 border-t border-slate-100 pt-3">
               <CloudRain className="w-5 h-5 text-blue-400" />
-              <span className="text-2xs font-bold text-slate-500 leading-tight text-center">{weather.condition}</span>
+              <span className="text-2xs font-bold text-slate-500 leading-tight text-center">{wetterText(weather.condition, sprache)}</span>
             </div>
           </div>
         )}

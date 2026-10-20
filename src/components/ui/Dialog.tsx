@@ -86,7 +86,7 @@ export function Dialog({
             <X className="w-5 h-5" />
           </button>}
         </div>
-        <div className={cn('overflow-y-auto flex-1', !ohneInnenabstand && 'px-5 py-5 space-y-4')}>
+        <div className={cn('overflow-y-auto flex-1 focus:outline-none', !ohneInnenabstand && 'px-5 py-5 space-y-4')} tabIndex={0} aria-labelledby={titelId}>
           {children}
         </div>
         {fuss && (

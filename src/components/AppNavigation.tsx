@@ -153,7 +153,7 @@ export function NavButton({ active, onClick, icon: Icon, label, badge, className
       <div className={cn('p-1.5 rounded-xl transition-all duration-200 relative', active ? 'bg-brand-blue/10' : 'bg-transparent')}>
         <Icon className={cn('w-5 h-5', active ? 'stroke-[2.5px]' : 'stroke-[1.75px]')} />
         {badge != null && badge > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-red-500 text-white text-2xs font-black rounded-full flex items-center justify-center px-1 leading-none border border-white">
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-brand-red text-white text-2xs font-black rounded-full flex items-center justify-center px-1 leading-none border border-white">
             {badge > 9 ? '9+' : badge}
           </span>
         )}

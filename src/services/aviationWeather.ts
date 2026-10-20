@@ -79,18 +79,18 @@ export type SichtLage = 'gut' | 'eingeschraenkt' | 'schlecht' | 'unbekannt';
 
 /** Übersetzt die Flugwetter-Kategorie in eine Einschätzung für Drohnenflug.
  *  VFR = Sichtflugbedingungen; alles darunter heißt schlechte Sicht/tiefe Wolken. */
-export function bewerteFltCat(fltCat: string | null): { lage: SichtLage; text: string } {
+export function bewerteFltCat(fltCat: string | null): { lage: SichtLage; text: string; textEn: string } {
   switch ((fltCat || '').toUpperCase()) {
     case 'VFR':
-      return { lage: 'gut', text: 'Sichtflugbedingungen (VFR) — Sicht und Wolkenuntergrenze unkritisch.' };
+      return { lage: 'gut', text: 'Sichtflugbedingungen (VFR) — Sicht und Wolkenuntergrenze unkritisch.', textEn: 'Visual flight conditions (VFR) — visibility and cloud base are not critical.' };
     case 'MVFR':
-      return { lage: 'eingeschraenkt', text: 'Eingeschränkte Sichtflugbedingungen (MVFR) — Sicht oder Wolken schon knapp.' };
+      return { lage: 'eingeschraenkt', text: 'Eingeschränkte Sichtflugbedingungen (MVFR) — Sicht oder Wolken schon knapp.', textEn: 'Marginal visual flight conditions (MVFR) — visibility or clouds already tight.' };
     case 'IFR':
-      return { lage: 'schlecht', text: 'Instrumentenflugbedingungen (IFR) — schlechte Sicht oder tiefe Wolken.' };
+      return { lage: 'schlecht', text: 'Instrumentenflugbedingungen (IFR) — schlechte Sicht oder tiefe Wolken.', textEn: 'Instrument flight conditions (IFR) — poor visibility or low clouds.' };
     case 'LIFR':
-      return { lage: 'schlecht', text: 'Sehr schlechte Bedingungen (LIFR) — für Drohnenflug ungeeignet.' };
+      return { lage: 'schlecht', text: 'Sehr schlechte Bedingungen (LIFR) — für Drohnenflug ungeeignet.', textEn: 'Very poor conditions (LIFR) — unsuitable for drone flights.' };
     default:
-      return { lage: 'unbekannt', text: 'Keine Kategorie gemeldet.' };
+      return { lage: 'unbekannt', text: 'Keine Kategorie gemeldet.', textEn: 'No category reported.' };
   }
 }
 

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Plus, Trash2, ChevronUp, ChevronDown, RotateCcw, ListChecks } from 'lucide-react';
 import {
   ladeChecklist, speichereChecklist, setzeZurueck,
-  punktHinzufuegen, punktEntfernen, punktBearbeiten, verschiebe,
+  punktHinzufuegen, punktEntfernen, punktBearbeiten, verschiebe, punktText,
   type ChecklistArt, type ChecklistPunkt,
 } from '../services/checklists';
 import { bestaetige } from '../services/dialog';
@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
-  const { tx } = useSprache();
+  const { tx, sprache } = useSprache();
   const [punkte, setPunkte] = useState<ChecklistPunkt[]>(() => ladeChecklist(art));
   const [neu, setNeu] = useState('');
 
@@ -66,7 +66,7 @@ export function ChecklistEditorDialog({ art, titel, onClose }: Props) {
           <div key={p.id} className="flex items-center gap-1 bg-white rounded-2xl border border-slate-200 p-1.5 pl-3">
             <input
               className="flex-1 min-w-0 bg-transparent text-sm text-slate-900 rounded-xl px-1 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-blue/30"
-              value={p.text}
+              value={punktText(p, sprache)}
               onChange={e => anwenden(punktBearbeiten(punkte, p.id, e.target.value))}
             />
             <button onClick={() => anwenden(verschiebe(punkte, p.id, -1))} disabled={i === 0}

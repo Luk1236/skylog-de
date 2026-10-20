@@ -127,7 +127,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                 {/* Status Badge */}
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h4 className="font-bold text-sm text-slate-900">{d.model}</h4>
+                    <h3 className="font-bold text-sm text-slate-900">{d.model}</h3>
                     <p className="text-xs text-slate-500">S/N: {d.serialNumber || 'Keine Seriennummer'}</p>
                   </div>
 

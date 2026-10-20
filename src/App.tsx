@@ -19,6 +19,9 @@ import { sichtbareHinweise } from './services/ausgeblendeteHinweise';
 import { startOrt } from './services/startOrt';
 import { schliesseOberste } from './services/ebenen';
 import { distanzMeter } from './services/geo';
+import { dauerhaftAnfordern } from './services/speicherSchutz';
+import { istInstallierteWebApp } from './lib/appInfo';
+import { ladeStandortFreigabe, speichereStandortFreigabe, standortSchonFreigegeben, type StandortFreigabe } from './services/standortFreigabe';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
@@ -27,6 +30,7 @@ import type { View } from './lib/ansichten';
 import { DialogHost } from './components/DialogHost';
 import { HinweisLeiste } from './components/HinweisLeiste';
 import { DroneMap } from './components/DroneMap';
+import { StandortHinweis } from './components/StandortHinweis';
 import { MehrSheet, NavButton, SeitenleistenMenue, type MenueEintrag, type MenueGruppe } from './components/AppNavigation';
 
 import { PinLockDialog } from './components/PinLockDialog';
@@ -66,6 +70,16 @@ export default function App() {
   // Echtes GPS hat Vorrang vor dem Startort aus den eigenen Flügen.
   const gpsFix = useRef(false);
   const startOrtGeprueft = useRef(false);
+  // Ist der Standort echt (GPS oder von Hand)? Nur dann zeigt die
+  // Sicherheitsansicht Notfall-Koordinaten - nicht den Startort aus alten
+  // Flügen oder den Standardort Berlin.
+  const [standortBekannt, setStandortBekannt] = useState(false);
+  // Standort erst nach Erklärung abfragen (services/standortFreigabe.ts).
+  const [standortFreigabe, setStandortFreigabe] = useState<StandortFreigabe>(ladeStandortFreigabe);
+  const standortWaehlen = (wert: 'erlaubt' | 'abgelehnt') => {
+    speichereStandortFreigabe(wert);
+    setStandortFreigabe(wert);
+  };
   // Wann und wo zuletzt Wetter geholt wurde
   const wetterStand = useRef<{ zeit: number; lat: number; lon: number } | null>(null);
   const holeWetter = (lat: number, lon: number) => {
@@ -120,6 +134,13 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadData(); }, []);
 
+  // Installierte Web-App: dauerhaften Speicher anfordern, damit der Browser die
+  // Flüge bei Speichermangel nicht räumt. Chrome gewährt das installierten Apps
+  // ohne Rückfrage; im Browser-Tab gibt es dafür den Knopf in den Einstellungen.
+  useEffect(() => {
+    if (istInstallierteWebApp()) void dauerhaftAnfordern();
+  }, []);
+
   // Seitensprache für Screenreader und Silbentrennung
   useEffect(() => {
     document.documentElement.lang = sprache;
@@ -140,11 +161,22 @@ export default function App() {
     };
   }, []);
 
+  // Hat der Browser den Standort schon freigegeben (Nutzer von früher), entfällt
+  // der Hinweis auf der Karte.
+  useEffect(() => {
+    void standortSchonFreigegeben().then(ja => {
+      if (!ja) return;
+      speichereStandortFreigabe('erlaubt');
+      setStandortFreigabe('erlaubt');
+    });
+  }, []);
+
   // Standort nur verfolgen, wo er gebraucht wird: auf der Karte und in der
-  // Sicherheitsansicht (Notfall-Koordinaten) - und nur im Vordergrund. Vorher
-  // fragte die App alle 10 s mit hoher Genauigkeit, in jeder Ansicht und auch
-  // im Hintergrund (Akku). Die übrigen Ansichten nutzen den letzten Standort.
-  const standortVerfolgen = imVordergrund && (activeView === 'map' || activeView === 'safety');
+  // Sicherheitsansicht (Notfall-Koordinaten) - nur im Vordergrund und erst, wenn
+  // der Nutzer nach der Erklärung zugestimmt hat. Vorher fragte die App gleich
+  // beim Start, alle 10 s, in jeder Ansicht und auch im Hintergrund (Akku).
+  const standortVerfolgen = imVordergrund && standortFreigabe === 'erlaubt'
+    && (activeView === 'map' || activeView === 'safety');
   useEffect(() => {
     if (!standortVerfolgen || !('geolocation' in navigator)) return;
     setIsLocating(true);
@@ -154,6 +186,7 @@ export default function App() {
         manuellerStandort.current = false;
         const ersterFix = !gpsFix.current;
         gpsFix.current = true;
+        setStandortBekannt(true);
         setGpsFehler(null);
         setIsLocating(false);
         const neu: [number, number] = [pos.coords.latitude, pos.coords.longitude];
@@ -242,6 +275,9 @@ export default function App() {
       (pos) => {
         const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
         gpsFix.current = true;
+        setStandortBekannt(true);
+        // Wer selbst auf Orten tippt, will den Standort - ab jetzt mitverfolgen.
+        standortWaehlen('erlaubt');
         setLocation(newLoc);
         holeWetter(newLoc[0], newLoc[1]);
         setIsLocating(false);
@@ -338,6 +374,8 @@ export default function App() {
   const letzteDrohne = letzterFlug ? drones.find(d => d.id === letzterFlug.droneId) : undefined;
   // Seitenwechsel: kurze Einblendung per CSS (vorher die motion-Bibliothek im Erststart).
   const ansichtKlasse = 'absolute inset-0 overflow-y-auto p-4 bg-slate-50 ansicht-ein';
+  // Der Scrollbereich jeder Ansicht ist per Tastatur erreichbar (Pfeiltasten/Bild ab).
+  const ansichtBereich = { tabIndex: 0, role: 'region', 'aria-label': ansichtTitel } as const;
 
   return (
     <SprachProvider sprache={sprache}>
@@ -437,30 +475,41 @@ export default function App() {
               {/* Kartenelemente bewusst nur z-20/z-30: genug, um ueber der Karte
                   (.leaflet-container z-index 1) zu liegen, aber unter allen Dialogen
                   (ab z-[60]). */}
-              {gpsFehler && (
-                <div className="absolute top-4 left-4 right-20 z-30 bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span className="flex-1">
-                    {gpsFehler === 'verweigert'
-                      ? tx('Kein GPS-Zugriff. Erlaube den Standort in den Einstellungen oder setz ihn von Hand.', 'No GPS access. Allow location in your settings or set it by hand.')
-                      : tx('GPS antwortet nicht. Standort konnte nicht ermittelt werden.', 'GPS is not responding. Location could not be determined.')}
-                  </span>
-                  <button
-                    onClick={() => setShowManualLocation(true)}
-                    className="shrink-0 bg-black/15 hover:bg-black/25 rounded-lg px-2 h-8 text-xs font-bold"
-                  >
-                    {tx('Von Hand', 'Set manually')}
-                  </button>
-                </div>
-              )}
-              {lizenzTage !== null && lizenzTage <= 60 && (
-                <div className={`absolute ${gpsFehler ? 'top-20' : 'top-4'} left-4 right-20 z-30 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 ${lizenzTage <= 0 ? 'bg-brand-red' : 'bg-amber-700'}`}>
-                  <ShieldAlert className="w-4 h-4 shrink-0" />
-                  {lizenzTage <= 0
-                    ? tx(`Kompetenznachweis abgelaufen (${profile?.licenseType})`, `Certificate expired (${profile?.licenseType})`)
-                    : tx(`Kompetenznachweis läuft in ${lizenzTage} Tagen ab (${profile?.licenseType})`, `Certificate expires in ${lizenzTage} days (${profile?.licenseType})`)}
-                </div>
-              )}
+              {/* Hinweise oben auf der Karte untereinander; die Lücken lassen
+                  Tipps auf die Karte durch. */}
+              <div className="absolute top-4 left-4 right-20 z-30 flex flex-col gap-2 pointer-events-none [&>*]:pointer-events-auto">
+                {standortFreigabe === 'offen' && !standortBekannt && (
+                  <StandortHinweis
+                    onFreigeben={() => standortWaehlen('erlaubt')}
+                    onVonHand={() => setShowManualLocation(true)}
+                    onSchliessen={() => standortWaehlen('abgelehnt')}
+                  />
+                )}
+                {gpsFehler && (
+                  <div className="bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span className="flex-1">
+                      {gpsFehler === 'verweigert'
+                        ? tx('Kein GPS-Zugriff. Erlaube den Standort in den Einstellungen oder setz ihn von Hand.', 'No GPS access. Allow location in your settings or set it by hand.')
+                        : tx('GPS antwortet nicht. Standort konnte nicht ermittelt werden.', 'GPS is not responding. Location could not be determined.')}
+                    </span>
+                    <button
+                      onClick={() => setShowManualLocation(true)}
+                      className="shrink-0 bg-black/15 hover:bg-black/25 rounded-lg px-2 h-8 text-xs font-bold"
+                    >
+                      {tx('Von Hand', 'Set manually')}
+                    </button>
+                  </div>
+                )}
+                {lizenzTage !== null && lizenzTage <= 60 && (
+                  <div className={`text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 ${lizenzTage <= 0 ? 'bg-brand-red' : 'bg-amber-700'}`}>
+                    <ShieldAlert className="w-4 h-4 shrink-0" />
+                    {lizenzTage <= 0
+                      ? tx(`Kompetenznachweis abgelaufen (${profile?.licenseType})`, `Certificate expired (${profile?.licenseType})`)
+                      : tx(`Kompetenznachweis läuft in ${lizenzTage} Tagen ab (${profile?.licenseType})`, `Certificate expires in ${lizenzTage} days (${profile?.licenseType})`)}
+                  </div>
+                )}
+              </div>
               {/* Letzter Flug: Tipp öffnet das Logbuch */}
               {letzterFlug && (
                 <button
@@ -493,25 +542,25 @@ export default function App() {
           )}
 
           {activeView === 'garage' && (
-            <div key="garage" className={ansichtKlasse}>
+            <div key="garage" className={ansichtKlasse} {...ansichtBereich}>
               <GarageView drones={drones} flights={flights} batteries={batteries} onUpdate={loadData} />
             </div>
           )}
 
           {activeView === 'logbook' && (
-            <div key="logbook" className={ansichtKlasse}>
+            <div key="logbook" className={ansichtKlasse} {...ansichtBereich}>
               <LogbookView flights={flights} drones={drones} batteries={batteries} profile={profile} locationFavorites={locationFavorites} onUpdate={loadData} currentLocation={location} onOpenFavorites={() => setShowLocationFavoritesDialog(true)} formularStart={logbuchMitFormular} />
             </div>
           )}
 
           {activeView === 'profile' && (
-            <div key="profile" className={ansichtKlasse}>
+            <div key="profile" className={ansichtKlasse} {...ansichtBereich}>
               <ProfileView profile={profile} documents={documents} onUpdate={loadData} onOpenEid={() => setShowEidDialog(true)} />
             </div>
           )}
 
           {activeView === 'settings' && (
-            <div key="settings" className={ansichtKlasse}>
+            <div key="settings" className={ansichtKlasse} {...ansichtBereich}>
               <EinstellungenView
                 profile={profile}
                 onUpdate={loadData}
@@ -526,31 +575,34 @@ export default function App() {
           )}
 
           {activeView === 'knowledge' && (
-            <div key="knowledge" className={ansichtKlasse}>
+            <div key="knowledge" className={ansichtKlasse} {...ansichtBereich}>
               <KnowledgeView />
             </div>
           )}
 
           {activeView === 'roadmap' && (
-            <div key="roadmap" className={ansichtKlasse}>
+            <div key="roadmap" className={ansichtKlasse} {...ansichtBereich}>
               <RoadmapView />
             </div>
           )}
 
           {activeView === 'safety' && (
-            <div key="safety" className={ansichtKlasse}>
-              <SafetyView profile={profile} drones={drones} standort={location} onBehoerdenCheck={() => setShowBehoerdenCheck(true)} onOpenEid={() => setShowEidDialog(true)} />
+            <div key="safety" className={ansichtKlasse} {...ansichtBereich}>
+              <SafetyView profile={profile} drones={drones} standort={standortBekannt ? location : undefined}
+                ortet={standortFreigabe === 'erlaubt' && isLocating}
+                onStandortFreigeben={standortFreigabe === 'erlaubt' ? undefined : () => standortWaehlen('erlaubt')}
+                 onBehoerdenCheck={() => setShowBehoerdenCheck(true)} onOpenEid={() => setShowEidDialog(true)} />
             </div>
           )}
 
           {activeView === 'inventory' && (
-            <div key="inventory" className={ansichtKlasse}>
+            <div key="inventory" className={ansichtKlasse} {...ansichtBereich}>
               <InventoryView />
             </div>
           )}
 
           {activeView === 'pilots' && (
-            <div key="pilots" className={ansichtKlasse}>
+            <div key="pilots" className={ansichtKlasse} {...ansichtBereich}>
               <PilotsView />
             </div>
           )}
@@ -628,6 +680,7 @@ export default function App() {
           aktuell={location}
           onPick={(lat, lon) => {
             manuellerStandort.current = true;
+            setStandortBekannt(true);
             setLocation([lat, lon]);
             setGpsFehler(null);
             holeWetter(lat, lon);

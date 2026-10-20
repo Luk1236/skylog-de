@@ -22,6 +22,28 @@ export interface ForecastHour {
   condition: string;
 }
 
+// Wetter- und Sichtangaben werden (auch in gespeicherten Flügen) auf Deutsch
+// abgelegt; die Oberfläche übersetzt sie erst beim Anzeigen.
+const WETTER_EN: Record<string, string> = {
+  'Leicht bewölkt': 'Partly cloudy',
+  'Neblig': 'Foggy',
+  'Regen': 'Rain',
+  'Schnee': 'Snow',
+  'Gewitter': 'Thunderstorm',
+  'Klar': 'Clear',
+  'Windig': 'Windy',
+  'Schlecht': 'Poor',
+  'Mäßig': 'Moderate',
+  'Gut': 'Good',
+  'Sehr gut': 'Very good',
+  'Unbekannt': 'Unknown',
+};
+
+/** Wetter-/Sichttext in der gewählten Sprache (unbekannte Texte bleiben). */
+export function wetterText(text: string, sprache: 'de' | 'en'): string {
+  return sprache === 'en' ? WETTER_EN[text] ?? text : text;
+}
+
 function codeToCondition(code: number): string {
   if (code > 0 && code < 4) return "Leicht bewölkt";
   if (code >= 45 && code <= 48) return "Neblig";

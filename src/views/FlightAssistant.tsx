@@ -3,13 +3,13 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   AlertTriangle, BrainCircuit, Camera, CheckCircle, CheckCircle2, ClipboardCheck,
   Clock, History, Info, ListChecks, MapPin, Plane, Play, Rocket, Settings2,
-  ShieldCheck, Sparkles, Square, Thermometer, Timer, Wind, XCircle, Zap,
+  ShieldCheck, Sparkles, Square, Thermometer, Timer, Wind, XCircle,
 } from 'lucide-react';
 import { dbService, type Flight, type Drone, type Battery, type UserProfile, type Pilot } from '../services/db';
-import { fetchWeather, fetchForecast, minutesUntilSunset, type ForecastHour } from '../services/weather';
+import { fetchWeather, fetchForecast, minutesUntilSunset, wetterText, type ForecastHour } from '../services/weather';
 import { bewerteFlugfenster, besteStunde, sonnenuntergangStunde, type FensterBewertung } from '../services/flightWindow';
 import { fetchNotams, getGermanFir, formatNotamDate, summariseNotam, type Notam } from '../services/notam';
-import { ladeChecklist, type ChecklistArt, type ChecklistPunkt } from '../services/checklists';
+import { ladeChecklist, punktText, type ChecklistArt, type ChecklistPunkt } from '../services/checklists';
 import { cn } from '../lib/utils';
 import { AirspaceCheckPanel } from '../components/AirspaceCheckPanel';
 import { AviationWeatherPanel } from '../components/AviationWeatherPanel';
@@ -21,85 +21,77 @@ import { bestaetige } from '../services/dialog';
 import { useEbene } from '../lib/useEbene';
 import { eingabe, beschriftung, knopfKlassen } from '../components/ui';
 
-const CHECKLIST_ITEMS = [
-  {
-    title: "Technik & Akku",
-    icon: Zap,
-    items: [
-      { id: 'battery_drone', label: 'Flugakku voll geladen & fest arretiert' },
-      { id: 'battery_rc', label: 'Fernsteuerung & Smartphone geladen' },
-      { id: 'props', label: 'Propeller fest & ohne Risse/Schäden' },
-      { id: 'sd_card', label: 'SD-Karte eingelegt & Speicher frei' },
-      { id: 'gimbal', label: 'Gimbal-Schutz entfernt' }
-    ]
-  },
-  {
-    title: "Umgebung & Wetter",
-    icon: Wind,
-    items: [
-      { id: 'weather', label: 'Wind & Sichtweiten innerhalb der Limits' },
-      { id: 'kp_index', label: 'GPS-Empfang stabil (KP-Index niedrig)' },
-      { id: 'objects', label: 'Keine Hindernisse (Bäume, Leitungen) im Startbereich' },
-      { id: 'people', label: 'Keine unbeteiligten Personen im Gefahrenbereich' }
-    ]
-  },
-  {
-    title: "System & Software",
-    icon: ShieldCheck,
-    items: [
-      { id: 'homepoint', label: 'Homepoint (RTH) aktualisiert' },
-      { id: 'max_height', label: 'Flughöhen-Limit eingestellt (max 120m)' },
-      { id: 'registration', label: 'e-ID sichtbar an der Drohne angebracht' },
-      { id: 'map_check', label: 'DIPUL/Geo-Zonen Regelung geprüft' }
-    ]
-  }
-];
-
-function PreFlightChecklist({ art = 'preflight', titel: titelVorgabe }: { art?: ChecklistArt, titel?: string }) {
-  const { tx } = useSprache();
-  const titel = titelVorgabe ?? tx('Vorflug-Checkliste', 'Pre-flight checklist');
+/** Zustand einer anpassbaren Checkliste (Punkte aus dem Editor plus Haken). Liegt
+ *  im Assistenten, damit die Vorflug-Liste den Start freigeben kann. */
+function useCheckliste(art: ChecklistArt) {
   const [items, setItems] = useState<ChecklistPunkt[]>(() => ladeChecklist(art));
   const [checked, setChecked] = useState<Record<string, boolean>>({});
-  const [editor, setEditor] = useState(false);
-
   const done = items.filter(i => checked[i.id]).length;
-  const allDone = items.length > 0 && done === items.length;
-  const toggle = (id: string) => setChecked(prev => ({ ...prev, [id]: !prev[id] }));
+  return {
+    art, items, checked, done,
+    /** Alles abgehakt - eine leere Liste sperrt den Start nicht. */
+    vollstaendig: done === items.length,
+    toggle: (id: string) => setChecked(prev => ({ ...prev, [id]: !prev[id] })),
+    /** Nach dem Bearbeiten neu laden; unveränderte Punkte behalten ihren Haken. */
+    neuLaden: () => {
+      const neu = ladeChecklist(art);
+      const abgehakt = new Set(items.filter(i => checked[i.id]).map(i => i.text));
+      setItems(neu);
+      setChecked(Object.fromEntries(neu.filter(i => abgehakt.has(i.text)).map(i => [i.id, true])));
+    },
+  };
+}
+
+function ChecklistKarte({ liste, titel }: { liste: ReturnType<typeof useCheckliste>, titel: string }) {
+  const { tx, sprache } = useSprache();
+  const [editor, setEditor] = useState(false);
+  const { art, items, checked, done, vollstaendig, toggle, neuLaden } = liste;
+  const alleAbgehakt = vollstaendig && items.length > 0;
 
   return (
     <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <ListChecks className="w-4 h-4 text-brand-blue" />
           <h3 className="text-sm font-bold text-slate-900">{titel}</h3>
         </div>
-        <div className="flex items-center gap-2">
-          <span className={cn("text-2xs font-black px-2 py-0.5 rounded-full", allDone ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-500")}>
+        <div className="flex items-center gap-1">
+          <span className={cn("text-2xs font-black px-2 py-0.5 rounded-full", alleAbgehakt ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-600")}>
             {done}/{items.length}
           </span>
-          <button onClick={() => setEditor(true)} aria-label={tx('Checkliste bearbeiten', 'Edit checklist')} className="p-1 text-slate-300 hover:text-brand-blue">
+          <button type="button" onClick={() => setEditor(true)} aria-label={tx('Checkliste bearbeiten', 'Edit checklist')}
+            className="w-10 h-10 -mr-2 flex items-center justify-center rounded-xl text-slate-500 hover:text-brand-blue hover:bg-slate-100">
             <Settings2 className="w-4 h-4" />
           </button>
         </div>
       </div>
-      <div className="space-y-1">
-        {items.map(item => (
-          <button
-            key={item.id}
-            onClick={() => toggle(item.id)}
-            className="w-full flex items-center gap-3 py-2 text-left active:scale-[0.99] transition-transform"
-          >
-            {checked[item.id]
-              ? <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-              : <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />}
-            <span className={cn("text-xs font-medium", checked[item.id] ? "text-slate-400 line-through" : "text-slate-700")}>{item.text}</span>
-          </button>
-        ))}
-      </div>
-      {allDone && (
+      {items.length === 0 ? (
+        <p className="text-xs text-slate-500 py-2">{tx('Die Liste ist leer – über das Zahnrad Prüfpunkte hinzufügen.', 'The list is empty – add check items via the gear icon.')}</p>
+      ) : (
+        <div className="space-y-1">
+          {items.map(item => (
+            <button
+              key={item.id}
+              type="button"
+              role="checkbox"
+              aria-checked={!!checked[item.id]}
+              onClick={() => toggle(item.id)}
+              className="w-full min-h-11 flex items-center gap-3 py-2 text-left active:scale-[0.99] transition-transform"
+            >
+              {checked[item.id]
+                ? <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                : <div className="w-5 h-5 rounded-full border-2 border-slate-300 shrink-0" />}
+              <span className={cn("text-sm font-medium", checked[item.id] ? "text-slate-500 line-through" : "text-slate-700")}>{punktText(item, sprache)}</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {alleAbgehakt && (
         <div className="mt-3 flex items-center gap-2 p-2.5 bg-emerald-50 rounded-xl">
-          <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-          <p className="text-2xs font-bold text-emerald-700">{tx('Alles geprüft — startklar!', 'All checked — ready for take-off!')}</p>
+          <CheckCircle className="w-4 h-4 text-brand-green shrink-0" />
+          <p className="text-xs font-bold text-brand-green">
+            {art === 'preflight' ? tx('Alles geprüft – startklar!', 'All checked – ready for take-off!') : tx('Alles erledigt.', 'All done.')}
+          </p>
         </div>
       )}
 
@@ -107,7 +99,7 @@ function PreFlightChecklist({ art = 'preflight', titel: titelVorgabe }: { art?: 
         <ChecklistEditorDialog
           art={art}
           titel={titel}
-          onClose={() => { setEditor(false); setItems(ladeChecklist(art)); }}
+          onClose={() => { setEditor(false); neuLaden(); }}
         />
       )}
     </div>
@@ -120,7 +112,7 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
   letzterFlug?: Flight,
   onClose: () => void, onSave: (f: Flight) => void, currentLocation: [number, number],
 }) {
-  const { tx } = useSprache();
+  const { tx, sprache } = useSprache();
   // Vorauswahl statt leerer Felder: zuletzt geflogene Drohne, sonst die einzige.
   const [selectedDroneId, setSelectedDroneId] = useState(() =>
     (letzterFlug && drones.some(d => d.id === letzterFlug.droneId) ? letzterFlug.droneId : undefined)
@@ -143,7 +135,10 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
   const [batteryEnd, setBatteryEnd] = useState(20);
   const [incidents, setIncidents] = useState('');
   const [incidentPhoto, setIncidentPhoto] = useState<string | undefined>(undefined);
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  // Eine Checkliste: die anpassbare Vorflug-Liste gibt den Start frei.
+  const vorflug = useCheckliste('preflight');
+  const nachflug = useCheckliste('postflight');
+  const offenVorflug = vorflug.items.length - vorflug.done;
   const [timerState, setTimerState] = useState<'idle' | 'running'>('idle');
   const [startTime, setStartTime] = useState<number | null>(null);
   const [legs, setLegs] = useState<{ startTime: number, endTime: number, duration: number }[]>([]);
@@ -252,14 +247,6 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
     }
     return () => clearInterval(interval);
   }, [timerState]);
-
-  const toggleCheck = (id: string) => {
-    setCheckedItems(prev => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const allChecked = CHECKLIST_ITEMS.every(section => 
-    section.items.every(item => checkedItems[item.id])
-  );
 
   const startLeg = () => {
     setStartTime(Date.now());
@@ -413,8 +400,8 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className={beschriftung}>{tx('Fluggerät', 'Aircraft')}</label>
-                    <select 
+                    <label className={beschriftung} htmlFor="fa-drohne">{tx('Fluggerät', 'Aircraft')}</label>
+                    <select id="fa-drohne" 
                       className={eingabe}
                       value={selectedDroneId}
                       onChange={e => setSelectedDroneId(e.target.value)}
@@ -424,8 +411,8 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                     </select>
                   </div>
                   <div>
-                    <label className={beschriftung}>{tx('Akku', 'Battery')}</label>
-                    <select 
+                    <label className={beschriftung} htmlFor="fa-akku">{tx('Akku', 'Battery')}</label>
+                    <select id="fa-akku" 
                       className={eingabe}
                       value={selectedBatteryId}
                       onChange={e => setSelectedBatteryId(e.target.value)}
@@ -436,8 +423,8 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className={beschriftung}>{tx('Zweck', 'Purpose')}</label>
-                      <select 
+                      <label className={beschriftung} htmlFor="fa-zweck">{tx('Zweck', 'Purpose')}</label>
+                      <select id="fa-zweck" 
                         className={eingabe}
                         value={purpose}
                         onChange={e => setPurpose(e.target.value as Flight['purpose'])}
@@ -450,8 +437,8 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                       </select>
                     </div>
                     <div>
-                      <label className={beschriftung}>Pilot</label>
-                      <select 
+                      <label className={beschriftung} htmlFor="fa-pilot">Pilot</label>
+                      <select id="fa-pilot" 
                         className={eingabe}
                         value={selectedPilotId}
                         onChange={e => setSelectedPilotId(e.target.value)}
@@ -463,17 +450,17 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                       </select>
                     </div>
                     <div>
-                      <label className={beschriftung}>{tx('Akku Start %', 'Battery start %')}</label>
-                      <input type="number" className={eingabe} value={batteryStart} onChange={e => setBatteryStart(Number(e.target.value))} />
+                      <label className={beschriftung} htmlFor="fa-akku-start">{tx('Akku Start %', 'Battery start %')}</label>
+                      <input id="fa-akku-start" type="number" className={eingabe} value={batteryStart} onChange={e => setBatteryStart(Number(e.target.value))} />
                     </div>
                   </div>
 
                   <div>
-                    <label className={beschriftung}>{tx('Einsatzort Name', 'Location name')}</label>
+                    <label className={beschriftung} htmlFor="fa-ort">{tx('Einsatzort Name', 'Location name')}</label>
                     <div className="flex gap-2">
                       <div className="relative flex-1">
                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                        <input 
+                        <input id="fa-ort" 
                           type="text" 
                           className={cn(eingabe, 'pl-10')}
                           placeholder={tx('z.B. Schlosspark', 'e.g. castle park')}
@@ -485,17 +472,17 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                         onClick={runSafetyAnalysis}
                         disabled={isAnalyzing}
                         className={cn(
-                          "p-3 rounded-xl transition-all disabled:opacity-50",
-                          !safetyAnalysis ? "bg-brand-blue text-white animate-pulse shadow-lg shadow-brand-blue/30" : "bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20"
+                          "h-11 px-3 rounded-xl transition-colors disabled:opacity-50 flex items-center gap-1.5 text-sm font-bold shrink-0",
+                          !safetyAnalysis ? "bg-brand-blue text-white shadow-sm" : "bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20"
                         )}
                         title={tx('KI-Sicherheitsanalyse starten', 'Start AI safety analysis')}
                       >
-                        {isAnalyzing ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-5 h-5" />}
+                        {/* Ruhig mit Textlabel statt dauerhaft pulsierendem Symbol */}
+                        {isAnalyzing ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        {tx('KI-Check', 'AI check')}
                       </button>
                     </div>
                   </div>
-
-                  <PreFlightChecklist />
 
                   {!safetyAnalysis && !isAnalyzing && !safetyError && (
                     <div className="flex items-center gap-3 p-4 bg-blue-50 border border-blue-100 rounded-2xl">
@@ -570,7 +557,7 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                         </div>
                       </div>
                       <div>
-                        <span className="text-2xs text-slate-400 block mb-1">{tx('Visibility / K-Index', 'Visibility / K index')}</span>
+                        <span className="text-2xs text-slate-400 block mb-1">{tx('Sicht / K-Index', 'Visibility / K index')}</span>
                         <div className="flex items-center gap-1">
                            <input type="text" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs" value={weatherData.visibility} onChange={e => setWeatherData({...weatherData, visibility: e.target.value})} />
                            <input type="number" className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs" value={weatherData.kIndex} onChange={e => setWeatherData({...weatherData, kIndex: Number(e.target.value)})} />
@@ -679,7 +666,7 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                                 ⇡{h.windGusts}
                               </span>
                             )}
-                            <span className="text-2xs text-slate-400 leading-tight text-center">{h.condition}</span>
+                            <span className="text-2xs text-slate-400 leading-tight text-center">{wetterText(h.condition, sprache)}</span>
                           </div>
                         ))}
                       </div>
@@ -818,15 +805,8 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
         )}
 
         {step === 'checklist' && (
-          <div className="ansicht-blenden space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-bold text-slate-900 flex items-center gap-2">
-                <ClipboardCheck className="w-5 h-5 text-brand-blue" /> {tx('Vorflug-Check', 'Pre-flight check')}
-              </h3>
-              <p className="text-xs font-bold text-brand-blue">{tx('Wichtig!', 'Important!')}</p>
-            </div>
-            
-            <div className="space-y-6 pb-20">
+          <div className="ansicht-blenden">
+            <div className="space-y-6 pb-32">
               {safetyAnalysis && (
                 <div className={cn(
                   "p-4 rounded-3xl border flex items-center gap-4 transition-all",
@@ -849,41 +829,27 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                 </div>
               )}
 
-              {CHECKLIST_ITEMS.map((section, idx) => (
-                <div key={idx}>
-                  <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">{section.title}</p>
-                  <div className="space-y-2">
-                    {section.items.map(item => (
-                      <button 
-                        key={item.id}
-                        onClick={() => toggleCheck(item.id)}
-                        className={cn(
-                          "w-full flex items-center gap-3 p-3.5 rounded-2xl border text-left transition-all",
-                          checkedItems[item.id] ? "bg-brand-green/10 border-brand-green/20" : "bg-white border-slate-200"
-                        )}
-                      >
-                        <div className={cn(
-                          "w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0",
-                          checkedItems[item.id] ? "bg-brand-green border-brand-green" : "border-slate-300"
-                        )}>
-                          {checkedItems[item.id] && <CheckCircle className="w-3 h-3 text-white" />}
-                        </div>
-                        <span className={cn("text-xs font-semibold", checkedItems[item.id] ? "text-brand-green" : "text-slate-600")}>{item.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))}
+              <ChecklistKarte liste={vorflug} titel={tx('Vorflug-Checkliste', 'Pre-flight checklist')} />
+              <p className="text-xs text-slate-500 px-1 leading-relaxed">
+                {tx('Die Punkte passt du über das Zahnrad an. Die Liste gilt für alle Flüge.', 'Adjust the items via the gear icon. The list applies to all flights.')}
+              </p>
             </div>
 
             <div className="fixed bottom-0 left-0 right-0 p-6 bg-slate-50/80 backdrop-blur-md">
-              <button 
-                disabled={!allChecked}
+              <button
+                disabled={!vorflug.vollstaendig}
                 onClick={() => setStep('timer')}
                 className="w-full max-w-md mx-auto block bg-brand-green text-white font-bold py-4 rounded-2xl shadow-xl shadow-brand-green/20 disabled:opacity-30 transition-all active:scale-95"
               >
-                {tx('Ready to Fly - Starten', 'Ready to fly – start')}
+                {tx('Startklar – Flug starten', 'Ready – start flight')}
               </button>
+              {offenVorflug > 0 && (
+                <p className="text-center text-xs font-bold text-slate-600 mt-2">
+                  {offenVorflug === 1
+                    ? tx('Noch 1 Punkt abhaken', '1 item left to check')
+                    : tx(`Noch ${offenVorflug} Punkte abhaken`, `${offenVorflug} items left to check`)}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -995,12 +961,12 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                   </div>
                 </div>
 
-                <PreFlightChecklist art="postflight" titel={tx('Nachflug-Checkliste', 'Post-flight checklist')} />
+                <ChecklistKarte liste={nachflug} titel={tx('Nachflug-Checkliste', 'Post-flight checklist')} />
 
                 <div>
-                  <label className={beschriftung}>{tx('Akku Ende %', 'Battery end %')}</label>
+                  <label className={beschriftung} htmlFor="fa-akku-ende">{tx('Akku Ende %', 'Battery end %')}</label>
                   <div className="flex items-center gap-4">
-                    <input 
+                    <input id="fa-akku-ende" 
                       type="range" 
                       min="0" 
                       max={batteryStart} 
@@ -1029,8 +995,8 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
                 </div>
 
                 <div>
-                  <label className={beschriftung}>{tx('Vorkommnisse / Anomalien', 'Occurrences / anomalies')}</label>
-                  <textarea
+                  <label className={beschriftung} htmlFor="fa-vorkommnis">{tx('Vorkommnisse / Anomalien', 'Occurrences / anomalies')}</label>
+                  <textarea id="fa-vorkommnis"
                     className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm min-h-[100px] outline-none"
                     placeholder={tx('Waren Vögel, Passanten oder techn. Probleme präsent?', 'Were birds, passers-by or technical problems present?')}
                     value={incidents}

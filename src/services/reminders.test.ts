@@ -98,4 +98,17 @@ describe('Datensicherung', () => {
     const r = getReminders(profil(), [drohne()], [], JETZT - 3 * TAG, JETZT);
     expect(r.find(x => x.text.includes('Sicherung'))).toBeUndefined();
   });
+
+  it('liefert jede Erinnerung auch auf Englisch', () => {
+    const r = getReminders(
+      profil({ licenseExpiry: new Date(JETZT - 5 * TAG).toISOString().slice(0, 10), insuranceNumber: '' }),
+      [drohne()], [], null, JETZT,
+    );
+    expect(r.length).toBeGreaterThan(1);
+    for (const x of r) {
+      expect(x.textEn.trim()).not.toBe('');
+      expect(x.textEn).not.toBe(x.text);
+    }
+    expect(r.find(x => x.schluessel === 'lizenz')?.textEn).toMatch(/certificate has expired/);
+  });
 });

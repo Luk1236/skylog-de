@@ -2,10 +2,10 @@ import { test, type Page } from '@playwright/test';
 import { oeffneApp, oeffneAppMitDemo, navigiere, oeffneMehr, erwarteKontrast } from './hilfen';
 
 // Kontrast-Wächter: misst in hellem und dunklem Modus jede Hauptansicht und
-// die wichtigsten Dialoge. Grenze 3.8:1 statt WCAG-AA 4.5:1, weil der
-// gedämpfte Text (slate-400) bewusst ein Kompromiss ist (Weiß ~4.1, dunkle
-// Dialoge ~4.4, s. index.css). Alles darunter ist ein echter Lesbarkeitsfehler.
-const GRENZE = 3.8;
+// die wichtigsten Dialoge gegen WCAG AA (4.5:1 für Text). Früher galt 3.8:1,
+// weil der gedämpfte Text (slate-400) ein Kompromiss war - inzwischen erfüllt
+// auch er AA (s. index.css).
+const GRENZE = 4.5;
 
 const ANSICHTEN: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
   { name: 'Karte', oeffnen: p => navigiere(p, 'Karte') },

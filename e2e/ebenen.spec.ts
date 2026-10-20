@@ -1,18 +1,10 @@
 import { test, expect } from '@playwright/test';
 import { oeffneAppMitDemo, navigiere } from './hilfen';
+import { DEFAULT_PREFLIGHT } from '../src/services/checklists';
 
 // Escape (Laptop) und die Android-Zurück-Taste schließen nur die oberste Ebene
 // (services/ebenen.ts). Vorher schloss Escape alles auf einmal, und Zurück
 // beendete auf Android die App samt laufendem Flug.
-
-const CHECKLISTE = [
-  'Flugakku voll geladen & fest arretiert', 'Fernsteuerung & Smartphone geladen',
-  'Propeller fest & ohne Risse/Schäden', 'SD-Karte eingelegt & Speicher frei', 'Gimbal-Schutz entfernt',
-  'Wind & Sichtweiten innerhalb der Limits', 'GPS-Empfang stabil (KP-Index niedrig)',
-  'Keine Hindernisse (Bäume, Leitungen) im Startbereich', 'Keine unbeteiligten Personen im Gefahrenbereich',
-  'Homepoint (RTH) aktualisiert', 'Flughöhen-Limit eingestellt (max 120m)',
-  'e-ID sichtbar an der Drohne angebracht', 'DIPUL/Geo-Zonen Regelung geprüft',
-];
 
 test('Escape schließt nur den obersten Dialog', async ({ page }) => {
   await oeffneAppMitDemo(page);
@@ -29,8 +21,11 @@ test('Flug-Assistent: laufender Flug wird nicht ohne Rückfrage verworfen', asyn
   await oeffneAppMitDemo(page);
   await page.getByRole('button', { name: 'Assistent' }).click();
   await page.getByRole('button', { name: 'Weiter zur Checkliste' }).click();
-  for (const punkt of CHECKLISTE) await page.getByRole('button', { name: punkt }).click();
-  await page.getByRole('button', { name: /Ready to Fly/ }).click();
+  // Die anpassbare Vorflug-Checkliste ist Pflicht: erst alles abhaken, dann starten
+  const starten = page.getByRole('button', { name: /Startklar/ });
+  await expect(starten).toBeDisabled();
+  for (const punkt of DEFAULT_PREFLIGHT) await page.getByRole('checkbox', { name: punkt }).click();
+  await starten.click();
   await page.getByRole('button', { name: 'Flugabschnitt starten' }).click();
 
   // Escape: erst kommt die Rückfrage, der Assistent bleibt offen

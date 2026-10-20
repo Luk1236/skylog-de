@@ -3,7 +3,7 @@
 // where the long-running Express server (server.ts) does not run.
 // The GEMINI_API_KEY stays server-side and is never shipped to the browser.
 // Validierung, Rate-Limit und Gemini-Aufruf liegen gemeinsam in _lib/safetyCheck.ts.
-import { clientKeyFrom, createDefaultRateLimiter, handleSafetyCheck } from './_lib/safetyCheck';
+import { clientKeyFrom, createDefaultRateLimiter, handleSafetyCheck, headerWert, herkunftErlaubt } from './_lib/safetyCheck';
 
 // Lebt so lange wie die (warme) Funktions-Instanz.
 const limiter = createDefaultRateLimiter();
@@ -23,6 +23,10 @@ type VercelResponse = {
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+  const host = headerWert(req.headers['x-forwarded-host']) ?? headerWert(req.headers.host);
+  if (!herkunftErlaubt(headerWert(req.headers.origin), host)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
   }
 
   const result = await handleSafetyCheck(req.body, clientKeyFrom(req.headers, req.socket?.remoteAddress), limiter);
