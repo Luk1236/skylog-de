@@ -394,6 +394,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         )}
       </div>
 
+      <KalenderKarte profile={profile} />
       <BeispieldatenKarte onUpdate={onUpdate} />
 
       {/* Datensicherung */}
@@ -577,6 +578,44 @@ function BeispieldatenKarte({ onUpdate }: { onUpdate: () => void }) {
           vorhanden ? 'bg-slate-100 text-slate-700' : 'bg-brand-blue text-white')}
       >
         {laeuft ? tx('Lädt …', 'Loading …') : vorhanden ? tx('Beispieldaten entfernen', 'Remove sample data') : tx('Beispieldaten laden', 'Load sample data')}
+      </button>
+    </div>
+  );
+}
+
+/** Fristen (Lizenz, Garantie, Wartung, Sicherung) als .ics für Outlook/Google/Apple. */
+function KalenderKarte({ profile }: { profile: UserProfile | null }) {
+  const { tx } = useSprache();
+  const [laeuft, setLaeuft] = useState(false);
+
+  const exportieren = async () => {
+    setLaeuft(true);
+    try {
+      const [{ planeBenachrichtigungen }, { alsIcs }, { getLastBackupAt }, { getSicherungsIntervall }, { speichereDatei }] = await Promise.all([
+        import('../services/benachrichtigungen'), import('../services/kalender'), import('../services/backup'),
+        import('../services/sicherungsErinnerung'), import('../lib/dateiAusgabe'),
+      ]);
+      const [drohnen, akkus] = await Promise.all([dbService.getDrones(), dbService.getBatteries()]);
+      const termine = planeBenachrichtigungen(profile, drohnen, akkus, getLastBackupAt(), getSicherungsIntervall());
+      if (termine.length === 0) {
+        melde(tx('Aktuell stehen keine Fristen an. Trage Lizenzablauf, Garantie oder Wartung ein, dann gibt es Termine.', 'No deadlines coming up. Add licence expiry, warranty or maintenance to get calendar entries.'));
+        return;
+      }
+      await speichereDatei('skylog_fristen.ics', alsIcs(termine), 'text/calendar');
+    } finally {
+      setLaeuft(false);
+    }
+  };
+
+  return (
+    <div className="mt-10 p-5 bg-white rounded-3xl border border-slate-200">
+      <h3 className="font-bold text-slate-900 text-sm mb-1">{tx('Fristen im Kalender', 'Deadlines in your calendar')}</h3>
+      <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+        {tx('Lizenzablauf, Garantie-Ende, Wartung und fällige Sicherung als Kalenderdatei (.ics) für Outlook, Google oder Apple. Erneut importieren aktualisiert die Termine.', 'Licence expiry, warranty end, maintenance and backup due as a calendar file (.ics) for Outlook, Google or Apple. Importing again updates the entries.')}
+      </p>
+      <button onClick={exportieren} disabled={laeuft}
+        className="w-full py-3 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 disabled:opacity-50">
+        {laeuft ? tx('Erstellt …', 'Creating …') : tx('Kalenderdatei herunterladen', 'Download calendar file')}
       </button>
     </div>
   );
