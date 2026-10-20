@@ -21,9 +21,9 @@ const ANSICHTEN: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
 ];
 
 const DIALOGE: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
-  { name: 'Vorflug-Check', oeffnen: p => oeffneMehr(p, 'Pre-Flight Safety Score & Kp-Index') },
-  { name: 'Kunden (CRM)', oeffnen: p => oeffneMehr(p, 'CRM & Kundenverwaltung') },
-  { name: 'SORA-Assistent', oeffnen: p => oeffneMehr(p, 'EASA SORA 2.5 PDF Assistent') },
+  { name: 'Vorflug-Check', oeffnen: p => oeffneMehr(p, 'Vorflug-Check & Kp-Index') },
+  { name: 'Kunden (CRM)', oeffnen: p => oeffneMehr(p, 'Kunden (CRM)') },
+  { name: 'SORA-Assistent', oeffnen: p => oeffneMehr(p, 'SORA-2.5-Assistent (PDF)') },
   { name: 'Datensicherung', oeffnen: p => oeffneMehr(p, 'Datensicherung & Erinnerung') },
   { name: 'Staffelmatrix', oeffnen: p => oeffneMehr(p, 'Staffel- & Flottenmatrix') },
   { name: 'Flugplaner', oeffnen: async p => { await navigiere(p, 'Karte'); await p.getByRole('button', { name: 'Flugplaner öffnen' }).click(); } },

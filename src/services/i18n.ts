@@ -55,7 +55,7 @@ export const TEXTE = {
   'view.profil': { de: 'Piloten Profil', en: 'Pilot Profile' },
   'view.roadmap': { de: 'Roadmap', en: 'Roadmap' },
   'view.lbaWissen': { de: 'LBA Wissen', en: 'Regulatory Knowledge' },
-  'view.ersatzteile': { de: 'Ersatzteil-Katalog', en: 'Spare Part Catalogue' },
+  'view.ersatzteile': { de: 'Ersatzteile', en: 'Spare parts' },
   'view.pilotenManagement': { de: 'Piloten-Management', en: 'Pilot Management' },
 
   // Flugplaner

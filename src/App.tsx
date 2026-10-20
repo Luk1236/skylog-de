@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Printer, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Layers, DownloadCloud, Globe2, X, PlusCircle, DatabaseBackup, type LucideIcon } from 'lucide-react';
+import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Package, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Layers, DownloadCloud, Globe2, X, PlusCircle, DatabaseBackup, type LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { cn } from './lib/utils';
@@ -222,6 +222,21 @@ export default function App() {
   // Frueher stand hier r.priority === 'high' - das Feld gibt es nicht, der Zaehler blieb immer leer.
   const highPrioCount = appReminders.filter(r => r.level === 'alert').length;
 
+  const ansichtTitel: string = {
+    map: t('nav.karte'), logbook: t('nav.logbuch'), garage: t('nav.flotte'), safety: t('nav.safety'),
+    inventory: t('nav.inventar'), pilots: t('nav.piloten'), knowledge: t('nav.lbaInfo'),
+    roadmap: t('nav.roadmap'), profile: t('nav.profil'),
+  }[activeView];
+
+  // Werkzeuge hinter „Mehr" (Handy) bzw. direkt in der Seitenleiste (Laptop).
+  const werkzeuge: Werkzeug[] = [
+    { icon: ShieldCheck, farbe: 'text-emerald-600', label: tx('Vorflug-Check & Kp-Index', 'Pre-flight check & Kp index'), oeffnen: () => setShowPreFlightSafety(true) },
+    { icon: Building2, farbe: 'text-blue-600', label: tx('Kunden (CRM)', 'Customers (CRM)'), oeffnen: () => setShowCustomerManager(true) },
+    { icon: Shield, farbe: 'text-indigo-600', label: tx('SORA-2.5-Assistent (PDF)', 'SORA 2.5 assistant (PDF)'), oeffnen: () => setShowSoraWizard(true) },
+    { icon: DatabaseBackup, farbe: 'text-cyan-600', label: tx('Datensicherung & Erinnerung', 'Backup & reminder'), oeffnen: () => setShowCloudBackup(true) },
+    { icon: Layers, farbe: 'text-amber-600', label: tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix'), oeffnen: () => setShowStaffelMatrix(true) },
+  ];
+
   // Android: Fristen als echte Benachrichtigungen planen (im Browser ohne Wirkung).
   // Erst nach dem Laden - sonst wuerden leere Listen alle geplanten Termine loeschen.
   useEffect(() => {
@@ -284,8 +299,12 @@ export default function App() {
       )}
 
       {/* Header */}
+      {/* Auf breiten Bildschirmen steht die Marke schon in der Seitenleiste -
+          dort traegt die Kopfzeile nur noch die Aktionen (rechts). */}
       <header className="bg-brand-blue text-white px-4 pb-3 pt-safe flex items-center justify-between shadow-md z-10">
-        <div className="flex items-center gap-2">
+        {/* Laptop: statt der Marke (steht in der Seitenleiste) der Name der Ansicht */}
+        <h1 className="hidden lg:block font-black text-lg tracking-tight pl-2">{ansichtTitel}</h1>
+        <div className="flex items-center gap-2 lg:hidden">
           <div className="bg-white/20 p-2 rounded-lg">
             <Plane className="w-6 h-6 text-white" />
           </div>
@@ -481,7 +500,7 @@ export default function App() {
 
       {/* Navigation: unten als Leiste (Handy), links als Seitenleiste (Tablet/
           Desktop, lg+). Fünf feste Punkte; seltenere Ansichten hinter „Mehr". */}
-      <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:order-first lg:w-60 lg:shrink-0 lg:grid-cols-1 lg:content-start lg:border-t-0 lg:border-r lg:pt-6 lg:px-3 lg:gap-1 lg:shadow-none">
+      <nav className="bg-white border-t border-slate-200 px-2 pt-2 grid grid-cols-5 pb-safe z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] lg:order-first lg:w-64 lg:shrink-0 lg:overflow-y-auto lg:grid-cols-1 lg:content-start lg:border-t-0 lg:border-r lg:pt-6 lg:px-3 lg:gap-1 lg:shadow-none">
         {/* Marke: nur in der Desktop-Seitenleiste, zur Orientierung. */}
         <div className="hidden lg:flex items-center gap-2.5 px-3 pb-4 mb-2 border-b border-slate-100">
           <div className="bg-brand-blue p-2 rounded-xl shrink-0">
@@ -523,7 +542,36 @@ export default function App() {
           icon={LayoutGrid}
           label={t('nav.mehr')}
           badge={highPrioCount || undefined}
+          className="lg:hidden"
         />
+        {/* Laptop: genug Platz - die seltenen Ansichten, Werkzeuge und
+            Einstellungen stehen direkt hier statt hinter einem Popup. */}
+        <div className="hidden lg:block mt-3 pt-3 border-t border-slate-100 space-y-1">
+          {mehrAnsichten(t).map(({ view, icon, label }) => (
+            <NavButton key={view} active={activeView === view} onClick={() => setActiveView(view)} icon={icon} label={label} />
+          ))}
+          <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">{tx('Werkzeuge', 'Tools')}</p>
+          {werkzeuge.map(w => (
+            <button key={w.label} onClick={w.oeffnen}
+              className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-[13px] font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+              <w.icon className={cn('w-4 h-4 shrink-0', w.farbe)} />
+              <span className="truncate">{w.label}</span>
+            </button>
+          ))}
+          <p className="px-4 pt-4 pb-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">{t('mehr.einstellungen')}</p>
+          <button onClick={spracheWechseln}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-[13px] font-bold text-slate-600 hover:bg-slate-50">
+            <Languages className="w-4 h-4 shrink-0 text-slate-500" />
+            <span className="flex-1">{t('mehr.sprache')}</span>
+            <span className="text-xs font-black text-brand-blue">{sprache.toUpperCase()}</span>
+          </button>
+          <button onClick={() => setTheme(toggleTheme(theme))}
+            className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-[13px] font-bold text-slate-600 hover:bg-slate-50">
+            {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0 text-slate-500" /> : <Moon className="w-4 h-4 shrink-0 text-slate-500" />}
+            <span className="flex-1">{t('mehr.design')}</span>
+            <span className="text-xs font-bold text-slate-500">{theme === 'dark' ? t('mehr.dunkel') : t('mehr.hell')}</span>
+          </button>
+        </div>
       </nav>
 
       {showPlaner && (
@@ -660,11 +708,7 @@ export default function App() {
           onWaehle={(v) => { setActiveView(v); setShowMehr(false); }}
           onTheme={() => setTheme(toggleTheme(theme))}
           onSprache={spracheWechseln}
-          onOpenCrm={() => { setShowMehr(false); setShowCustomerManager(true); }}
-          onOpenSora={() => { setShowMehr(false); setShowSoraWizard(true); }}
-          onOpenCloudBackup={() => { setShowMehr(false); setShowCloudBackup(true); }}
-          onOpenStaffelMatrix={() => { setShowMehr(false); setShowStaffelMatrix(true); }}
-          onOpenPreFlightSafety={() => { setShowMehr(false); setShowPreFlightSafety(true); }}
+          werkzeuge={werkzeuge.map(w => ({ ...w, oeffnen: () => { setShowMehr(false); w.oeffnen(); } }))}
           onClose={() => setShowMehr(false)}
         />
       )}
@@ -678,8 +722,21 @@ export default function App() {
 // davon offen ist — ohne die Liste an zwei Stellen pflegen zu müssen.
 const MEHR_VIEWS: View[] = ['inventory', 'pilots', 'knowledge', 'roadmap', 'profile'];
 
-/** Das „Mehr"-Blatt: die selteneren Ansichten plus die zwei Schnell-
- *  einstellungen (Sprache, Design), die vorher oben im Kopf klebten. */
+interface Werkzeug { icon: LucideIcon; farbe: string; label: string; oeffnen: () => void }
+
+/** Die selteneren Ansichten - im Mehr-Blatt (Handy) und in der Seitenleiste (Laptop). */
+function mehrAnsichten(t: (key: string) => string): { view: View; icon: LucideIcon; label: string }[] {
+  return [
+    { view: 'inventory', icon: Package, label: t('nav.inventar') },
+    { view: 'pilots', icon: User, label: t('nav.piloten') },
+    { view: 'knowledge', icon: Library, label: t('nav.lbaInfo') },
+    { view: 'roadmap', icon: TrendingUp, label: t('nav.roadmap') },
+    { view: 'profile', icon: Settings, label: t('nav.profil') },
+  ];
+}
+
+/** Das „Mehr"-Blatt (nur Handy): die selteneren Ansichten, die Werkzeuge und
+ *  die zwei Schnelleinstellungen (Sprache, Design). */
 function MehrSheet({
   activeView,
   theme,
@@ -687,11 +744,7 @@ function MehrSheet({
   onWaehle,
   onTheme,
   onSprache,
-  onOpenCrm,
-  onOpenSora,
-  onOpenCloudBackup,
-  onOpenStaffelMatrix,
-  onOpenPreFlightSafety,
+  werkzeuge,
   onClose,
 }: {
   activeView: View;
@@ -700,21 +753,11 @@ function MehrSheet({
   onWaehle: (v: View) => void;
   onTheme: () => void;
   onSprache: () => void;
-  onOpenCrm: () => void;
-  onOpenSora: () => void;
-  onOpenCloudBackup: () => void;
-  onOpenStaffelMatrix: () => void;
-  onOpenPreFlightSafety: () => void;
+  werkzeuge: Werkzeug[];
   onClose: () => void;
 }) {
   const { t, tx } = useSprache();
-  const eintraege: { view: View; icon: LucideIcon; label: string }[] = [
-    { view: 'inventory', icon: Printer, label: t('nav.inventar') },
-    { view: 'pilots', icon: User, label: t('nav.piloten') },
-    { view: 'knowledge', icon: Library, label: t('nav.lbaInfo') },
-    { view: 'roadmap', icon: TrendingUp, label: t('nav.roadmap') },
-    { view: 'profile', icon: Settings, label: t('nav.profil') },
-  ];
+  const eintraege = mehrAnsichten(t);
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -730,54 +773,20 @@ function MehrSheet({
         </div>
 
         <div className="overflow-y-auto px-4 py-4 space-y-4">
-          {/* Pro Werkzeuge */}
           <div>
-            <p className="text-[10px] font-bold text-sky-600 uppercase tracking-wider px-1 mb-1.5">{tx('Pro Werkzeuge', 'Pro tools')}</p>
+            <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider px-1 mb-1.5">{tx('Werkzeuge', 'Tools')}</p>
             <div className="space-y-1.5">
-              <button
-                onClick={onOpenPreFlightSafety}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                <ShieldCheck className="w-5 h-5 shrink-0 text-emerald-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">{tx('Pre-Flight Safety Score & Kp-Index', 'Pre-flight safety score & Kp index')}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </button>
-
-              <button
-                onClick={onOpenCrm}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                <Building2 className="w-5 h-5 shrink-0 text-blue-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">{tx('CRM & Kundenverwaltung', 'CRM & customers')}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </button>
-
-              <button
-                onClick={onOpenSora}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                <Shield className="w-5 h-5 shrink-0 text-indigo-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">{tx('EASA SORA 2.5 PDF Assistent', 'EASA SORA 2.5 PDF assistant')}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </button>
-
-              <button
-                onClick={onOpenCloudBackup}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                <DatabaseBackup className="w-5 h-5 shrink-0 text-cyan-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">{tx('Datensicherung & Erinnerung', 'Backup & reminder')}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </button>
-
-              <button
-                onClick={onOpenStaffelMatrix}
-                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
-              >
-                <Layers className="w-5 h-5 shrink-0 text-amber-600" />
-                <span className="text-sm font-bold flex-1 text-slate-800">{tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix')}</span>
-                <ChevronRight className="w-4 h-4 text-slate-300" />
-              </button>
+              {werkzeuge.map(w => (
+                <button
+                  key={w.label}
+                  onClick={w.oeffnen}
+                  className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-left hover:bg-slate-50 transition-colors"
+                >
+                  <w.icon className={cn('w-5 h-5 shrink-0', w.farbe)} />
+                  <span className="text-sm font-bold flex-1 text-slate-800">{w.label}</span>
+                  <ChevronRight className="w-4 h-4 text-slate-300" />
+                </button>
+              ))}
             </div>
           </div>
 
@@ -831,11 +840,12 @@ function MehrSheet({
   );
 }
 
-function NavButton({ active, onClick, icon: Icon, label, badge }: { active: boolean, onClick: () => void, icon: LucideIcon, label: string, badge?: number }) {
+function NavButton({ active, onClick, icon: Icon, label, badge, className }: { active: boolean, onClick: () => void, icon: LucideIcon, label: string, badge?: number, className?: string }) {
   return (
     <button 
       onClick={onClick}
       className={cn(
+        className,
         "flex flex-col items-center justify-center gap-1 py-1 px-2.5 rounded-2xl transition-all duration-200 touch-shrink relative",
         "lg:flex-row lg:justify-start lg:gap-3 lg:w-full lg:px-4 lg:py-2.5 lg:rounded-xl",
         active ? "text-brand-blue lg:bg-brand-blue/10" : "text-slate-400 hover:text-slate-600 lg:hover:bg-slate-50"
