@@ -107,7 +107,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             {t.neuladen}
           </button>
           {this.state.message && (
-            <p className="mt-4 text-[10px] text-slate-300 font-mono break-words">{this.state.message}</p>
+            <p className="mt-4 text-2xs text-slate-300 font-mono break-words">{this.state.message}</p>
           )}
         </div>
       </div>

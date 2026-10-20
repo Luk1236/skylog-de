@@ -90,7 +90,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
         </div>
 
         <div className="overflow-y-auto px-5 py-4 space-y-4">
-          <p className="text-[10px] text-slate-400">
+          <p className="text-2xs text-slate-400">
             {flight.locationName || 'Flug'} · {new Date(flight.date).toLocaleDateString('de-DE')}
           </p>
 
@@ -122,7 +122,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
           )}
 
           {fehler && (
-            <p className="text-[11px] text-brand-red flex items-start gap-1.5">
+            <p className="text-2xs text-brand-red flex items-start gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {fehler}
             </p>
           )}
@@ -136,7 +136,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
             <ImagePlus className="w-4 h-4" /> {laeuft ? 'Lese…' : 'Bilder hinzufügen'}
             <input type="file" accept="image/*" multiple className="hidden" onChange={hinzufuegen} disabled={laeuft} />
           </label>
-          <div className="flex justify-between text-[10px] text-slate-400">
+          <div className="flex justify-between text-2xs text-slate-400">
             <span>{media.length} {media.length === 1 ? 'Bild' : 'Bilder'}</span>
             <span>{formatGroesse(belegt)} {tx('von', 'of')} {formatGroesse(MAX_FLUG_BYTES)}</span>
           </div>

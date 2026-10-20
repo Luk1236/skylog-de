@@ -146,7 +146,7 @@ export function CustomerManagerDialog({
             <div className="text-center py-10 border border-dashed border-slate-800 rounded-2xl text-slate-500">
               <Briefcase className="w-10 h-10 mx-auto mb-2 opacity-40" />
               <p className="text-xs font-bold">{tx('Noch keine Kunden erfasst', 'No customers yet')}</p>
-              <p className="text-[10px] text-slate-600 mt-1">{tx('Lege oben deinen ersten Kunden an, um Flüge zuzuordnen.', 'Add your first customer above to assign flights.')}</p>
+              <p className="text-2xs text-slate-600 mt-1">{tx('Lege oben deinen ersten Kunden an, um Flüge zuzuordnen.', 'Add your first customer above to assign flights.')}</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-3">
@@ -163,7 +163,7 @@ export function CustomerManagerDialog({
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-sm text-slate-100">{c.name}</h4>
                           {c.company && (
-                            <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 text-[10px] font-bold">
+                            <span className="px-2 py-0.5 rounded-lg bg-sky-500/10 text-sky-400 text-2xs font-bold">
                               {c.company}
                             </span>
                           )}
@@ -208,7 +208,7 @@ export function CustomerManagerDialog({
                     </div>
 
                     {/* Stats footer */}
-                    <div className="mt-3 pt-3 border-t border-slate-700/40 flex items-center gap-4 text-[11px] text-slate-400">
+                    <div className="mt-3 pt-3 border-t border-slate-700/40 flex items-center gap-4 text-2xs text-slate-400">
                       <span>{tx('Zugeordnete Flüge:', 'Assigned flights:')} <strong className="text-sky-400">{stats.totalFlights}</strong></span>
                       <span>{tx('Flugstunden:', 'Flight hours:')} <strong className="text-sky-400">{(stats.totalDurationMinutes / 60).toFixed(1)} h</strong></span>
                       <span>{tx('Gesamtdistanz:', 'Total distance:')} <strong className="text-sky-400">{stats.totalDistanceKm.toFixed(1)} km</strong></span>

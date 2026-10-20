@@ -58,7 +58,7 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-brand-blue" />
-          <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Luftraum am Standort</span>
+          <span className="text-2xs font-black text-slate-900 uppercase tracking-wider">Luftraum am Standort</span>
         </div>
         <button onClick={laden} aria-label="Zonen neu laden" disabled={laeuft}
           className="p-1 text-slate-300 hover:text-brand-blue disabled:opacity-40">
@@ -72,23 +72,23 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
           App produzieren könnte. */}
       {!dipulDecktAb(lat, lon) && (
         <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 mb-3">
-          <p className="text-[11px] text-amber-800 flex items-start gap-1.5 leading-relaxed font-bold">
+          <p className="text-2xs text-amber-800 flex items-start gap-1.5 leading-relaxed font-bold">
             <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             Außerhalb Deutschlands — diese Zonenanzeige gilt hier nicht.
           </p>
-          <p className="text-[10px] text-amber-700 mt-1 leading-relaxed">
+          <p className="text-2xs text-amber-700 mt-1 leading-relaxed">
             Die eingebauten Daten (dipul/DFS) decken nur Deutschland ab. Prüfe den
             Standort bei der zuständigen Stelle:
           </p>
           <div className="mt-2 space-y-1">
             {quellenFuerKoordinate(lat, lon).map(q => (
               <a key={q.code} href={q.url} target="_blank" rel="noopener noreferrer"
-                className="text-[11px] font-bold text-brand-blue flex items-center gap-1">
+                className="text-2xs font-bold text-brand-blue flex items-center gap-1">
                 {q.land} <ExternalLink className="w-3 h-3" />
               </a>
             ))}
             {quellenFuerKoordinate(lat, lon).length === 0 && (
-              <p className="text-[10px] text-amber-700">
+              <p className="text-2xs text-amber-700">
                 Für dieses Land ist keine Quelle hinterlegt — bitte die nationale
                 Luftfahrtbehörde prüfen.
               </p>
@@ -99,7 +99,7 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
 
       {/* Grenznähe: dipul gilt hier, aber der Nachbar ist in Reichweite. */}
       {dipulDecktAb(lat, lon) && istGrenzregion(lat, lon) && (
-        <p className="text-[10px] text-slate-500 mb-2 leading-relaxed">
+        <p className="text-2xs text-slate-500 mb-2 leading-relaxed">
           Grenznah — jenseits der Grenze gelten andere Zonen:{' '}
           {quellenFuerKoordinate(lat, lon).filter(q => q.code !== 'DE').map(q => (
             <a key={q.code} href={q.url} target="_blank" rel="noopener noreferrer"
@@ -109,7 +109,7 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
       )}
 
       {fehler && (
-        <p className="text-[11px] text-brand-red flex items-start gap-1.5">
+        <p className="text-2xs text-brand-red flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {fehler}
         </p>
       )}
@@ -121,7 +121,7 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
             {urteil.stufe === 'frei'
               ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" style={{ color: farbe }} />
               : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" style={{ color: farbe }} />}
-            <p className="text-[11px] font-medium leading-snug" style={{ color: farbe }}>
+            <p className="text-2xs font-medium leading-snug" style={{ color: farbe }}>
               {urteil.text}
             </p>
           </div>
@@ -133,15 +133,15 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <span className="text-xs font-bold text-slate-900 leading-tight">{z.name}</span>
                     <span className={cn(
-                      'text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0',
+                      'text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0',
                       z.stufe === 'kritisch' ? 'bg-brand-red/10 text-brand-red' : 'bg-amber-50 text-amber-600'
                     )}>
                       {z.label}
                     </span>
                   </div>
-                  <p className="text-[10px] text-slate-500">Höhe: {formatGrenzen(z)}</p>
+                  <p className="text-2xs text-slate-500">Höhe: {formatGrenzen(z)}</p>
                   {z.rechtsgrundlage && (
-                    <p className="text-[9px] text-slate-400 mt-0.5">{z.rechtsgrundlage}</p>
+                    <p className="text-2xs text-slate-400 mt-0.5">{z.rechtsgrundlage}</p>
                   )}
                 </div>
               ))}
@@ -149,10 +149,10 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
           )}
 
           <a href="https://maptool-dipul.dfs.de/" target="_blank" rel="noopener noreferrer"
-            className="mt-3 flex items-center gap-1 text-[10px] font-bold text-brand-blue">
+            className="mt-3 flex items-center gap-1 text-2xs font-bold text-brand-blue">
             <ExternalLink className="w-3 h-3" /> Amtliche Karte (dipul) öffnen
           </a>
-          <p className="text-[9px] text-slate-400 mt-2 leading-relaxed">
+          <p className="text-2xs text-slate-400 mt-2 leading-relaxed">
             Abfrage im Umkreis von 500 m um deinen Standort. Orientierungshilfe —
             verbindlich ist die amtliche dipul-Karte.
           </p>

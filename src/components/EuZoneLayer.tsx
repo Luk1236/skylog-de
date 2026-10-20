@@ -31,12 +31,12 @@ export function EuZoneLayer({ zonen }: { zonen: Ed269Zone[] }) {
                   <p className="text-slate-500 mb-1">{z.land} · {z.beschraenkung}</p>
                   {z.hinweis && <p className="text-slate-600 mb-1">{z.hinweis}</p>}
                   {(z.untergrenzeM !== undefined || z.obergrenzeM !== undefined) && (
-                    <p className="text-slate-400 text-[10px]">
+                    <p className="text-slate-400 text-2xs">
                       {z.untergrenzeM ?? 0}–{z.obergrenzeM ?? '?'} m
                     </p>
                   )}
                   {z.gruende.length > 0 && (
-                    <p className="text-slate-400 text-[10px] mt-0.5">{z.gruende.join(', ')}</p>
+                    <p className="text-slate-400 text-2xs mt-0.5">{z.gruende.join(', ')}</p>
                   )}
                 </div>
               </Popup>

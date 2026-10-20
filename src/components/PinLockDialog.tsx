@@ -143,7 +143,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
         )}
 
         {mode !== 'unlock' && (
-          <p className="text-[11px] leading-relaxed text-slate-400">
+          <p className="text-2xs leading-relaxed text-slate-400">
             {tx('Schützt die App vor neugierigen Blicken. Die Flugdaten selbst werden dadurch nicht verschlüsselt – für echten Schutz die Gerätesperre des Handys nutzen.', 'Protects the app from prying eyes. The flight data itself is not encrypted – for real protection use your phone\'s device lock.')}
           </p>
         )}

@@ -66,7 +66,7 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
         <div className="overflow-y-auto px-5 py-4 space-y-5">
           {/* Ortssuche */}
           <div className="space-y-2">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Ort suchen', 'Search place')}</p>
+            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Ort suchen', 'Search place')}</p>
             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
               <Search className="w-4 h-4 text-slate-400 shrink-0" />
               <input
@@ -91,18 +91,18 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
                 <MapPin className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-slate-900 leading-snug">{t.name}</p>
-                  <p className="text-[10px] text-slate-400 font-mono">{t.lat.toFixed(5)}, {t.lon.toFixed(5)}</p>
+                  <p className="text-2xs text-slate-400 font-mono">{t.lat.toFixed(5)}, {t.lon.toFixed(5)}</p>
                 </div>
               </button>
             ))}
-            <p className="text-[9px] text-slate-400 leading-relaxed">
+            <p className="text-2xs text-slate-400 leading-relaxed">
               {tx('Ortssuche über OpenStreetMap (Nominatim). Benötigt eine Internetverbindung.', 'Place search via OpenStreetMap (Nominatim). Requires an internet connection.')}
             </p>
           </div>
 
           {/* Koordinaten von Hand */}
           <form onSubmit={koordUebernehmen} className="space-y-2 border-t border-slate-100 pt-4">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Oder Koordinaten eingeben', 'Or enter coordinates')}</p>
+            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Oder Koordinaten eingeben', 'Or enter coordinates')}</p>
             <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
               <Crosshair className="w-4 h-4 text-slate-400 shrink-0" />
               <input
@@ -113,7 +113,7 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
               />
             </div>
             {fehler && (
-              <p className="text-[11px] text-brand-red flex items-center gap-1.5">
+              <p className="text-2xs text-brand-red flex items-center gap-1.5">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fehler}
               </p>
             )}

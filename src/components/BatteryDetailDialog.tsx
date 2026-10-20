@@ -74,23 +74,23 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
             <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
               <Gauge className="w-4 h-4" style={{ color: farbe }} />
               <span className="text-lg font-black text-slate-900 leading-none">{soh}%</span>
-              <span className="text-[9px] text-slate-400 uppercase tracking-wider">SOH</span>
+              <span className="text-2xs text-slate-400 uppercase tracking-wider">SOH</span>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
               <Zap className="w-4 h-4 text-brand-blue" />
               <span className="text-lg font-black text-slate-900 leading-none">{battery.cycles ?? 0}</span>
-              <span className="text-[9px] text-slate-400 uppercase tracking-wider">{tx('Zyklen', 'Cycles')}</span>
+              <span className="text-2xs text-slate-400 uppercase tracking-wider">{tx('Zyklen', 'Cycles')}</span>
             </div>
             <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
               <TrendingDown className="w-4 h-4 text-slate-400" />
               <span className="text-lg font-black text-slate-900 leading-none">{rest}</span>
-              <span className="text-[9px] text-slate-400 uppercase tracking-wider">{tx('Rest-Zyklen', 'Cycles left')}</span>
+              <span className="text-2xs text-slate-400 uppercase tracking-wider">{tx('Rest-Zyklen', 'Cycles left')}</span>
             </div>
           </div>
 
           {/* Zyklen-Fortschritt gegen die Hersteller-Grenze */}
           <div className="bg-white rounded-2xl border border-slate-200 p-4">
-            <div className="flex justify-between text-[10px] text-slate-400 uppercase tracking-wider mb-1">
+            <div className="flex justify-between text-2xs text-slate-400 uppercase tracking-wider mb-1">
               <span>{tx('Zyklen genutzt', 'Cycles used')}</span><span>{battery.cycles ?? 0} / {max}</span>
             </div>
             <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -101,13 +101,13 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
           <div className="rounded-2xl p-4" style={{ background: `${farbe}12`, border: `1px solid ${farbe}33` }}>
             <p className="text-xs font-bold" style={{ color: farbe }}>{bewertung.text}</p>
             {projektion.monateBisAustausch !== null && (
-              <p className="text-[11px] text-slate-500 mt-1">{projektion.text}</p>
+              <p className="text-2xs text-slate-500 mt-1">{projektion.text}</p>
             )}
           </div>
 
           {chartDaten.length >= 2 && (
             <div className="bg-white rounded-2xl border border-slate-200 p-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{tx('Gesundheitsverlauf (%)', 'Health history (%)')}</p>
+              <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-2">{tx('Gesundheitsverlauf (%)', 'Health history (%)')}</p>
               <div className="h-32">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartDaten} margin={{ top: 4, right: 8, bottom: 0, left: -24 }}>
@@ -123,14 +123,14 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
 
           {erfassen ? (
             <div className="bg-white rounded-2xl border border-slate-200 p-4 space-y-3">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Neue Messung', 'New reading')}</p>
+              <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Neue Messung', 'New reading')}</p>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('Zyklen', 'Cycles')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Zyklen', 'Cycles')}</label>
                   <input type="number" className={feld} value={zyklen} onChange={e => setZyklen(e.target.value)} />
                 </div>
                 <div>
-                  <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('SOH % (optional)', 'SOH % (optional)')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('SOH % (optional)', 'SOH % (optional)')}</label>
                   <input type="number" className={feld} placeholder="z.B. 88" value={health} onChange={e => setHealth(e.target.value)} />
                 </div>
               </div>
@@ -145,7 +145,7 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
               <Plus className="w-4 h-4" /> {tx('Messung erfassen', 'Record reading')}
             </button>
           )}
-          <p className="text-[10px] text-slate-400 text-center leading-relaxed">
+          <p className="text-2xs text-slate-400 text-center leading-relaxed">
             {tx('Zyklenzahl und SOH stehen in der DJI-Fly-App unter Akku-Info. Regelmäßig erfassen, damit der Verlauf und die Prognose aussagekräftig werden.', 'Cycle count and SOH are shown in the DJI Fly app under battery info. Record them regularly so the history and forecast are meaningful.')}
           </p>
         </div>

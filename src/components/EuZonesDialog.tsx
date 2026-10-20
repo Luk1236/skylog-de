@@ -109,7 +109,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
         </div>
 
         <div className="overflow-y-auto px-4 py-4 space-y-3">
-          <p className="text-[11px] text-slate-500 leading-relaxed px-1">
+          <p className="text-2xs text-slate-500 leading-relaxed px-1">
             {tx('Das eingebaute Overlay gilt nur für Deutschland. Für andere Länder lädst du die amtliche Zonendatei (ED-269) herunter und importierst sie hier.', 'The built-in overlay covers Germany only. For other countries, download the official zone file (ED-269) and import it here.')}
           </p>
 
@@ -121,14 +121,14 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
 
           {gespeichert.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1">{tx('Importiert', 'Imported')}</p>
+              <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider px-1">{tx('Importiert', 'Imported')}</p>
               {gespeichert.map(e => {
                 const alter = alterText(e.importiertAm);
                 return (
                   <div key={e.land} className="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-bold text-slate-900">{e.land} · {e.anzahl} {tx('Zonen', 'Zones')}</p>
-                      <p className={alter.warnen ? 'text-[10px] text-brand-red font-bold' : 'text-[10px] text-slate-400'}>
+                      <p className={alter.warnen ? 'text-2xs text-brand-red font-bold' : 'text-2xs text-slate-400'}>
                         {alter.text}{alter.warnen && ' — bitte erneuern'}
                       </p>
                     </div>
@@ -143,21 +143,21 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
           )}
 
           <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">{tx('Amtliche Quellen', 'Official sources')}</p>
+            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">{tx('Amtliche Quellen', 'Official sources')}</p>
             <div className="space-y-1">
               {ZONEN_QUELLEN.filter(q => q.code !== 'DE').map(q => (
                 <div key={q.code} className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2">
-                  <span className="text-[11px] font-bold text-slate-700 flex-1">{q.land}</span>
+                  <span className="text-2xs font-bold text-slate-700 flex-1">{q.land}</span>
                   {q.direktUrl ? (
                     <button onClick={() => direktLaden(q)} disabled={laeuft}
-                      className="bg-brand-blue text-white font-bold px-2.5 py-1 rounded-lg text-[10px] active:scale-95 disabled:opacity-40 flex items-center gap-1">
+                      className="bg-brand-blue text-white font-bold px-2.5 py-1 rounded-lg text-2xs active:scale-95 disabled:opacity-40 flex items-center gap-1">
                       <RefreshCw className="w-3 h-3" />
                       {tx('Laden', 'Load')}{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
                     </button>
                   ) : q.maschinenlesbar ? (
-                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider">{tx('Datei von Hand', 'File by hand')}</span>
+                    <span className="text-2xs font-black text-slate-400 uppercase tracking-wider">{tx('Datei von Hand', 'File by hand')}</span>
                   ) : (
-                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-wider">{tx('nur Karte', 'map only')}</span>
+                    <span className="text-2xs font-black text-slate-300 uppercase tracking-wider">{tx('nur Karte', 'map only')}</span>
                   )}
                   <a href={q.url} target="_blank" rel="noopener noreferrer" aria-label={`${q.land} öffnen`}>
                     <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
@@ -168,7 +168,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
           </div>
 
           <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3">
-            <p className="text-[10px] text-amber-800 flex items-start gap-1.5 leading-relaxed">
+            <p className="text-2xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               {tx('Zonendaten ändern sich. Die App lädt sie bewusst nicht automatisch nach — ein stillschweigend veralteter Stand wäre gefährlicher als keiner. Vor Flügen im Ausland die Datei neu holen.', 'Zone data changes. The app deliberately does not refresh it automatically — silently outdated data would be more dangerous than none. Fetch the file again before flying abroad.')}
             </p>

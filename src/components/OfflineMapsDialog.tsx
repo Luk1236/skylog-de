@@ -62,7 +62,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
         </div>
 
         <div className="overflow-y-auto px-4 py-4 space-y-2">
-          <p className="text-[11px] text-slate-500 leading-relaxed px-1">
+          <p className="text-2xs text-slate-500 leading-relaxed px-1">
             {tx('Karten für den Einsatz ohne Netz. Lade die Region, in der du fliegst — nicht alle.', 'Maps for use without a network. Download the region you fly in — not all of them.')} {belegt > 0 && <>{tx('Belegt:', 'Used:')} <span className="font-bold">{formatBytes(belegt)}</span>.</>}
           </p>
 
@@ -81,12 +81,12 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
                     <div className="flex items-center gap-1.5">
                       <p className="text-xs font-bold text-slate-900 truncate">{region.name}</p>
                       {istHier && (
-                        <span className="text-[9px] font-black text-brand-blue uppercase tracking-wider flex items-center gap-0.5 shrink-0">
+                        <span className="text-2xs font-black text-brand-blue uppercase tracking-wider flex items-center gap-0.5 shrink-0">
                           <MapPin className="w-3 h-3" /> {tx('hier', 'here')}
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-500">
+                    <p className="text-2xs text-slate-500">
                       {da
                         ? `Geladen · ${formatBytes(da.groesse)}`
                         : `Zoom bis ${region.maxZoom}`}
@@ -103,7 +103,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
                     </>
                   ) : (
                     <button onClick={() => laden(region)} disabled={laeuft !== null}
-                      className="bg-brand-blue text-white font-bold px-3 py-2 rounded-xl text-[11px] active:scale-95 disabled:opacity-40 flex items-center gap-1.5 shrink-0">
+                      className="bg-brand-blue text-white font-bold px-3 py-2 rounded-xl text-2xs active:scale-95 disabled:opacity-40 flex items-center gap-1.5 shrink-0">
                       <Download className="w-3.5 h-3.5" />
                       {amLaden ? 'Lädt…' : 'Laden'}
                     </button>
@@ -120,7 +120,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
                           : undefined}
                       />
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1">
+                    <p className="text-2xs text-slate-400 mt-1">
                       {fortschritt?.prozent !== null && fortschritt
                         ? `${fortschritt.prozent}% · ${formatBytes(fortschritt.geladen)}`
                         : fortschritt
@@ -134,7 +134,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
           })}
 
           <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 mt-2">
-            <p className="text-[10px] text-amber-800 flex items-start gap-1.5 leading-relaxed">
+            <p className="text-2xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
               <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
               {tx('Offline-Karten zeigen nur das Gelände. Flugverbotszonen brauchen weiterhin eine Internetverbindung — prüfe sie vor dem Start.', 'Offline maps only show the terrain. No-fly zones still need an internet connection — check them before take-off.')}
             </p>

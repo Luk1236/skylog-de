@@ -218,7 +218,7 @@ export function LocationFavoritesDialog({
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm text-slate-100">{fav.name}</span>
-                      <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-700/60 text-slate-300 font-medium">
+                      <span className="text-2xs px-2 py-0.5 rounded-lg bg-slate-700/60 text-slate-300 font-medium">
                         {fav.locationName}
                       </span>
                     </div>

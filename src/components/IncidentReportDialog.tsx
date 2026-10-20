@@ -21,7 +21,7 @@ const heute = () => new Date().toISOString().split('T')[0];
 const jetztUhr = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
 const feld = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm';
-const beschriftung = 'text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block';
+const beschriftung = 'text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1 block';
 
 export function IncidentReportDialog({ profile, drohnen, onClose }: Props) {
   const { tx } = useSprache();
@@ -145,7 +145,7 @@ export function IncidentReportDialog({ profile, drohnen, onClose }: Props) {
 
           {fehlt.length > 0 && (
             <div className="rounded-xl bg-amber-50 border border-amber-100 p-3">
-              <p className="text-[11px] text-amber-700 font-medium">
+              <p className="text-2xs text-amber-700 font-medium">
                 {tx('Für eine vollständige Meldung fehlt noch:', 'Still missing for a complete report:')} {fehlt.join(', ')}.
               </p>
             </div>
@@ -153,7 +153,7 @@ export function IncidentReportDialog({ profile, drohnen, onClose }: Props) {
 
           <div>
             <label className={beschriftung}>{tx('Vorschau', 'Preview')}</label>
-            <pre className="text-[10px] leading-relaxed bg-slate-900 text-slate-100 rounded-xl p-3 overflow-x-auto whitespace-pre-wrap max-h-48 overflow-y-auto">
+            <pre className="text-2xs leading-relaxed bg-slate-900 text-slate-100 rounded-xl p-3 overflow-x-auto whitespace-pre-wrap max-h-48 overflow-y-auto">
               {bericht}
             </pre>
           </div>
@@ -170,7 +170,7 @@ export function IncidentReportDialog({ profile, drohnen, onClose }: Props) {
             className="w-full flex items-center justify-center gap-2 bg-slate-100 text-slate-600 font-bold py-3 rounded-xl text-sm active:scale-95 transition-all">
             <ExternalLink className="w-4 h-4" /> {tx('LBA-Meldeportal öffnen', 'Open LBA reporting portal')}
           </a>
-          <p className="flex items-start gap-1.5 text-[10px] text-slate-400 leading-relaxed pt-1">
+          <p className="flex items-start gap-1.5 text-2xs text-slate-400 leading-relaxed pt-1">
             <ClipboardCheck className="w-3 h-3 shrink-0 mt-0.5" />
             {tx('Bericht kopieren, LBA-Portal öffnen und dort einfügen. Schwere Ereignisse binnen 72 Stunden melden.', 'Copy the report, open the LBA portal and paste it there. Report serious occurrences within 72 hours.')}
           </p>

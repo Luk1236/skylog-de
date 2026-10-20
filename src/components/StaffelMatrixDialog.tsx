@@ -135,16 +135,16 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-black text-base text-white">{d.model}</h4>
-                        <p className="text-[11px] text-slate-400">S/N: {d.serialNumber || 'Keine Seriennummer'}</p>
+                        <p className="text-2xs text-slate-400">S/N: {d.serialNumber || 'Keine Seriennummer'}</p>
                       </div>
 
                       {status === 'ready' ? (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-black uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-2xs font-black uppercase tracking-wider">
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>{tx('Einsatzbereit', 'Ready')}</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-2xs font-black uppercase tracking-wider">
                           <AlertTriangle className="w-3.5 h-3.5" />
                           <span>{tx('Wartung Offen', 'Maintenance open')}</span>
                         </div>
@@ -152,24 +152,24 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                     </div>
 
                     {/* Specs */}
-                    <div className="grid grid-cols-3 gap-2 pt-2 text-[11px] border-t border-slate-700/60">
+                    <div className="grid grid-cols-3 gap-2 pt-2 text-2xs border-t border-slate-700/60">
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">{tx('Gewicht', 'Weight')}</span>
+                        <span className="text-slate-400 block text-2xs uppercase font-bold">{tx('Gewicht', 'Weight')}</span>
                         <strong className="text-slate-200">{d.weight ? `${d.weight}g` : 'k.A.'}</strong>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">{tx('UAS-Klasse', 'UAS class')}</span>
+                        <span className="text-slate-400 block text-2xs uppercase font-bold">{tx('UAS-Klasse', 'UAS class')}</span>
                         <strong className="text-slate-200">{d.uasClass || 'Legacy'}</strong>
                       </div>
                       <div>
-                        <span className="text-slate-400 block text-[9px] uppercase font-bold">{tx('Seriennummer', 'Serial number')}</span>
+                        <span className="text-slate-400 block text-2xs uppercase font-bold">{tx('Seriennummer', 'Serial number')}</span>
                         <strong className="text-slate-200">{d.serialNumber ? 'Ja' : 'Nein'}</strong>
                       </div>
                     </div>
 
                     {/* Maintenance Notes if any */}
                     {droneMaint.length > 0 && (
-                      <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[11px] text-amber-300">
+                      <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-2xs text-amber-300">
                         <strong>{tx('Wartung:', 'Maintenance:')}</strong> {droneMaint[0].description} ({droneMaint[0].date})
                       </div>
                     )}

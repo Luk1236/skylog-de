@@ -46,7 +46,7 @@ function Stat({ icon: Icon, label, wert }: { icon: LucideIcon, label: string, we
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col items-center gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
       <span className="text-sm font-black text-slate-900">{wert}</span>
-      <span className="text-[9px] text-slate-400 uppercase tracking-wider">{label}</span>
+      <span className="text-2xs text-slate-400 uppercase tracking-wider">{label}</span>
     </div>
   );
 }
@@ -107,7 +107,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
             <div className="text-center py-8">
               <Route className="w-10 h-10 text-slate-300 mx-auto mb-3" />
               <p className="text-sm text-slate-500 mb-1 font-medium">{tx('Für diesen Flug ist noch kein Track gespeichert.', 'No track saved for this flight yet.')}</p>
-              <p className="text-[11px] text-slate-400 mb-5 leading-relaxed">
+              <p className="text-2xs text-slate-400 mb-5 leading-relaxed">
                 {tx('Detaillierte Telemetrie-CSV (z.B. Airdata-Export mit Zeit, Position, Höhe, Speed, Akku) laden — daraus werden Flugpfad und Diagramme erzeugt.', 'Load a detailed telemetry CSV (e.g. an Airdata export with time, position, altitude, speed, battery) — the flight path and charts are generated from it.')}
               </p>
               <label className={cn('inline-flex items-center gap-2 bg-brand-blue text-white font-bold py-3 px-5 rounded-xl text-sm cursor-pointer active:scale-95 transition-all', laeuft && 'opacity-60')}>
@@ -115,7 +115,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
                 <input type="file" accept=".csv,text/csv" className="hidden" onChange={importieren} disabled={laeuft} />
               </label>
               {fehler && (
-                <p className="mt-4 text-[11px] text-brand-red flex items-center justify-center gap-1">
+                <p className="mt-4 text-2xs text-brand-red flex items-center justify-center gap-1">
                   <AlertTriangle className="w-3 h-3" /> {fehler}
                 </p>
               )}
@@ -139,7 +139,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
                       info: 'bg-slate-50 border-slate-200 text-slate-600',
                     };
                     return (
-                      <div key={i} className={cn('flex items-start gap-2 px-3 py-2 rounded-xl border text-[11px] font-medium leading-relaxed', stil[w.stufe])}>
+                      <div key={i} className={cn('flex items-start gap-2 px-3 py-2 rounded-xl border text-2xs font-medium leading-relaxed', stil[w.stufe])}>
                         <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                         <span>{w.text}</span>
                       </div>
@@ -147,7 +147,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
                   })}
                 </div>
               ) : (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-green/20 bg-brand-green/5 text-brand-green text-[11px] font-bold">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-green/20 bg-brand-green/5 text-brand-green text-2xs font-bold">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                   {tx('Keine Auffälligkeiten in der Aufzeichnung.', 'No anomalies in the recording.')}
                 </div>
@@ -167,7 +167,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
               {hatSpeed && <Diagramm titel="Geschwindigkeit (km/h)" farbe="#059669" daten={chartDaten} feld="speed" />}
               {hatAkku && <Diagramm titel="Akku (%)" farbe="#b91c1c" daten={chartDaten} feld="battery" />}
 
-              <p className="text-[10px] text-slate-400 text-center">{stats.punkte} {tx('Messpunkte', 'data points')}</p>
+              <p className="text-2xs text-slate-400 text-center">{stats.punkte} {tx('Messpunkte', 'data points')}</p>
             </>
           )}
         </div>
@@ -179,7 +179,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
 function Diagramm({ titel, farbe, daten, feld }: { titel: string, farbe: string, daten: object[], feld: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3">
-      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{titel}</p>
+      <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-2">{titel}</p>
       <div className="h-28">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={daten} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>

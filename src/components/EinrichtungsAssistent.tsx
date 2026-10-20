@@ -71,7 +71,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
   };
 
   const feld = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm text-slate-900';
-  const label = 'block text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1';
+  const label = 'block text-2xs font-bold text-slate-600 uppercase tracking-wider mb-1';
   const Symbol = schritte[schritt].icon;
 
   return (
@@ -83,7 +83,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
               <Symbol className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+              <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">
                 {tx('Schritt', 'Step')} {schritt + 1} / {schritte.length}
               </p>
               <h2 className="font-black text-slate-900">{schritte[schritt].titel}</h2>
@@ -109,7 +109,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
             <div>
               <label className={label} htmlFor="ea-eid">{tx('Betreiber-ID (e-ID) vom LBA', 'Operator ID (e-ID) from the LBA')}</label>
               <input id="ea-eid" className={feld} value={eid} onChange={e => setEid(e.target.value)} placeholder="DEU123456789012" />
-              <p className={cn('text-[11px] mt-1', eidPruefung && !eidPruefung.isValid ? 'text-brand-red font-bold' : 'text-slate-600')}>
+              <p className={cn('text-2xs mt-1', eidPruefung && !eidPruefung.isValid ? 'text-brand-red font-bold' : 'text-slate-600')}>
                 {eidPruefung && !eidPruefung.isValid
                   ? tx('Format passt nicht zum EU-Schema (z. B. DEU123456789012).', 'Format does not match the EU scheme (e.g. DEU123456789012).')
                   : tx('Pflicht für fast alle Drohnen mit Kamera. Registrierung im LBA-Portal.', 'Required for almost all drones with a camera. Register in the LBA portal.')}
@@ -133,7 +133,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
               <div>
                 <label className={label} htmlFor="ea-bis">{tx('Gültig bis', 'Valid until')}</label>
                 <input id="ea-bis" type="date" className={feld} value={lizenzBis} onChange={e => setLizenzBis(e.target.value)} />
-                <p className="text-[11px] text-slate-600 mt-1">{tx('SkyLog erinnert dich rechtzeitig vor dem Ablauf.', 'SkyLog reminds you before it expires.')}</p>
+                <p className="text-2xs text-slate-600 mt-1">{tx('SkyLog erinnert dich rechtzeitig vor dem Ablauf.', 'SkyLog reminds you before it expires.')}</p>
               </div>
             )}
           </div>
@@ -143,7 +143,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
           <div>
             <label className={label} htmlFor="ea-vers">{tx('Versicherungsnummer (Drohnen-Haftpflicht)', 'Insurance number (drone liability)')}</label>
             <input id="ea-vers" className={feld} value={versicherung} onChange={e => setVersicherung(e.target.value)} placeholder={tx('z. B. HV-123456', 'e.g. HV-123456')} />
-            <p className="text-[11px] text-slate-600 mt-1">{tx('In Deutschland ist eine Haftpflichtversicherung für jede Drohne Pflicht.', 'In Germany, liability insurance is mandatory for every drone.')}</p>
+            <p className="text-2xs text-slate-600 mt-1">{tx('In Deutschland ist eine Haftpflichtversicherung für jede Drohne Pflicht.', 'In Germany, liability insurance is mandatory for every drone.')}</p>
           </div>
         )}
 
@@ -165,7 +165,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
                 </select>
               </div>
             </div>
-            <p className="text-[11px] text-slate-600">{tx('Optional – weitere Drohnen legst du später unter „Flotte“ an.', 'Optional – add more drones later under “Fleet”.')}</p>
+            <p className="text-2xs text-slate-600">{tx('Optional – weitere Drohnen legst du später unter „Flotte“ an.', 'Optional – add more drones later under “Fleet”.')}</p>
           </div>
         )}
 
@@ -179,7 +179,7 @@ export function EinrichtungsAssistent({ onFertig, onAbbrechen }: Props) {
             {check.warnungen.length > 0 && (
               <ul className="space-y-1">
                 {check.warnungen.map(w => (
-                  <li key={w} className="text-[12px] text-amber-800 bg-amber-50 rounded-xl px-3 py-2">{w}</li>
+                  <li key={w} className="text-xs text-amber-800 bg-amber-50 rounded-xl px-3 py-2">{w}</li>
                 ))}
               </ul>
             )}

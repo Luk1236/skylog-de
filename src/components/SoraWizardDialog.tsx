@@ -146,7 +146,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
 
               {/* Mitigations Checkboxes */}
               <div className="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl space-y-3">
-                <h4 className="font-bold text-indigo-400 uppercase text-[10px] tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h4>
+                <h4 className="font-bold text-indigo-400 uppercase text-2xs tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h4>
                 
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -193,19 +193,19 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
               {/* Summary Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-center">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Initial GRC</p>
+                  <p className="text-2xs text-slate-400 uppercase font-bold">Initial GRC</p>
                   <p className="text-xl font-black text-slate-200 mt-1">{result.initialGrc}</p>
                 </div>
                 <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-center">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Final GRC</p>
+                  <p className="text-2xs text-slate-400 uppercase font-bold">Final GRC</p>
                   <p className="text-xl font-black text-emerald-400 mt-1">{result.finalGrc}</p>
                 </div>
                 <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-center">
-                  <p className="text-[10px] text-slate-400 uppercase font-bold">Air Risk Class</p>
+                  <p className="text-2xs text-slate-400 uppercase font-bold">Air Risk Class</p>
                   <p className="text-xl font-black text-sky-400 mt-1">{result.finalArc}</p>
                 </div>
                 <div className="p-3 bg-indigo-600 border border-indigo-500 rounded-2xl text-center shadow-lg shadow-indigo-600/20">
-                  <p className="text-[10px] text-indigo-200 uppercase font-bold">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
+                  <p className="text-2xs text-indigo-200 uppercase font-bold">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
                   <p className="text-xl font-black text-white mt-1">{result.sail}</p>
                 </div>
               </div>

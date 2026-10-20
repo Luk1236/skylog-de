@@ -81,17 +81,17 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
           <div className="bg-slate-800/60 border border-slate-700/60 rounded-3xl p-5 space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
+                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
                 <h3 className="text-lg font-extrabold text-white leading-tight">
                   {safety.status === 'SAFE' && '🟢 Startfreigabe optimal'}
                   {safety.status === 'WARNING' && '🟡 Erhöhte Aufmerksamkeit'}
                   {safety.status === 'CRITICAL' && '🔴 Hohes Risiko – Start abgeraten'}
                 </h3>
-                <p className="text-[11px] text-slate-400 mt-1">{tx('Wetter · Wind · Solarsturm · Akku', 'Weather · wind · solar storm · battery')}</p>
+                <p className="text-2xs text-slate-400 mt-1">{tx('Wetter · Wind · Solarsturm · Akku', 'Weather · wind · solar storm · battery')}</p>
               </div>
               <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center font-black ${getScoreColor(safety.score)}`}>
                 <span className="text-2xl leading-none">{safety.score}%</span>
-                <span className="text-[9px] uppercase tracking-wider mt-1 opacity-80">Score</span>
+                <span className="text-2xs uppercase tracking-wider mt-1 opacity-80">Score</span>
               </div>
             </div>
             {/* Score progress bar */}
@@ -111,8 +111,8 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
                 <div>
                   <strong className="text-slate-200 block text-xs">{tx('Geomagnetischer Kp-Index (NOAA)', 'Geomagnetic Kp index (NOAA)')}</strong>
                   {kpLoading
-                    ? <span className="text-[10px] text-slate-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {tx('Lade Echtzeit-Daten…', 'Loading live data…')}</span>
-                    : <span className={`text-[10px] font-medium ${kpData?.color ?? 'text-slate-400'}`}>{kpData?.label}</span>
+                    ? <span className="text-2xs text-slate-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {tx('Lade Echtzeit-Daten…', 'Loading live data…')}</span>
+                    : <span className={`text-2xs font-medium ${kpData?.color ?? 'text-slate-400'}`}>{kpData?.label}</span>
                   }
                 </div>
               </div>
@@ -121,7 +121,7 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
                   {kpData?.source === 'live'
                     ? <Wifi className="w-3 h-3 text-emerald-400" />
                     : <WifiOff className="w-3 h-3 text-slate-500" />}
-                  <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border
+                  <span className={`px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wider border
                     ${kpIndex < 4 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'}`}>
                     {kpIndex < 4 ? 'GPS Stabil' : 'GPS Warnung!'}
                   </span>
@@ -130,17 +130,17 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
             </div>
             {/* Kp bar */}
             <div className="flex items-center gap-2">
-              <span className="text-[9px] text-slate-500 w-4 shrink-0">0</span>
+              <span className="text-2xs text-slate-500 w-4 shrink-0">0</span>
               <div className="flex-1 bg-slate-700/60 rounded-full h-1.5 overflow-hidden">
                 <div
                   className={`h-1.5 rounded-full transition-all duration-700 ${kpLoading ? 'bg-slate-600 animate-pulse w-1/4' : kpColor}`}
                   style={!kpLoading ? { width: `${kpBarWidth}%` } : {}}
                 />
               </div>
-              <span className="text-[9px] text-slate-500 w-4 shrink-0">9</span>
+              <span className="text-2xs text-slate-500 w-4 shrink-0">9</span>
             </div>
             {kpData?.gpsWarning && (
-              <p className="text-[10px] text-orange-400 mt-2 font-medium">
+              <p className="text-2xs text-orange-400 mt-2 font-medium">
                 {tx('⚠️ Erhöhte geomagnetische Aktivität – GPS-Präzision eingeschränkt möglich. Kompasskalibrierung empfohlen.', '⚠️ Increased geomagnetic activity – GPS accuracy may be reduced. Compass calibration recommended.')}
               </p>
             )}
@@ -148,20 +148,20 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
 
           {/* Checklist Items */}
           <div className="space-y-3">
-            <h4 className="font-bold text-slate-300 uppercase tracking-wider text-[10px] px-1">{tx('Prüfpunkte der Vorflug-Analyse', 'Pre-flight analysis check items')}</h4>
+            <h4 className="font-bold text-slate-300 uppercase tracking-wider text-2xs px-1">{tx('Prüfpunkte der Vorflug-Analyse', 'Pre-flight analysis check items')}</h4>
             {safety.items.map((item) => (
               <div key={item.id} className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-start gap-3">
                 {getStatusIcon(item.status)}
                 <div className="flex-1">
                   <h5 className="font-bold text-slate-200 text-xs">{item.title}</h5>
-                  <p className="text-slate-400 text-[11px] mt-0.5 leading-relaxed">{item.detail}</p>
+                  <p className="text-slate-400 text-2xs mt-0.5 leading-relaxed">{item.detail}</p>
                 </div>
               </div>
             ))}
           </div>
 
           {/* NOAA Attribution */}
-          <p className="text-center text-[9px] text-slate-600">
+          <p className="text-center text-2xs text-slate-600">
             {tx('Kp-Daten: NOAA Space Weather Prediction Center (swpc.noaa.gov)', 'Kp data: NOAA Space Weather Prediction Center (swpc.noaa.gov)')}
           </p>
         </div>

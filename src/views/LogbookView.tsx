@@ -228,7 +228,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.logbuch')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Statistik & Dokumentation', 'Statistics & documentation')}</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Statistik & Dokumentation', 'Statistics & documentation')}</p>
         </div>
         <div className="flex gap-2">
           {verfuegbareJahre.length > 0 && (
@@ -307,7 +307,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
               )}
             >
               <Bell className={cn("w-4 h-4 shrink-0 mt-0.5", r.level === 'alert' ? "text-brand-red" : "text-amber-500")} />
-              <p className={cn("text-[11px] font-medium leading-relaxed", r.level === 'alert' ? "text-red-700" : "text-amber-700")}>
+              <p className={cn("text-2xs font-medium leading-relaxed", r.level === 'alert' ? "text-red-700" : "text-amber-700")}>
                 {r.text}
               </p>
             </div>
@@ -318,23 +318,23 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       {/* Stats Dashboard */}
       <div className="space-y-4 mb-8">
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-slate-900 text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
+          <div className="bg-slate-900 text-white p-3 rounded-3xl shadow-lg relative overflow-hidden group">
             <History className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 rotate-12" />
-            <p className="text-[8px] font-bold text-white/70 uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-2xs font-bold text-white/70 uppercase tracking-wider mb-1 flex items-center gap-1">
               <Clock className="w-2 h-2" /> {tx('Gesamt', 'Total')}
             </p>
             <p className="text-sm font-black whitespace-nowrap">{hours}h {mins}m</p>
           </div>
-          <div className="bg-brand-blue text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
+          <div className="bg-brand-blue text-white p-3 rounded-3xl shadow-lg relative overflow-hidden group">
             <Plane className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 -rotate-12" />
-            <p className="text-[8px] font-bold text-blue-200 uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-2xs font-bold text-blue-200 uppercase tracking-wider mb-1 flex items-center gap-1">
               <TrendingUp className="w-2 h-2" /> {tx('Flüge', 'Flights')}
             </p>
             <p className="text-sm font-black">{totalFlights}</p>
           </div>
-          <div className="bg-brand-orange text-white p-3 rounded-[24px] shadow-lg relative overflow-hidden group">
+          <div className="bg-brand-orange text-white p-3 rounded-3xl shadow-lg relative overflow-hidden group">
             <Timer className="absolute -right-2 -bottom-2 w-12 h-12 text-white/5 rotate-12" />
-            <p className="text-[8px] font-bold text-orange-100 uppercase tracking-widest mb-1 flex items-center gap-1">
+            <p className="text-2xs font-bold text-orange-100 uppercase tracking-wider mb-1 flex items-center gap-1">
               <Clock className="w-2 h-2" /> {tx('Schnitt', 'Average')}
             </p>
             <p className="text-sm font-black">{avgDuration}m</p>
@@ -342,13 +342,13 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
         </div>
 
         {/* Mini Chart */}
-        <div className="bg-white p-5 rounded-[32px] border border-slate-200 shadow-sm overflow-hidden">
+        <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4 text-brand-blue" />
-              <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('Letzte 7 Tage', 'Last 7 days')}</h3>
+              <h3 className="text-2xs font-black text-slate-900 uppercase tracking-wider">{tx('Letzte 7 Tage', 'Last 7 days')}</h3>
             </div>
-            <div className="text-[9px] font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded text-right">
+            <div className="text-2xs font-bold text-slate-400 bg-slate-50 px-2 py-0.5 rounded text-right">
               {tx('Aktivität', 'Activity')}
             </div>
           </div>
@@ -367,7 +367,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-slate-900 text-white text-[9px] font-bold px-2 py-1 rounded shadow-xl">
+                        <div className="bg-slate-900 text-white text-2xs font-bold px-2 py-1 rounded shadow-xl">
                           {payload[0].value} {payload[0].value === 1 ? 'Flug' : 'Flüge'}
                         </div>
                       );
@@ -392,27 +392,27 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
 
       {/* Erweiterte Statistiken */}
       <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{tx('Diesen Monat', 'This month')}</p>
+        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+          <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">{tx('Diesen Monat', 'This month')}</p>
           <p className="text-lg font-black text-slate-900">{thisMonthFlights} <span className="text-sm font-bold text-slate-400">{tx('Flüge', 'Flights')}</span></p>
         </div>
-        <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{tx('Top Drohne', 'Top drone')}</p>
+        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+          <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1">{tx('Top Drohne', 'Top drone')}</p>
           <p className="text-sm font-black text-slate-900 truncate">{topDrone?.model || '—'}</p>
-          {topDrone && <p className="text-[9px] text-slate-400">{topDrone.count} {tx('Flüge', 'Flights')}</p>}
+          {topDrone && <p className="text-2xs text-slate-400">{topDrone.count} {tx('Flüge', 'Flights')}</p>}
         </div>
       </div>
       {purposeData.length > 0 && (
-        <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm mb-6">
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-3">{tx('Flüge nach Zweck', 'Flights by purpose')}</p>
+        <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm mb-6">
+          <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-3">{tx('Flüge nach Zweck', 'Flights by purpose')}</p>
           <div className="space-y-2">
             {purposeData.map(({ name, value }) => (
               <div key={name} className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-slate-600 w-24 shrink-0">{name}</span>
+                <span className="text-2xs font-bold text-slate-600 w-24 shrink-0">{name}</span>
                 <div className="flex-1 bg-slate-100 rounded-full h-1.5">
                   <div className="bg-brand-blue h-1.5 rounded-full" style={{ width: `${Math.round((value / totalFlights) * 100)}%` }} />
                 </div>
-                <span className="text-[10px] font-bold text-slate-400 w-6 text-right">{value}</span>
+                <span className="text-2xs font-bold text-slate-400 w-6 text-right">{value}</span>
               </div>
             ))}
           </div>
@@ -420,13 +420,13 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       )}
 
       {/* Jahresübersicht */}
-      <div className="bg-white p-4 rounded-[24px] border border-slate-200 shadow-sm mb-6">
+      <div className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm mb-6">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <Calendar className="w-4 h-4 text-brand-blue" />
-            <p className="text-[10px] font-black text-slate-900 uppercase tracking-widest">{tx('Jahresübersicht', 'Year overview')} {currentYear}</p>
+            <p className="text-2xs font-black text-slate-900 uppercase tracking-wider">{tx('Jahresübersicht', 'Year overview')} {currentYear}</p>
           </div>
-          <span className="text-[9px] font-bold text-brand-blue">{Math.floor(yearTotalMins / 60)}h {yearTotalMins % 60}{tx('m gesamt', 'm total')}</span>
+          <span className="text-2xs font-bold text-brand-blue">{Math.floor(yearTotalMins / 60)}h {yearTotalMins % 60}{tx('m gesamt', 'm total')}</span>
         </div>
         <div className="flex items-end gap-1 h-16">
           {yearlyData.map((m, i) => (
@@ -438,8 +438,8 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                   background: m.minutes > 0 ? '#00387B' : '#f1f5f9'
                 }}
               />
-              <span className="text-[7px] font-bold text-slate-400">{m.label}</span>
-              {m.flights > 0 && <span className="text-[7px] font-black text-brand-blue">{m.flights}</span>}
+              <span className="text-2xs font-bold text-slate-400">{m.label}</span>
+              {m.flights > 0 && <span className="text-2xs font-black text-brand-blue">{m.flights}</span>}
             </div>
           ))}
         </div>
@@ -450,8 +450,8 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       {/* Rechte Spalte: Flugliste */}
       <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-slate-900 text-xs uppercase tracking-widest">{tx('Alle Einträge', 'All entries')}</h3>
-        <span className="text-[10px] font-bold text-slate-400">{validFlights.length} {tx('Einträge', 'entries')}</span>
+        <h3 className="font-bold text-slate-900 text-xs uppercase tracking-wider">{tx('Alle Einträge', 'All entries')}</h3>
+        <span className="text-2xs font-bold text-slate-400">{validFlights.length} {tx('Einträge', 'entries')}</span>
       </div>
 
       <AnimatePresence>
@@ -466,7 +466,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
               <h3 className="font-bold text-slate-800 text-sm">{tx('Manueller Eintrag', 'Manual entry')}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Drohne wählen', 'Choose drone')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Drohne wählen', 'Choose drone')}</label>
                   <select 
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
                      value={newFlight.droneId || ''}
@@ -477,7 +477,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                   </select>
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Akku wählen', 'Choose battery')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Akku wählen', 'Choose battery')}</label>
                   <select 
                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
                      value={newFlight.batteryId || ''}
@@ -490,7 +490,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Datum', 'Date')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Datum', 'Date')}</label>
                   <input 
                     type="date" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" 
@@ -500,18 +500,18 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                   />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Dauer (Min)', 'Duration (min)')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Dauer (Min)', 'Duration (min)')}</label>
                   <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="15" value={newFlight.duration || ''} onChange={e => setNewFlight({...newFlight, duration: Number(e.target.value)})} />
                 </div>
               </div>
                <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase">{tx('Einsatzort', 'Location')}</label>
+                    <label className="text-2xs font-bold text-slate-400 uppercase">{tx('Einsatzort', 'Location')}</label>
                     {onOpenFavorites && (
                       <button
                         type="button"
                         onClick={onOpenFavorites}
-                        className="text-[10px] font-bold text-amber-500 hover:underline flex items-center gap-1"
+                        className="text-2xs font-bold text-amber-500 hover:underline flex items-center gap-1"
                       >
                         <MapPin className="w-3 h-3" />
                         <span>{tx('Favoriten', 'Favourites')}</span>
@@ -522,7 +522,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Zweiter Fernpilot / Co-Pilot', 'Second remote pilot / co-pilot')}</label>
+                    <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Zweiter Fernpilot / Co-Pilot', 'Second remote pilot / co-pilot')}</label>
                     <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder={tx('Name Co-Pilot / Beobachter', 'Name of co-pilot / observer')} value={newFlight.coPilotName || ''} onChange={e => setNewFlight({...newFlight, coPilotName: e.target.value})} />
                   </div>
                   <div className="flex flex-col justify-end">
@@ -595,7 +595,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 className="absolute right-0 top-0 bottom-0 w-20 bg-brand-red flex flex-col items-center justify-center gap-1 z-10"
               >
                 <Trash2 className="w-5 h-5 text-white" />
-                <span className="text-[9px] font-black text-white uppercase">{t('aktion.loeschen')}</span>
+                <span className="text-2xs font-black text-white uppercase">{t('aktion.loeschen')}</span>
               </button>
               <div
                 className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm transition-transform duration-200 relative z-20"
@@ -616,9 +616,9 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                   <span className="text-xs font-bold text-slate-900">{flight.locationName}</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <span className="text-[10px] font-black text-slate-400 uppercase">{new Date(flight.date).toLocaleDateString('de-DE')}</span>
+                  <span className="text-2xs font-black text-slate-400 uppercase">{new Date(flight.date).toLocaleDateString('de-DE')}</span>
                   {flight.legs && flight.legs.length > 0 && (
-                    <span className="text-[9px] font-bold text-brand-green uppercase">{flight.legs.length} {tx('Flüge (Legs)', 'Flights (legs)')}</span>
+                    <span className="text-2xs font-bold text-brand-green uppercase">{flight.legs.length} {tx('Flüge (Legs)', 'Flights (legs)')}</span>
                   )}
                 </div>
               </div>
@@ -626,41 +626,41 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                 <div>
                   <p className="text-xs font-bold text-slate-800">{drone?.model || 'Gelöschte Drohne'}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <p className="text-[10px] text-slate-500 font-medium">{flight.duration} {tx('Minuten', 'minutes')}</p>
+                    <p className="text-2xs text-slate-500 font-medium">{flight.duration} {tx('Minuten', 'minutes')}</p>
                     <div className="flex gap-1">
                       {flight.isNightFlight && (
                         <div className="flex items-center gap-0.5 px-1 bg-indigo-50 rounded border border-indigo-100">
                           <Moon className="w-2.5 h-2.5 text-indigo-600" />
-                          <span className="text-[8px] font-black text-indigo-600 uppercase">{tx('Nachtflug', 'Night flight')}</span>
+                          <span className="text-2xs font-black text-indigo-600 uppercase">{tx('Nachtflug', 'Night flight')}</span>
                         </div>
                       )}
                       {flight.coPilotName && (
                         <div className="flex items-center gap-0.5 px-1 bg-sky-50 rounded border border-sky-100">
                           <User className="w-2.5 h-2.5 text-sky-600" />
-                          <span className="text-[8px] font-black text-sky-600 uppercase">Co: {flight.coPilotName}</span>
+                          <span className="text-2xs font-black text-sky-600 uppercase">Co: {flight.coPilotName}</span>
                         </div>
                       )}
                       {flight.weather && (flight.weather.windSpeed > 15 || flight.weather.temp > 30) && (
                         <div className="flex items-center gap-0.5 px-1 bg-amber-50 rounded border border-amber-100">
                           <Wind className="w-2.5 h-2.5 text-amber-500" />
-                          <span className="text-[8px] font-black text-amber-500 uppercase">{tx('Wetter-Warnung', 'Weather warning')}</span>
+                          <span className="text-2xs font-black text-amber-500 uppercase">{tx('Wetter-Warnung', 'Weather warning')}</span>
                         </div>
                       )}
                       {flight.batteryStatus?.endPercent != null && flight.batteryStatus.endPercent < 15 && (
                         <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
                           <ShieldAlert className="w-2.5 h-2.5 text-brand-red" />
-                          <span className="text-[8px] font-black text-brand-red uppercase">{tx('Tiefentladungs-Risiko', 'Deep discharge risk')}</span>
+                          <span className="text-2xs font-black text-brand-red uppercase">{tx('Tiefentladungs-Risiko', 'Deep discharge risk')}</span>
                         </div>
                       )}
                       {flight.incidents && (
                         <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
                           <AlertTriangle className="w-2.5 h-2.5 text-brand-red" />
-                          <span className="text-[8px] font-black text-brand-red uppercase">{tx('Vorkommnis', 'Occurrence')}</span>
+                          <span className="text-2xs font-black text-brand-red uppercase">{tx('Vorkommnis', 'Occurrence')}</span>
                         </div>
                       )}
                     </div>
                     {flight.incidents && (
-                      <p className="text-[10px] text-brand-red mt-1 leading-tight">{flight.incidents}</p>
+                      <p className="text-2xs text-brand-red mt-1 leading-tight">{flight.incidents}</p>
                     )}
                     {flight.incidentPhoto && (
                       <img src={flight.incidentPhoto} alt={tx('Vorkommnis', 'Occurrence')} className="mt-2 w-24 h-16 object-cover rounded-lg border border-brand-red/20" />

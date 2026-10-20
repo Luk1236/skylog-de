@@ -123,7 +123,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
         <div className="flex items-center justify-between p-5 border-b border-slate-100 shrink-0">
           <div>
             <h3 className="font-black text-slate-900">{tx('Flüge importieren', 'Import flights')}</h3>
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest">{tx('Aus Flugaufzeichnung (CSV oder DJI-SRT)', 'From a flight log (CSV or DJI SRT)')}</p>
+            <p className="text-2xs text-slate-500 uppercase tracking-wider">{tx('Aus Flugaufzeichnung (CSV oder DJI-SRT)', 'From a flight log (CSV or DJI SRT)')}</p>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-100" aria-label={tx('Schließen', 'Close')}>
             <X className="w-5 h-5 text-slate-400" />
@@ -137,13 +137,13 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
               <label className="block border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center cursor-pointer hover:border-brand-blue/40 transition-colors">
                 <Upload className="w-8 h-8 text-slate-300 mx-auto mb-3" />
                 <p className="text-xs font-bold text-slate-700">{tx('Dateien auswählen', 'Choose files')}</p>
-                <p className="text-[10px] text-slate-400 mt-1">{tx('Eine oder mehrere · CSV (Airdata UAV, DJI Fly) oder DJI-SRT', 'One or more · CSV (Airdata UAV, DJI Fly) or DJI SRT')}</p>
+                <p className="text-2xs text-slate-400 mt-1">{tx('Eine oder mehrere · CSV (Airdata UAV, DJI Fly) oder DJI-SRT', 'One or more · CSV (Airdata UAV, DJI Fly) or DJI SRT')}</p>
                 <input type="file" multiple accept=".csv,text/csv,.srt,application/x-subrip" className="hidden" onChange={dateiGewaehlt} />
               </label>
               {drohnen.length === 0 && (
                 <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
                   <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-amber-700">
+                  <p className="text-2xs text-amber-700">
                     {tx('Deine Garage ist noch leer. Lege zuerst eine Drohne an, sonst lassen sich importierte Flüge keinem Gerät zuordnen.', 'Your fleet is still empty. Add a drone first, otherwise imported flights cannot be assigned to an aircraft.')}
                   </p>
                 </div>
@@ -154,13 +154,13 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
           {leseFehler && (
             <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-100 rounded-2xl">
               <AlertTriangle className="w-4 h-4 text-brand-red shrink-0 mt-0.5" />
-              <p className="text-[11px] text-red-700">{leseFehler}</p>
+              <p className="text-2xs text-red-700">{leseFehler}</p>
             </div>
           )}
 
           {vorschau && (
             <>
-              <div className="flex items-center gap-2 text-[10px] text-slate-500">
+              <div className="flex items-center gap-2 text-2xs text-slate-500">
                 <FileDigit className="w-3.5 h-3.5" />
                 <span className="font-bold">{dateiName}</span>
               </div>
@@ -168,19 +168,19 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
               {vorschau.fehler.length > 0 && (
                 <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-1">
                   {vorschau.fehler.map((f, i) => (
-                    <p key={i} className="text-[11px] text-red-700 font-medium">{f}</p>
+                    <p key={i} className="text-2xs text-red-700 font-medium">{f}</p>
                   ))}
                 </div>
               )}
 
               {Object.keys(vorschau.zuordnung).length > 0 && (
                 <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
+                  <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-2">
                     {tx('Erkannte Spalten', 'Detected columns')}
                   </p>
                   <div className="space-y-1">
                     {(Object.entries(vorschau.zuordnung) as [string, SpaltenTreffer][]).map(([feld, treffer]) => (
-                      <div key={feld} className="flex justify-between gap-2 text-[10px]">
+                      <div key={feld} className="flex justify-between gap-2 text-2xs">
                         <span className="text-slate-500">{feld}</span>
                         <span className="font-bold text-slate-700 truncate">
                           {treffer.spalte}{treffer.einheit ? ' [' + treffer.einheit + ']' : ''}
@@ -189,7 +189,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
                     ))}
                   </div>
                   {vorschau.nichtZugeordnet.length > 0 && (
-                    <p className="text-[10px] text-slate-400 mt-2 pt-2 border-t border-slate-200">
+                    <p className="text-2xs text-slate-400 mt-2 pt-2 border-t border-slate-200">
                       {tx('Ignoriert:', 'Ignored:')} {vorschau.nichtZugeordnet.join(', ')}
                     </p>
                   )}
@@ -198,7 +198,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
 
               {vorschau.kandidaten.length > 0 && drohnen.length > 0 && (
                 <div className="p-4 bg-white border border-slate-200 rounded-2xl">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  <label className="text-2xs font-black text-slate-400 uppercase tracking-wider">
                     {tx('Drohne für nicht erkannte Zeilen', 'Drone for unrecognised rows')}
                   </label>
                   <select
@@ -238,21 +238,21 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
                               {k.flug.date || 'kein Datum'}
                             </span>
                             {k.flug.startTime && (
-                              <span className="text-[10px] font-bold text-slate-500">{k.flug.startTime}</span>
+                              <span className="text-2xs font-bold text-slate-500">{k.flug.startTime}</span>
                             )}
-                            <span className="text-[10px] font-bold text-brand-blue">{k.flug.duration} Min</span>
+                            <span className="text-2xs font-bold text-brand-blue">{k.flug.duration} Min</span>
                           </div>
-                          <p className="text-[10px] text-slate-500 truncate">
+                          <p className="text-2xs text-slate-500 truncate">
                             {k.flug.locationName || 'ohne Ort'} · {drohne ? (drohne.name || drohne.model) : 'keine Drohne'}
                           </p>
 
                           {k.dubletteVon && (
-                            <p className="text-[10px] text-amber-600 font-bold mt-1">
+                            <p className="text-2xs text-amber-600 font-bold mt-1">
                               {tx('Schon im Logbuch, standardmäßig übersprungen.', 'Already in the logbook, skipped by default.')}
                             </p>
                           )}
                           {k.hinweise.map((h, j) => (
-                            <p key={j} className="text-[10px] text-slate-400 mt-0.5">{h}</p>
+                            <p key={j} className="text-2xs text-slate-400 mt-0.5">{h}</p>
                           ))}
                         </div>
                       </label>
@@ -264,7 +264,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
               {nichtImportierbar.length > 0 && (
                 <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
                   <Info className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                  <p className="text-[11px] text-amber-700">
+                  <p className="text-2xs text-amber-700">
                     {nichtImportierbar.length} {tx('ausgewählte Zeile(n) haben kein Datum oder keine Drohne und werden übersprungen.', 'selected row(s) have no date or drone and will be skipped.')}
                   </p>
                 </div>

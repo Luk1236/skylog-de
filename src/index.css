@@ -16,6 +16,12 @@
      Weiß bei ~4.1 und auf slate-900 bei ~4.4 (vorher 2.5 / 7.0).
      Der Dunkelmodus setzt unten eigene Werte. */
   --color-slate-400: #717f96;
+
+  /* Kleinste Schriftstufe (Badges, Achsen, Eyebrows): 11 px - nie kleiner.
+     Vorher standen 7-10 px im Code (über 300 Stellen), auf dem Handy kaum lesbar.
+     Siehe DESIGN.md. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
 }
 
 /* Dark Mode.
@@ -192,7 +198,16 @@
 }
 
 /* Safe-Area-Abstände für Notch (oben) und Home-Balken (unten).
-   Grundabstand (wie vorher py-3 / py-2) plus der jeweilige Geräte-Inset. */
+   Grundabstand (wie vorher py-3 / py-2) plus der jeweilige Geräte-Inset.
+   Nötig, weil index.html viewport-fit=cover setzt (Inhalt reicht unter die
+   Statusleiste). Die Regeln fehlten - nur dieser Kommentar war übrig. */
+@utility pt-safe {
+  padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));
+}
+@utility pb-safe {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* Glassmorphism & Micro-Interactions for Mobile UX */
 .glass-panel {
   background: rgba(255, 255, 255, 0.85);

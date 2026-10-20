@@ -44,7 +44,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
       <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />
-          <span className="font-black text-sm uppercase tracking-widest">{tx('Behörden-Check', 'Authority check')}</span>
+          <span className="font-black text-sm uppercase tracking-wider">{tx('Behörden-Check', 'Authority check')}</span>
         </div>
         <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl bg-white/10 active:scale-95">
           <X className="w-5 h-5" />
@@ -52,7 +52,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
       </div>
 
       <div className="px-5 pb-10 max-w-md mx-auto w-full">
-        <p className="text-[11px] text-slate-400 text-center mb-5">
+        <p className="text-2xs text-slate-400 text-center mb-5">
           {tx('Diesen Bildschirm der kontrollierenden Person zeigen.', 'Show this screen to the inspecting officer.')}
         </p>
 
@@ -64,7 +64,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
             </div>
             <ul className="space-y-1">
               {check.warnungen.map((w, i) => (
-                <li key={i} className="text-[11px] text-red-200 leading-relaxed">• {w}</li>
+                <li key={i} className="text-2xs text-red-200 leading-relaxed">• {w}</li>
               ))}
             </ul>
           </div>
@@ -82,7 +82,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
         <div className="rounded-2xl bg-white/5 border border-white/10 divide-y divide-white/10">
           {check.zeilen.map((z, i) => (
             <div key={i} className="flex items-start justify-between gap-4 px-4 py-3">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 shrink-0 pt-0.5">{z.label}</span>
+              <span className="text-2xs uppercase tracking-wider text-slate-400 shrink-0 pt-0.5">{z.label}</span>
               <span className={cn(
                 'text-sm font-bold text-right break-words',
                 z.problem ? 'text-brand-red' : 'text-white'
@@ -95,7 +95,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
 
         {drohnen.length > 1 && (
           <label className="mt-5 flex items-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-            <span className="text-[10px] uppercase tracking-wider text-slate-400">{tx('Drohne', 'Drone')}</span>
+            <span className="text-2xs uppercase tracking-wider text-slate-400">{tx('Drohne', 'Drone')}</span>
             <div className="relative flex-1">
               <select
                 value={drohnenId}

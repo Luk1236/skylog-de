@@ -59,7 +59,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Radio className="w-4 h-4 text-brand-blue" />
-          <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest">Luftfahrtwetter</span>
+          <span className="text-2xs font-black text-slate-900 uppercase tracking-wider">Luftfahrtwetter</span>
         </div>
         <button onClick={laden} aria-label="Neu laden" disabled={laeuft}
           className="p-1 text-slate-300 hover:text-brand-blue disabled:opacity-40">
@@ -68,13 +68,13 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
       </div>
 
       {fehler && (
-        <p className="text-[11px] text-brand-red flex items-start gap-1.5">
+        <p className="text-2xs text-brand-red flex items-start gap-1.5">
           <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {fehler}
         </p>
       )}
 
       {!fehler && !station && !laeuft && (
-        <p className="text-[11px] text-slate-400">Keine Station in Reichweite gefunden.</p>
+        <p className="text-2xs text-slate-400">Keine Station in Reichweite gefunden.</p>
       )}
 
       {station && (
@@ -84,7 +84,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
               {station.icaoId} · {station.name.split(',')[0]}
             </span>
             {station.entfernungKm !== undefined && (
-              <span className="text-[10px] text-slate-400">{station.entfernungKm} km entfernt</span>
+              <span className="text-2xs text-slate-400">{station.entfernungKm} km entfernt</span>
             )}
           </div>
 
@@ -93,7 +93,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
               <span className="text-xs font-black" style={{ color: farbe }}>
                 {station.fltCat ?? '—'}
               </span>
-              <span className="text-[11px] text-slate-600 leading-snug">{bewertung.text}</span>
+              <span className="text-2xs text-slate-600 leading-snug">{bewertung.text}</span>
             </div>
           </div>
 
@@ -109,7 +109,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
           </div>
 
           {station.rawOb && (
-            <p className="text-[9px] font-mono text-slate-400 leading-relaxed break-all bg-slate-50 rounded-lg p-2">
+            <p className="text-2xs font-mono text-slate-400 leading-relaxed break-all bg-slate-50 rounded-lg p-2">
               {station.rawOb}
             </p>
           )}
@@ -117,19 +117,19 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
           {taf?.rawTAF && (
             <div className="mt-2">
               <button onClick={() => setTafOffen(o => !o)}
-                className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                className="flex items-center gap-1 text-2xs font-bold text-slate-400 uppercase tracking-wider">
                 <ChevronDown className={cn('w-3 h-3 transition-transform', tafOffen && 'rotate-180')} />
                 Vorhersage (TAF)
               </button>
               {tafOffen && (
-                <p className="mt-1 text-[9px] font-mono text-slate-400 leading-relaxed break-all bg-slate-50 rounded-lg p-2">
+                <p className="mt-1 text-2xs font-mono text-slate-400 leading-relaxed break-all bg-slate-50 rounded-lg p-2">
                   {taf.rawTAF}
                 </p>
               )}
             </div>
           )}
 
-          <p className="text-[9px] text-slate-400 mt-2 leading-relaxed">
+          <p className="text-2xs text-slate-400 mt-2 leading-relaxed">
             Meldung eines Flugplatzes in der Nähe — beschreibt nicht zwingend deinen
             genauen Standort, ist aber der verlässlichste Anhalt für Sicht und Wolken.
           </p>
@@ -143,7 +143,7 @@ function Wert({ label, wert }: { label: string; wert: string }) {
   return (
     <div className="bg-slate-50 rounded-xl p-2 text-center">
       <p className="text-xs font-black text-slate-900 leading-tight">{wert}</p>
-      <p className="text-[8px] text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
+      <p className="text-2xs text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
     </div>
   );
 }

@@ -99,7 +99,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
           <div className="space-y-2">
             <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
               <span>{tx('Betreiber-ID (e-ID)', 'Operator ID (e-ID)')}</span>
-              <span className="text-[11px] text-slate-400 font-normal">Format: DEU123456789012-xyz</span>
+              <span className="text-2xs text-slate-400 font-normal">Format: DEU123456789012-xyz</span>
             </label>
             <input
               type="text"
@@ -122,7 +122,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
           {publicPart && (
             <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] uppercase tracking-wider text-slate-400 font-bold">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
+                <span className="text-2xs uppercase tracking-wider text-slate-400 font-bold">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
                 <button
                   onClick={handleCopyPublicEID}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs font-semibold transition-all"
@@ -132,7 +132,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
                 </button>
               </div>
               <p className="font-mono text-base font-bold text-sky-300 tracking-wider break-all">{publicPart}</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed">
+              <p className="text-2xs text-slate-400 leading-relaxed">
                 {tx('Dies ist der sichtbare Teil deiner Betreiber-ID. Er muss gemäß EU-Verordnung 2019/947 gut sichtbar auf all deinen Drohnen angebracht sein.', 'This is the visible part of your operator ID. Under EU Regulation 2019/947 it must be clearly displayed on all your drones.')}
               </p>
             </div>
@@ -152,7 +152,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
                 >
                   <div className="flex flex-col">
                     <span className="font-bold text-sky-400">{portal.countryName}</span>
-                    <span className="text-[11px] text-slate-400">{portal.portalName}</span>
+                    <span className="text-2xs text-slate-400">{portal.portalName}</span>
                   </div>
                   <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-sky-400 transition-colors" />
                 </a>

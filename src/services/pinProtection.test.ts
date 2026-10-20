@@ -16,7 +16,9 @@ if (typeof globalThis.localStorage === 'undefined') {
   (globalThis as any).localStorage = fakeLocalStorage;
 }
 
-describe('pinProtection', () => {
+// PBKDF2 mit 310.000 Runden ist absichtlich langsam - auf einem ausgelasteten
+// Rechner/CI brauchen mehrere Pruefungen in einem Test mehr als 5 s.
+describe('pinProtection', { timeout: 30_000 }, () => {
   beforeEach(() => {
     localStorage.clear();
   });

@@ -110,11 +110,11 @@ export function DatensicherungDialog({ onClose }: Props) {
                 value={passwort2}
                 onChange={e => setPasswort2(e.target.value)}
               />
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <p className="text-2xs text-slate-600 leading-relaxed">
                 {tx('AES-256-verschlüsselt. Das Passwort wird nirgends gespeichert – ohne es lässt sich die Sicherung nicht wiederherstellen.', 'AES-256 encrypted. The password is not stored anywhere – without it the backup cannot be restored.')}
               </p>
               {passwortFehler && (passwort || passwort2) && (
-                <p className="text-[11px] font-bold text-brand-red">{passwortFehler}</p>
+                <p className="text-2xs font-bold text-brand-red">{passwortFehler}</p>
               )}
             </div>
           )}
@@ -146,7 +146,7 @@ export function DatensicherungDialog({ onClose }: Props) {
           >
             {INTERVALL_OPTIONEN.map(t => <option key={t} value={t}>{t} {tx('Tage', 'days')}</option>)}
           </select>
-          <p className="text-[11px] text-slate-600">
+          <p className="text-2xs text-slate-600">
             {letzte
               ? `Letzte Sicherung: ${new Date(letzte).toLocaleString('de-DE')}`
               : 'Auf diesem Gerät wurde noch keine Sicherung erstellt.'}

@@ -267,7 +267,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.flotte')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Drohnen Management', 'Drone management')}</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Drohnen Management', 'Drone management')}</p>
         </div>
         <button 
           onClick={() => {
@@ -289,7 +289,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
         <motion.div 
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="mb-8 p-5 bg-gradient-to-br from-amber-500 to-brand-orange rounded-[32px] shadow-xl shadow-brand-orange/20 text-white overflow-hidden relative"
+          className="mb-8 p-5 bg-gradient-to-br from-amber-500 to-brand-orange rounded-3xl shadow-xl shadow-brand-orange/20 text-white overflow-hidden relative"
         >
           <div className="absolute top-[-20%] right-[-10%] opacity-10 rotate-12">
             <Wrench className="w-32 h-32" />
@@ -305,7 +305,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 <button 
                   key={d.id}
                   onClick={() => setSelectedDroneId(d.id)}
-                  className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/30 transition-all border border-white/10"
+                  className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl text-2xs font-black uppercase tracking-wider hover:bg-white/30 transition-all border border-white/10"
                 >
                   {d.model} ({getMaintenanceAlerts(d.id).length})
                 </button>
@@ -324,11 +324,11 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
             className="overflow-hidden mb-6"
           >
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-black text-slate-900 text-sm uppercase tracking-widest">
+              <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider">
                 {editingDroneId ? 'Drohne bearbeiten' : 'Neue Drohne registrieren'}
               </h3>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Modell / Name', 'Model / name')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Modell / Name', 'Model / name')}</label>
                 <input 
                   type="text" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
@@ -339,11 +339,11 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Gewicht (g)', 'Weight (g)')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Gewicht (g)', 'Weight (g)')}</label>
                   <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="249" value={newDrone.weight || ''} onChange={e => setNewDrone({...newDrone, weight: Number(e.target.value)})} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('C-Klasse', 'C class')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('C-Klasse', 'C class')}</label>
                   <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={newDrone.uasClass || 'Legacy'} onChange={e => setNewDrone({...newDrone, uasClass: e.target.value as UASClass})}>
                     <option value="C0">C0 (&lt; 250g)</option>
                     <option value="C1">C1 (&lt; 900g)</option>
@@ -357,21 +357,21 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Seriennummer', 'Serial number')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Seriennummer', 'Serial number')}</label>
                   <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="SN123..." value={newDrone.serialNumber || ''} onChange={e => setNewDrone({...newDrone, serialNumber: e.target.value})} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Firmware Version', 'Firmware version')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Firmware Version', 'Firmware version')}</label>
                   <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="v01.00..." value={newDrone.firmwareVersion || ''} onChange={e => setNewDrone({...newDrone, firmwareVersion: e.target.value})} />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('LBA e-ID (Optional)', 'LBA e-ID (optional)')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('LBA e-ID (Optional)', 'LBA e-ID (optional)')}</label>
                   <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="DEU..." value={newDrone.eId || ''} onChange={e => setNewDrone({...newDrone, eId: e.target.value})} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Spezielle Versicherung', 'Separate insurance')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Spezielle Versicherung', 'Separate insurance')}</label>
                   <input
                     type="text"
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm"
@@ -382,7 +382,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Max. Windgrenze (km/h)', 'Max. wind limit (km/h)')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Max. Windgrenze (km/h)', 'Max. wind limit (km/h)')}</label>
                 <input
                   type="number"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm"
@@ -393,13 +393,13 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Garantie bis', 'Warranty until')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Garantie bis', 'Warranty until')}</label>
                   <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
                     value={newDrone.warrantyUntil?.slice(0,10) || ''}
                     onChange={e => setNewDrone({...newDrone, warrantyUntil: e.target.value || undefined})} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Kaufdatum', 'Purchase date')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Kaufdatum', 'Purchase date')}</label>
                   <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
                     value={newDrone.purchaseDate?.slice(0,10) || ''}
                     onChange={e => setNewDrone({...newDrone, purchaseDate: e.target.value || undefined})} />
@@ -407,20 +407,20 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Wartung alle (Tage)', 'Maintenance every (days)')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Wartung alle (Tage)', 'Maintenance every (days)')}</label>
                   <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" placeholder="z.B. 180"
                     value={newDrone.maintenanceIntervalDays || ''}
                     onChange={e => setNewDrone({...newDrone, maintenanceIntervalDays: e.target.value ? Number(e.target.value) : undefined})} />
                 </div>
                 <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Wartung alle (Std.)', 'Maintenance every (hours)')}</label>
+                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Wartung alle (Std.)', 'Maintenance every (hours)')}</label>
                   <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" placeholder="z.B. 50"
                     value={newDrone.maintenanceIntervalHours || ''}
                     onChange={e => setNewDrone({...newDrone, maintenanceIntervalHours: e.target.value ? Number(e.target.value) : undefined})} />
                 </div>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Drohnen-Foto (optional)', 'Drone photo (optional)')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Drohnen-Foto (optional)', 'Drone photo (optional)')}</label>
                 {newDrone.photoUrl ? (
                   <div className="relative">
                     <img src={newDrone.photoUrl} alt={tx('Vorschau', 'Preview')} className="w-full h-28 object-cover rounded-xl border border-slate-200" />
@@ -472,22 +472,22 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 </div>
                 <div>
                   <h3 className="font-bold text-slate-900 text-sm">{drone.model}</h3>
-                  <div className="flex flex-wrap items-center gap-x-2 text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                  <div className="flex flex-wrap items-center gap-x-2 text-2xs text-slate-400 font-bold uppercase tracking-wider">
                     <span>{drone.uasClass || 'Legacy'}</span>
                     <span>&bull; {drone.weight}g</span>
                     {drone.serialNumber && <span>&bull; SN: {drone.serialNumber}</span>}
                   </div>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-[10px] text-brand-blue font-black uppercase tracking-tighter flex items-center gap-1">
+                    <p className="text-2xs text-brand-blue font-black uppercase tracking-tight flex items-center gap-1">
                       <Clock className="w-2.5 h-2.5" />
                       {hours}h {mins}{tx('m Flugzeit', 'm flight time')}
                     </p>
                     {drone.firmwareVersion && (
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                      <p className="text-2xs text-slate-400 font-bold uppercase tracking-tight">
                         &bull; FW: {drone.firmwareVersion}
                       </p>
                     )}
-                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">
+                    <p className="text-2xs text-slate-400 font-bold uppercase tracking-tight">
                       &bull; {droneFlights.length} {tx('Flüge', 'Flights')}
                     </p>
                   </div>
@@ -496,29 +496,29 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                   <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                     {wStatus.level !== 'ok' && (
                       <span className={cn(
-                        'text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1',
+                        'text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1',
                         wStatus.level === 'alert' ? 'bg-brand-red/10 text-brand-red' : 'bg-amber-50 text-amber-600'
                       )} title={wStatus.gruende.join(' ')}>
                         <Wrench className="w-2.5 h-2.5" /> {tx('Wartung', 'Maintenance')} {wStatus.level === 'alert' ? 'fällig' : 'bald'}
                       </span>
                     )}
                     {gStatus.status === 'aktiv' && (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-green/10 text-brand-green">
+                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-green/10 text-brand-green">
                         {tx('Garantie', 'Warranty')} {gStatus.tage}d
                       </span>
                     )}
                     {gStatus.status === 'bald' && (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">
+                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">
                         {tx('Garantie endet in', 'Warranty ends in')} {gStatus.tage}d
                       </span>
                     )}
                     {gStatus.status === 'abgelaufen' && (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">
+                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">
                         {tx('Garantie abgelaufen', 'Warranty expired')}
                       </span>
                     )}
                     {wartungsKosten > 0 && (
-                      <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex items-center gap-1">
+                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex items-center gap-1">
                         <span className="text-brand-blue">€</span> {wartungsKosten.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </span>
                     )}
@@ -540,12 +540,12 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                         await dbService.saveMaintenance(record);
                         onUpdate();
                       }}
-                      className="text-[8px] font-black uppercase tracking-widest text-brand-blue bg-brand-blue/5 px-2 py-1 rounded hover:bg-brand-blue hover:text-white transition-all flex items-center gap-1"
+                      className="text-2xs font-black uppercase tracking-wider text-brand-blue bg-brand-blue/5 px-2 py-1 rounded hover:bg-brand-blue hover:text-white transition-all flex items-center gap-1"
                     >
                       <Sparkles className="w-2 h-2" /> {tx('Motoren reinigen', 'Clean motors')}
                     </button>
                     {stats.lastMaint['Motor'] && (
-                      <span className="text-[8px] text-slate-400 font-bold uppercase">{tx('Zuletzt:', 'Last:')} {new Date(stats.lastMaint['Motor']).toLocaleDateString('de-DE')}</span>
+                      <span className="text-2xs text-slate-400 font-bold uppercase">{tx('Zuletzt:', 'Last:')} {new Date(stats.lastMaint['Motor']).toLocaleDateString('de-DE')}</span>
                     )}
                   </div>
                   
@@ -558,7 +558,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                         <div className="w-6 h-6 rounded-lg bg-amber-700 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
                           <BadgeAlert className="w-3.5 h-3.5" />
                         </div>
-                        <span className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em]">{tx('Sicherheits-Check fällig', 'Safety check due')}</span>
+                        <span className="text-2xs font-black text-slate-900 uppercase tracking-[0.2em]">{tx('Sicherheits-Check fällig', 'Safety check due')}</span>
                       </div>
                       <div className="space-y-2">
                         {getMaintenanceAlerts(drone.id).map((alert, idx) => (
@@ -566,17 +566,17 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                                <span className="text-[9px] font-black text-slate-800 uppercase tracking-tight">{alert.reason}</span>
+                                <span className="text-2xs font-black text-slate-800 uppercase tracking-tight">{alert.reason}</span>
                               </div>
-                              <span className="text-[7px] font-black text-white bg-amber-500 px-2 py-0.5 rounded-full uppercase">{alert.type}</span>
+                              <span className="text-2xs font-black text-white bg-amber-500 px-2 py-0.5 rounded-full uppercase">{alert.type}</span>
                             </div>
-                            <p className="text-[9px] text-slate-500 leading-tight font-medium pl-3.5">{alert.detail}</p>
+                            <p className="text-2xs text-slate-500 leading-tight font-medium pl-3.5">{alert.detail}</p>
                           </div>
                         ))}
                       </div>
                       <button 
                         onClick={() => setSelectedDroneId(drone.id)}
-                        className="w-full mt-2 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-brand-blue transition-colors shadow-lg shadow-slate-900/10 active:scale-[0.98]"
+                        className="w-full mt-2 py-2 bg-slate-900 text-white text-2xs font-black uppercase tracking-wider rounded-xl hover:bg-brand-blue transition-colors shadow-lg shadow-slate-900/10 active:scale-[0.98]"
                       >
                         {tx('Wartung protokollieren', 'Log maintenance')}
                       </button>
@@ -625,14 +625,14 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               initial={{ y: 100 }}
               animate={{ y: 0 }}
               exit={{ y: 100 }}
-              className="bg-white w-full max-w-md rounded-t-[40px] sm:rounded-[40px] shadow-2xl p-6 relative flex flex-col max-h-[85vh]"
+              className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 relative flex flex-col max-h-[85vh]"
               onClick={e => e.stopPropagation()}
             >
               <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6 sm:hidden" />
               <div className="flex items-center justify-between mb-6">
                 <div>
                   <h3 className="text-xl font-black text-slate-900">{tx('Wartungshistorie', 'Maintenance history')}</h3>
-                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                  <p className="text-2xs text-slate-400 font-bold uppercase tracking-wider">
                     {drones.find(d => d.id === selectedDroneId)?.model}
                   </p>
                 </div>
@@ -654,15 +654,15 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 ];
                 return (
                   <div className="mb-6 p-4 bg-white border border-slate-100 rounded-2xl space-y-3">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{tx('Bauteil-Verschleiß', 'Component wear')}</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase tracking-wider">{tx('Bauteil-Verschleiß', 'Component wear')}</p>
                     {parts.map(p => {
                       const pct = Math.min(100, Math.round((p.since / p.limit) * 100));
                       const color = pct >= 100 ? '#ef4444' : pct >= 75 ? '#f97316' : '#10b981';
                       return (
                         <div key={p.label}>
                           <div className="flex justify-between mb-1">
-                            <span className="text-[10px] font-bold text-slate-700">{p.label}</span>
-                            <span className="text-[10px] font-bold" style={{ color }}>{p.since}/{p.limit} {tx('Flüge', 'Flights')}</span>
+                            <span className="text-2xs font-bold text-slate-700">{p.label}</span>
+                            <span className="text-2xs font-bold" style={{ color }}>{p.since}/{p.limit} {tx('Flüge', 'Flights')}</span>
                           </div>
                           <div className="w-full bg-slate-100 rounded-full h-1.5">
                             <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
@@ -678,13 +678,13 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
                   <div className="flex items-center gap-2 mb-2">
                     <ShieldAlert className="w-4 h-4 text-amber-500" />
-                    <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">{tx('Empfohlene Wartung', 'Recommended maintenance')}</span>
+                    <span className="text-2xs font-black text-amber-700 uppercase tracking-wider">{tx('Empfohlene Wartung', 'Recommended maintenance')}</span>
                   </div>
                   <div className="space-y-1.5">
                     {getMaintenanceAlerts(selectedDroneId).map((alert, idx) => (
                       <div key={idx} className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-amber-800">{alert.type}</span>
-                        <span className="text-[9px] font-medium text-amber-600/80">{alert.reason}</span>
+                        <span className="text-2xs font-bold text-amber-800">{alert.type}</span>
+                        <span className="text-2xs font-medium text-amber-600/80">{alert.reason}</span>
                       </div>
                     ))}
                   </div>
@@ -695,7 +695,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mb-6 space-y-4 bg-slate-50 p-4 rounded-3xl border border-slate-200">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('Typ', 'Type')}</label>
+                      <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Typ', 'Type')}</label>
                       <select 
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
                         value={newMaint.type}
@@ -709,7 +709,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                       </select>
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('Beschreibung', 'Description')}</label>
+                      <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Beschreibung', 'Description')}</label>
                       <input
                         type="text"
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
@@ -719,7 +719,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                       />
                     </div>
                     <div>
-                      <label className="text-[9px] font-bold text-slate-400 uppercase mb-1 block">{tx('Kosten (€, optional)', 'Cost (€, optional)')}</label>
+                      <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Kosten (€, optional)', 'Cost (€, optional)')}</label>
                       <input
                         type="number"
                         className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
@@ -744,7 +744,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                     key={type}
                     onClick={() => setMaintFilter(type as MaintenanceRecord['type'] | 'All')}
                     className={cn(
-                      "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-tight whitespace-nowrap transition-all",
+                      "px-3 py-1.5 rounded-full text-2xs font-black uppercase tracking-tight whitespace-nowrap transition-all",
                       maintFilter === type 
                         ? "bg-brand-orange text-white" 
                         : "bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200/50"
@@ -766,7 +766,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                     key={range.id}
                     onClick={() => setDateFilter(range.id as typeof dateFilter)}
                     className={cn(
-                      "px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest whitespace-nowrap transition-all flex items-center gap-1.5",
+                      "px-3 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5",
                       dateFilter === range.id 
                         ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10" 
                         : "bg-white text-slate-400 border border-slate-100 hover:bg-slate-50"
@@ -792,10 +792,10 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                           <Settings2 className="w-4 h-4 text-brand-orange" />
                         </div>
                         <div>
-                          <p className="font-bold text-slate-900 text-[11px]">{item.description}</p>
+                          <p className="font-bold text-slate-900 text-2xs">{item.description}</p>
                           <div className="flex items-center gap-2">
-                            <span className="text-[8px] font-black text-slate-400 uppercase border border-slate-100 px-1 rounded">{item.type}</span>
-                            <span className="text-[8px] text-slate-300 font-mono">{item.date}</span>
+                            <span className="text-2xs font-black text-slate-400 uppercase border border-slate-100 px-1 rounded">{item.type}</span>
+                            <span className="text-2xs text-slate-300 font-mono">{item.date}</span>
                           </div>
                         </div>
                       </div>
@@ -828,7 +828,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
       <div className="flex items-center justify-between mb-6 pt-4 border-t border-slate-200">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.akkus')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Inventar & Zyklen', 'Inventory & cycles')}</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Inventar & Zyklen', 'Inventory & cycles')}</p>
         </div>
         <button 
           onClick={() => setShowAddBattery(!showAddBattery)}
@@ -848,7 +848,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
           >
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Akku Nummer / Name', 'Battery number / name')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Akku Nummer / Name', 'Battery number / name')}</label>
                 <input 
                   type="text" 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
@@ -899,11 +899,11 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                   </div>
                   <div>
                     <h3 className="font-bold text-slate-900 text-xs">{battery.number}</h3>
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{cycles} {tx('Zyklen', 'Cycles')}</p>
+                    <p className="text-2xs font-black text-slate-400 uppercase tracking-wider">{cycles} {tx('Zyklen', 'Cycles')}</p>
                   </div>
                 </div>
                 <span className={cn(
-                  "text-[8px] font-black uppercase px-2 py-1 rounded-lg border",
+                  "text-2xs font-black uppercase px-2 py-1 rounded-lg border",
                   health < 50 ? "bg-brand-red/5 border-brand-red/10 text-brand-red" : 
                   health < 80 ? "bg-amber-500/5 border-amber-500/10 text-amber-600" : 
                   "bg-brand-green/5 border-brand-green/10 text-brand-green"
@@ -919,7 +919,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                       "text-2xl font-black transition-colors",
                       health < 30 ? "text-brand-red" : "text-slate-900"
                     )}>{health}%</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase">SOH</p>
+                    <p className="text-2xs font-bold text-slate-400 uppercase">SOH</p>
                   </div>
                 </div>
                 <button

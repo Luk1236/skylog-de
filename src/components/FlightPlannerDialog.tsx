@@ -171,7 +171,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
         <div className="overflow-y-auto px-5 py-4 space-y-4">
           {zeigePlaene ? (
             <div className="space-y-2">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('planer.gespeicherte')}</p>
+              <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{t('planer.gespeicherte')}</p>
               {plaene.length === 0 && (
                 <p className="text-xs text-slate-400 py-4 text-center">{t('planer.keinePlaene')}</p>
               )}
@@ -179,7 +179,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                 <div key={p.id} className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 p-3">
                   <button onClick={() => laden(p)} className="flex-1 text-left">
                     <p className="text-xs font-bold text-slate-900">{p.name}</p>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-2xs text-slate-400">
                       {p.wegpunkte.length} {t('planer.wegpunkte')} · {formatStrecke(bewertePlan(p.wegpunkte).streckeM)}
                     </p>
                   </button>
@@ -230,7 +230,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                 </button>
               </div>
 
-              <p className="text-[11px] text-slate-500">
+              <p className="text-2xs text-slate-500">
                 {modus === 'route' ? t('planer.hinweisKarte') : t('planer.hinweisFlaeche')}
               </p>
 
@@ -267,7 +267,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     <>
                       <Regler label={t('planer.bildwinkel')} wert={bildwinkel} einheit="°" min={30} max={120} schritt={1} onChange={setBildwinkel} />
                       <Regler label={t('planer.ueberlappung')} wert={ueberlappung} einheit="%" min={0} max={90} schritt={5} onChange={setUeberlappung} />
-                      <p className="text-[11px] text-slate-600 text-right">{t('planer.bahnabstand')}: <span className="font-mono font-bold text-slate-900">{effektiverAbstand} m</span></p>
+                      <p className="text-2xs text-slate-600 text-right">{t('planer.bahnabstand')}: <span className="font-mono font-bold text-slate-900">{effektiverAbstand} m</span></p>
                     </>
                   ) : (
                     <Regler label={t('planer.bahnabstand')} wert={bahnabstand} einheit="m" min={5} max={100} schritt={5} onChange={setBahnabstand} />
@@ -275,12 +275,12 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                   <Regler label={t('planer.flugrichtung')} wert={richtungGrad} einheit="°" min={0} max={175} schritt={5} onChange={setRichtungGrad} />
                   <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-lg p-1">
                     <button onClick={() => setRichtungGrad(90)}
-                      className={cn('py-1.5 rounded-md text-[11px] font-bold transition-colors',
+                      className={cn('py-1.5 rounded-lg text-2xs font-bold transition-colors',
                         richtungGrad === 90 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500')}>
                       {t('planer.richtungOstWest')}
                     </button>
                     <button onClick={() => setRichtungGrad(0)}
-                      className={cn('py-1.5 rounded-md text-[11px] font-bold transition-colors',
+                      className={cn('py-1.5 rounded-lg text-2xs font-bold transition-colors',
                         richtungGrad === 0 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500')}>
                       {t('planer.richtungNordSued')}
                     </button>
@@ -289,7 +289,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     className="w-full bg-brand-blue text-white font-bold py-2.5 rounded-xl text-sm active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5">
                     <Grid3x3 className="w-4 h-4" /> {t('planer.rasterErzeugen')}
                   </button>
-                  <div className="flex items-center justify-between text-[11px] text-slate-600">
+                  <div className="flex items-center justify-between text-2xs text-slate-600">
                     <span>{ecken.length} {t('planer.eckenGesetzt')}</span>
                     <span className="flex gap-3">
                       <button onClick={() => setEcken(e => e.slice(0, -1))} disabled={ecken.length === 0}
@@ -302,7 +302,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
               )}
 
               {rasterBegrenzt && (
-                <p className="text-[11px] text-amber-700 flex items-start gap-1.5 leading-relaxed">
+                <p className="text-2xs text-amber-700 flex items-start gap-1.5 leading-relaxed">
                   <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {t('planer.rasterBegrenzt')}
                 </p>
               )}
@@ -316,7 +316,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
               {bewertung.hinweise.length > 0 && (
                 <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 space-y-1">
                   {bewertung.hinweise.map((h, i) => (
-                    <p key={i} className="text-[11px] text-amber-700 flex items-start gap-1.5 leading-relaxed">
+                    <p key={i} className="text-2xs text-amber-700 flex items-start gap-1.5 leading-relaxed">
                       <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {h}
                     </p>
                   ))}
@@ -326,8 +326,8 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
               {wegpunkte.length > 0 && (
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('planer.wegpunkte')}</p>
-                    <button onClick={() => setWegpunkte([])} className="text-[10px] font-bold text-slate-400 hover:text-brand-red">
+                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{t('planer.wegpunkte')}</p>
+                    <button onClick={() => setWegpunkte([])} className="text-2xs font-bold text-slate-400 hover:text-brand-red">
                       {t('planer.alleLoeschen')}
                     </button>
                   </div>
@@ -335,7 +335,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     <div key={i} className="bg-white rounded-xl border border-slate-200 px-3 py-2 space-y-2">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3.5 h-3.5 text-brand-blue shrink-0" />
-                        <span className="text-[11px] font-mono text-slate-600 flex-1">
+                        <span className="text-2xs font-mono text-slate-600 flex-1">
                           {i + 1}. {w.lat.toFixed(5)}, {w.lon.toFixed(5)}
                         </span>
                         <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, -1))} disabled={i === 0}
@@ -354,20 +354,20 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                       {/* Missions-Parameter je Wegpunkt */}
                       <div className="grid grid-cols-3 gap-1.5">
                         <label className="flex items-center gap-1 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
-                          <span className="text-[9px] font-bold text-slate-400">H</span>
+                          <span className="text-2xs font-bold text-slate-400">H</span>
                           <input type="number" inputMode="numeric" placeholder="m" aria-label={`Höhe Wegpunkt ${i + 1}`}
                             value={w.alt ?? ''} onChange={e => aktualisiereWegpunkt(i, { alt: e.target.value ? Number(e.target.value) : undefined })}
-                            className="w-full bg-transparent text-[11px] font-mono focus:outline-none" />
+                            className="w-full bg-transparent text-2xs font-mono focus:outline-none" />
                         </label>
                         <label className="flex items-center gap-1 bg-slate-50 rounded-lg px-2 py-1 border border-slate-100">
-                          <span className="text-[9px] font-bold text-slate-400">km/h</span>
+                          <span className="text-2xs font-bold text-slate-400">km/h</span>
                           <input type="number" inputMode="numeric" placeholder={tx('Tempo', 'Speed')} aria-label={`Tempo Wegpunkt ${i + 1}`}
                             value={w.speed ?? ''} onChange={e => aktualisiereWegpunkt(i, { speed: e.target.value ? Number(e.target.value) : undefined })}
-                            className="w-full bg-transparent text-[11px] font-mono focus:outline-none" />
+                            className="w-full bg-transparent text-2xs font-mono focus:outline-none" />
                         </label>
                         <select aria-label={`Aktion Wegpunkt ${i + 1}`}
                           value={w.aktion ?? ''} onChange={e => aktualisiereWegpunkt(i, { aktion: (e.target.value || undefined) as WegpunktAktion | undefined })}
-                          className="bg-slate-50 rounded-lg px-2 py-1 border border-slate-100 text-[11px] font-bold text-slate-600 focus:outline-none">
+                          className="bg-slate-50 rounded-lg px-2 py-1 border border-slate-100 text-2xs font-bold text-slate-600 focus:outline-none">
                           <option value="">—</option>
                           <option value="foto">{tx('Foto', 'Photo')}</option>
                           <option value="video-start">{tx('Video an', 'Video on')}</option>
@@ -376,7 +376,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                         </select>
                       </div>
                       {w.aktion === 'hover' && (
-                        <label className="flex items-center gap-2 text-[10px] text-slate-500">
+                        <label className="flex items-center gap-2 text-2xs text-slate-500">
                           {tx('Schwebedauer', 'Hover time')}
                           <input type="number" inputMode="numeric" value={w.hoverSek ?? ''} placeholder={tx('Sek.', 'sec')}
                             onChange={e => aktualisiereWegpunkt(i, { hoverSek: e.target.value ? Number(e.target.value) : undefined })}
@@ -391,7 +391,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
 
               {wegpunkte.length >= 2 && (
                 <div className="space-y-1.5">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{t('planer.exportieren')}</p>
+                  <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{t('planer.exportieren')}</p>
                   {/* Fliegbare Mission: Litchi kann diese Datei importieren und abfliegen. */}
                   <button onClick={() => exportieren('csv')}
                     className="w-full flex items-center justify-center gap-1.5 bg-brand-blue text-white rounded-xl py-2.5 text-xs font-bold active:scale-95">
@@ -407,14 +407,14 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                       <Download className="w-3.5 h-3.5 text-brand-blue" /> KML
                     </button>
                   </div>
-                  <p className="text-[10px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-start gap-1.5 leading-relaxed">
+                  <p className="text-2xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 flex items-start gap-1.5 leading-relaxed">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                     {tx('Litchi-Datei in Litchi importieren,', 'Import the Litchi file into Litchi,')} <b>{tx('vor dem Start prüfen', 'check before take-off')}</b> {tx('(Höhen, Hindernisse, Luftraum) und nur in Sichtweite fliegen. SkyLog plant nur — es steuert die Drohne nicht.', '(altitudes, obstacles, airspace) and only fly within line of sight. SkyLog only plans — it does not control the drone.')}
                   </p>
                 </div>
               )}
 
-              <p className="text-[9px] text-slate-400 leading-relaxed">
+              <p className="text-2xs text-slate-400 leading-relaxed">
                 {t('planer.fussnote')}
               </p>
             </>
@@ -444,7 +444,7 @@ function Kachel({ label, wert }: { label: string; wert: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
       <p className="text-sm font-black text-slate-900">{wert}</p>
-      <p className="text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
+      <p className="text-2xs text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
     </div>
   );
 }

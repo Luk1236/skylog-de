@@ -20,7 +20,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Notfall-Leitfaden & LBA Meldung', 'Emergency guide & LBA reporting')}</p>
+          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Notfall-Leitfaden & LBA Meldung', 'Emergency guide & LBA reporting')}</p>
         </div>
         {onOpenEid && (
           <button
@@ -43,11 +43,11 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
         </div>
         <div>
           <h3 className="font-bold text-sm">{tx('Behörden-Check', 'Authority check')}</h3>
-          <p className="text-[11px] text-white/70 leading-relaxed">{tx('Betreiber-ID, Nachweise & QR-Code zum Vorzeigen bei einer Kontrolle.', 'Operator ID, certificates & QR code to show during an inspection.')}</p>
+          <p className="text-2xs text-white/70 leading-relaxed">{tx('Betreiber-ID, Nachweise & QR-Code zum Vorzeigen bei einer Kontrolle.', 'Operator ID, certificates & QR code to show during an inspection.')}</p>
         </div>
       </button>
       {(!profile?.eid || drones.length === 0) && (
-        <p className="-mt-6 mb-8 text-[10px] text-slate-400 px-1">
+        <p className="-mt-6 mb-8 text-2xs text-slate-400 px-1">
           {tx('Tipp: Betreiber-ID im Profil und mindestens eine Drohne hinterlegen, damit der Check vollständig ist.', 'Tip: add your operator ID in the profile and at least one drone so the check is complete.')}
         </p>
       )}
@@ -62,7 +62,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
         </div>
         <div>
           <h3 className="font-bold text-sm text-slate-900">{tx('Risiko-Check (Betriebskategorie)', 'Risk check (operating category)')}</h3>
-          <p className="text-[11px] text-slate-500 leading-relaxed">{tx('Open A1/A2/A3 oder Specific? Nach EU 2019/947 einordnen.', 'Open A1/A2/A3 or Specific? Classify according to EU 2019/947.')}</p>
+          <p className="text-2xs text-slate-500 leading-relaxed">{tx('Open A1/A2/A3 oder Specific? Nach EU 2019/947 einordnen.', 'Open A1/A2/A3 or Specific? Classify according to EU 2019/947.')}</p>
         </div>
       </button>
 
@@ -76,11 +76,11 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
         <div className="space-y-4">
           {emergencySteps.map((step, idx) => (
             <div key={idx} className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center shrink-0 text-[10px] font-black">
+              <div className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center shrink-0 text-2xs font-black">
                 {idx + 1}
               </div>
               <div>
-                <p className="text-[11px] font-black uppercase tracking-wider opacity-80">{step.title}</p>
+                <p className="text-2xs font-black uppercase tracking-wider opacity-80">{step.title}</p>
                 <p className="text-xs font-medium">{step.desc}</p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
             <ArrowRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
           </div>
           <h4 className="font-bold text-slate-900 mb-1">{tx('Vorfall-Bericht erstellen', 'Create incident report')}</h4>
-          <p className="text-[10px] text-slate-500 leading-relaxed">{tx('Ereignis dokumentieren und als fertigen Meldetext für das LBA kopieren.', 'Document the occurrence and copy a ready-made report text for the LBA.')}</p>
+          <p className="text-2xs text-slate-500 leading-relaxed">{tx('Ereignis dokumentieren und als fertigen Meldetext für das LBA kopieren.', 'Document the occurrence and copy a ready-made report text for the LBA.')}</p>
         </button>
 
         <a
@@ -118,7 +118,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
             <ArrowRight className="w-4 h-4 text-slate-300 group-hover:translate-x-1 transition-transform" />
           </div>
           <h4 className="font-bold text-slate-900 mb-1">{tx('LBA Ereignismeldung', 'LBA occurrence report')}</h4>
-          <p className="text-[10px] text-slate-500 leading-relaxed">{tx('Offizielles Meldeportal für Unfälle und schwere Störungen (ECCAIRS 2).', 'Official reporting portal for accidents and serious incidents (ECCAIRS 2).')}</p>
+          <p className="text-2xs text-slate-500 leading-relaxed">{tx('Offizielles Meldeportal für Unfälle und schwere Störungen (ECCAIRS 2).', 'Official reporting portal for accidents and serious incidents (ECCAIRS 2).')}</p>
         </a>
 
         <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
@@ -132,7 +132,7 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
             ].map((i, idx) => (
               <div key={idx} className="flex justify-between items-center py-2 border-b border-slate-50 last:border-0">
                 <span className="text-xs font-bold text-slate-600">{i.l}</span>
-                <span className="text-[10px] font-black text-brand-red bg-brand-red/5 px-2 py-1 rounded-lg uppercase">{i.v}</span>
+                <span className="text-2xs font-black text-brand-red bg-brand-red/5 px-2 py-1 rounded-lg uppercase">{i.v}</span>
               </div>
             ))}
           </div>

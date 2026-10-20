@@ -16,7 +16,7 @@ function Kennzahl({ icon: Icon, wert, label }: { icon: LucideIcon, wert: string,
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
       <span className="text-lg font-black text-slate-900 leading-none">{wert}</span>
-      <span className="text-[9px] text-slate-400 uppercase tracking-wider">{label}</span>
+      <span className="text-2xs text-slate-400 uppercase tracking-wider">{label}</span>
     </div>
   );
 }
@@ -56,17 +56,17 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
 
               <div className="bg-brand-blue text-white rounded-2xl p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] uppercase tracking-wider text-blue-200">{tx('Dieses Jahr', 'This year')}</p>
+                  <p className="text-2xs uppercase tracking-wider text-blue-200">{tx('Dieses Jahr', 'This year')}</p>
                   <p className="text-xl font-black">{formatDauer(s.diesesJahrMinuten)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-[10px] uppercase tracking-wider text-blue-200">{tx('Flüge', 'Flights')} {new Date().getFullYear()}</p>
+                  <p className="text-2xs uppercase tracking-wider text-blue-200">{tx('Flüge', 'Flights')} {new Date().getFullYear()}</p>
                   <p className="text-xl font-black">{s.diesesJahrFluege}</p>
                 </div>
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-3">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">{tx('Flüge pro Monat (12 Mon.)', 'Flights per month (12 mo.)')}</p>
+                <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-2">{tx('Flüge pro Monat (12 Mon.)', 'Flights per month (12 mo.)')}</p>
                 <div className="h-32">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={s.proMonat} margin={{ top: 4, right: 4, bottom: 0, left: -28 }}>
@@ -80,7 +80,7 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
               </div>
 
               <div className="bg-white rounded-2xl border border-slate-200 p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">{tx('Flugzeit je Drohne', 'Flight time per drone')}</p>
+                <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-3">{tx('Flugzeit je Drohne', 'Flight time per drone')}</p>
                 <div className="space-y-2">
                   {s.proDrohne.map(d => {
                     const anteil = Math.round((d.minuten / Math.max(1, s.gesamtMinuten)) * 100);
@@ -103,11 +103,11 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-4">
                   <div className="flex items-center gap-1.5 mb-2">
                     <MapPin className="w-3.5 h-3.5 text-brand-blue" />
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Top-Standorte', 'Top locations')}</p>
+                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Top-Standorte', 'Top locations')}</p>
                   </div>
                   <div className="space-y-1.5">
                     {s.topOrte.map(o => (
-                      <div key={o.ort} className="flex justify-between text-[11px]">
+                      <div key={o.ort} className="flex justify-between text-2xs">
                         <span className="font-medium text-slate-700 truncate pr-2">{o.ort}</span>
                         <span className="text-slate-400 shrink-0">{o.anzahl}×</span>
                       </div>
@@ -118,10 +118,10 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
                 <div className="bg-white rounded-2xl border border-slate-200 p-4">
                   <div className="flex items-center gap-1.5 mb-2">
                     <AlertTriangle className="w-3.5 h-3.5 text-brand-red" />
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{tx('Vorfälle', 'Incidents')}</p>
+                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Vorfälle', 'Incidents')}</p>
                   </div>
                   <p className="text-2xl font-black text-slate-900">{s.vorfallRateProzent}%</p>
-                  <p className="text-[10px] text-slate-400">{s.vorfallAnzahl} {tx('von', 'of')} {s.anzahlFluege} {tx('Flügen', 'flights')}</p>
+                  <p className="text-2xs text-slate-400">{s.vorfallAnzahl} {tx('von', 'of')} {s.anzahlFluege} {tx('Flügen', 'flights')}</p>
                 </div>
               </div>
             </>

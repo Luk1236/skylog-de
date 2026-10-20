@@ -11,7 +11,7 @@ interface Props {
 }
 
 const feld = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm';
-const label = 'text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block';
+const label = 'text-2xs font-bold text-slate-400 uppercase tracking-wider mb-1 block';
 
 // Ueber CSS-Variablen: im hellen Modus satte Toene (weisse Schrift ~5:1),
 // im Dunkelmodus helle Toene (dort wird text-white dunkel), s. index.css.
@@ -96,7 +96,7 @@ export function RiskAssessmentDialog({ drohnen, onClose }: Props) {
 
           {/* Ergebnis */}
           <div className="rounded-2xl p-4 text-white" style={{ background: farbe }}>
-            <p className="text-[10px] uppercase tracking-widest opacity-80">{tx('Ermittelte Kategorie', 'Determined category')}</p>
+            <p className="text-2xs uppercase tracking-wider opacity-80">{tx('Ermittelte Kategorie', 'Determined category')}</p>
             <p className="text-2xl font-black">{KAT_TEXT[ergebnis.kategorie]}</p>
             {!ergebnis.imOpen && <p className="text-xs mt-1 opacity-90">{tx('Außerhalb der Open-Kategorie — Genehmigung/STS nötig.', 'Outside the Open category — authorisation/STS required.')}</p>}
           </div>
@@ -105,7 +105,7 @@ export function RiskAssessmentDialog({ drohnen, onClose }: Props) {
             <div className="bg-white rounded-2xl border border-slate-200 p-4">
               <p className={cn(label, 'flex items-center gap-1')}><ShieldAlert className="w-3 h-3 text-brand-red" /> {tx('Warum Specific', 'Why Specific')}</p>
               <ul className="space-y-1">
-                {ergebnis.gruende.map((g, i) => <li key={i} className="text-[11px] text-slate-600 leading-relaxed">• {g}</li>)}
+                {ergebnis.gruende.map((g, i) => <li key={i} className="text-2xs text-slate-600 leading-relaxed">• {g}</li>)}
               </ul>
             </div>
           )}
@@ -114,7 +114,7 @@ export function RiskAssessmentDialog({ drohnen, onClose }: Props) {
             <div className="bg-brand-red/5 rounded-2xl border border-brand-red/20 p-4">
               <p className={cn(label, 'flex items-center gap-1 text-brand-red')}><AlertTriangle className="w-3 h-3" /> {tx('Verstöße beheben', 'Fix violations')}</p>
               <ul className="space-y-1">
-                {ergebnis.verstoesse.map((v, i) => <li key={i} className="text-[11px] text-brand-red leading-relaxed">• {v}</li>)}
+                {ergebnis.verstoesse.map((v, i) => <li key={i} className="text-2xs text-brand-red leading-relaxed">• {v}</li>)}
               </ul>
             </div>
           )}
@@ -122,12 +122,12 @@ export function RiskAssessmentDialog({ drohnen, onClose }: Props) {
           <div className="bg-white rounded-2xl border border-slate-200 p-4">
             <p className={cn(label, 'flex items-center gap-1')}><CheckCircle2 className="w-3 h-3 text-brand-green" /> {tx('Auflagen', 'Conditions')}</p>
             <ul className="space-y-1">
-              {ergebnis.anforderungen.map((a, i) => <li key={i} className="text-[11px] text-slate-600 leading-relaxed">• {a}</li>)}
+              {ergebnis.anforderungen.map((a, i) => <li key={i} className="text-2xs text-slate-600 leading-relaxed">• {a}</li>)}
             </ul>
-            <p className="text-[11px] text-slate-500 mt-2 pt-2 border-t border-slate-100"><span className="font-bold">{tx('Kompetenz:', 'Competency:')}</span> {ergebnis.kompetenz}</p>
+            <p className="text-2xs text-slate-500 mt-2 pt-2 border-t border-slate-100"><span className="font-bold">{tx('Kompetenz:', 'Competency:')}</span> {ergebnis.kompetenz}</p>
           </div>
 
-          <p className="text-[10px] text-slate-400 leading-relaxed">
+          <p className="text-2xs text-slate-400 leading-relaxed">
             {tx('Orientierungshilfe nach EU 2019/947 — keine rechtsverbindliche Einstufung. Verbindlich sind die Angaben von LBA und dipul für den konkreten Ort.', 'Guidance based on EU 2019/947 — not a legally binding classification. The LBA and dipul information for the specific location is binding.')}
           </p>
         </div>

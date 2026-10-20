@@ -188,11 +188,11 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.profil')}</h2>
-            <p className="text-slate-500 text-sm font-medium uppercase tracking-widest text-[10px]">{tx('Stammdaten & Lizenzen', 'Personal data & licences')}</p>
+            <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Stammdaten & Lizenzen', 'Personal data & licences')}</p>
           </div>
           <div className="flex items-center gap-2">
             {profile?.isBOS && (
-              <div className="bg-brand-red text-white text-[8px] font-black px-2 py-1 rounded-full uppercase tracking-tighter">BOS Pilot</div>
+              <div className="bg-brand-red text-white text-2xs font-black px-2 py-1 rounded-full uppercase tracking-tight">BOS Pilot</div>
             )}
             {onOpenPinSetup && (
               <button
@@ -232,8 +232,8 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
               <div>
                 <h3 className="font-bold text-slate-900 text-lg leading-tight">{profile?.name || 'Vollständiger Name'}</h3>
                 <div className="flex items-center gap-2">
-                  <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{profile?.licenseType || 'Keine Lizenz'}</p>
-                  <span className={cn("text-[10px] font-bold", expiry.color)}>&bull; {expiry.label}</span>
+                  <p className="text-2xs text-slate-400 font-black uppercase tracking-wider">{profile?.licenseType || 'Keine Lizenz'}</p>
+                  <span className={cn("text-2xs font-bold", expiry.color)}>&bull; {expiry.label}</span>
                 </div>
               </div>
             </div>
@@ -242,23 +242,23 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-slate-50 rounded-2xl relative">
                   <div className="flex items-center justify-between">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">LBA e-ID</p>
+                    <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">LBA e-ID</p>
                     {onOpenEid && (
-                      <button onClick={onOpenEid} className="text-[10px] font-bold text-sky-600 hover:underline">{tx('Verwalten', 'Manage')}</button>
+                      <button onClick={onOpenEid} className="text-2xs font-bold text-sky-600 hover:underline">{tx('Verwalten', 'Manage')}</button>
                     )}
                   </div>
                   <p className="text-xs font-bold text-slate-800 font-mono">{profile?.eid || 'Nicht hinterlegt'}</p>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-2xl">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">{tx('Versicherung', 'Insurance')}</p>
+                  <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">{tx('Versicherung', 'Insurance')}</p>
                   <p className="text-xs font-bold text-slate-800 truncate">{profile?.insuranceNumber || 'Nicht hinterlegt'}</p>
                 </div>
               </div>
               {profile?.eid && (
                 <div className="flex flex-col items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{tx('LBA e-ID QR-Code', 'LBA e-ID QR code')}</p>
+                  <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('LBA e-ID QR-Code', 'LBA e-ID QR code')}</p>
                   <EidQrCode eid={profile.eid} />
-                  <p className="text-[10px] text-slate-500 text-center">{tx('Für Bodeninspektion scannen', 'Scan for ground inspection')}</p>
+                  <p className="text-2xs text-slate-500 text-center">{tx('Für Bodeninspektion scannen', 'Scan for ground inspection')}</p>
                 </div>
               )}
               {profile && (
@@ -266,7 +266,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
                   <ShieldCheck className="w-5 h-5 text-brand-green" />
                   <div>
                     <p className="text-xs font-bold text-brand-green">{tx('Status: Aktiv & Bereit', 'Status: active & ready')}</p>
-                    <p className="text-[10px] text-slate-500">{tx('Ihre Daten sind für das Logbuch bereit.', 'Your data is ready for the logbook.')}</p>
+                    <p className="text-2xs text-slate-500">{tx('Ihre Daten sind für das Logbuch bereit.', 'Your data is ready for the logbook.')}</p>
                   </div>
                 </div>
               )}
@@ -276,16 +276,16 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
           <div className="space-y-4">
             <h3 className="font-bold text-slate-900 text-sm mb-2">{tx('Profil Bearbeiten', 'Edit profile')}</h3>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Vollständiger Name', 'Full name')}</label>
+              <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Vollständiger Name', 'Full name')}</label>
               <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.name || ''} onChange={e => setEditedProfile({...editedProfile, name: e.target.value})} />
             </div>
             <div>
-              <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('LBA e-ID (Registrierungsnummer)', 'LBA e-ID (registration number)')}</label>
+              <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('LBA e-ID (Registrierungsnummer)', 'LBA e-ID (registration number)')}</label>
               <input type="text" placeholder="DEU..." className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.eid || ''} onChange={e => setEditedProfile({...editedProfile, eid: e.target.value})} />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Lizenz Typ', 'Licence type')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Lizenz Typ', 'Licence type')}</label>
                 <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.licenseType || ''} onChange={e => setEditedProfile({...editedProfile, licenseType: e.target.value as UserProfile['licenseType']})}>
                   <option value="None">{tx('Keine', 'None')}</option>
                   <option value="A1/A3">A1/A3</option>
@@ -294,20 +294,20 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
                 </select>
               </div>
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Gültig bis', 'Valid until')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Gültig bis', 'Valid until')}</label>
                 <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.licenseExpiry || ''} onChange={e => setEditedProfile({...editedProfile, licenseExpiry: e.target.value})} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] font-bold text-slate-400 uppercase mb-1 block">{tx('Versicherungs-Nr.', 'Insurance no.')}</label>
+                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Versicherungs-Nr.', 'Insurance no.')}</label>
                 <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={editedProfile.insuranceNumber || ''} onChange={e => setEditedProfile({...editedProfile, insuranceNumber: e.target.value})} />
               </div>
               <div className="flex flex-col justify-end">
                 <button 
                   onClick={() => setEditedProfile({...editedProfile, isBOS: !editedProfile.isBOS})}
                   className={cn(
-                    "w-full py-2.5 rounded-xl border text-[10px] font-bold transition-all",
+                    "w-full py-2.5 rounded-xl border text-2xs font-bold transition-all",
                     editedProfile.isBOS ? "bg-brand-red text-white border-brand-red" : "bg-slate-50 text-slate-400 border-slate-200"
                   )}
                 >
@@ -319,9 +319,9 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
               <div className="flex items-center gap-2 mb-1">
                 <AlertTriangle className="w-4 h-4 text-amber-500" />
-                <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{tx('NOTAM API (Optional)', 'NOTAM API (optional)')}</p>
+                <p className="text-2xs font-black text-slate-700 uppercase tracking-wider">{tx('NOTAM API (Optional)', 'NOTAM API (optional)')}</p>
               </div>
-              <p className="text-[10px] text-slate-400 leading-relaxed">
+              <p className="text-2xs text-slate-400 leading-relaxed">
                 {tx('Kostenloser API-Key von', 'Free API key from')} <span className="font-bold text-brand-blue">developer.faa.gov</span> {tx('· Zeigt aktuelle Luftraumsperrungen (NOTAMs) vor dem Flug an.', '· Shows current airspace closures (NOTAMs) before the flight.')}
               </p>
               <input
@@ -376,7 +376,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
               </div>
               <div className="overflow-hidden">
                 <p className="text-xs font-bold text-slate-800 truncate">{doc.name}</p>
-                <p className="text-[10px] text-slate-400 font-medium">{tx('Hochgeladen am', 'Uploaded on')} {new Date(doc.createdAt).toLocaleDateString()}</p>
+                <p className="text-2xs text-slate-400 font-medium">{tx('Hochgeladen am', 'Uploaded on')} {new Date(doc.createdAt).toLocaleDateString()}</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -389,7 +389,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         {documents.length === 0 && (
           <div className="text-center py-8 bg-white rounded-3xl border-2 border-dashed border-slate-100">
             <FileDigit className="w-8 h-8 text-slate-100 mx-auto mb-2" />
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{tx('Keine PDF-Dokumente', 'No PDF documents')}</p>
+            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Keine PDF-Dokumente', 'No PDF documents')}</p>
           </div>
         )}
       </div>
@@ -403,7 +403,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
           <DatabaseBackup className="w-4 h-4 text-brand-blue" />
           <h3 className="font-bold text-slate-900 text-sm">{tx('Datensicherung', 'Backup')}</h3>
         </div>
-        <p className="text-[10px] text-slate-400 leading-relaxed mb-3">
+        <p className="text-2xs text-slate-400 leading-relaxed mb-3">
           {tx('Sichere alle deine Daten in eine Datei — und lade sie bei Handywechsel oder Datenverlust wieder ein. Mit Passwort verschlüsselt: „Mehr → Datensicherung“.', 'Save all your data to one file — and load it again after changing phones or losing data. Password-encrypted: “More → Backup”.')}
         </p>
         <div className="flex gap-2">
@@ -418,7 +418,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
             <input type="file" className="hidden" accept="application/json,.json" onChange={handleImportBackup} />
           </label>
         </div>
-        <p className="text-[10px] text-slate-400 mt-3 leading-relaxed">
+        <p className="text-2xs text-slate-400 mt-3 leading-relaxed">
           {tx('Aus Sicherheitsgruenden enthaelt die Datei keine NOTAM-Zugangsdaten. Die musst du nach einer Wiederherstellung einmal neu eintragen.', 'For security reasons the file contains no NOTAM credentials. Enter them again once after a restore.')}
         </p>
       </div>
@@ -459,14 +459,14 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
         <div className="fixed inset-0 bg-black/50 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="bg-white w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl p-6">
             <h3 className="font-black text-slate-900 mb-1">{tx('Sicherung laden', 'Load backup')}</h3>
-            <p className="text-[10px] text-slate-400 mb-5 truncate">{backupDatei.name}</p>
+            <p className="text-2xs text-slate-400 mb-5 truncate">{backupDatei.name}</p>
 
             <button
               onClick={() => fuehreImportAus('merge')}
               className="w-full text-left p-4 mb-3 bg-slate-50 border border-slate-200 rounded-2xl active:scale-[0.98] transition-transform"
             >
               <p className="text-xs font-black text-slate-900">{tx('Zusammenfuehren', 'Merge')}</p>
-              <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+              <p className="text-2xs text-slate-500 leading-relaxed mt-1">
                 {tx('Eintraege aus der Datei kommen hinzu. Gleiche IDs werden ueberschrieben, alles andere bleibt erhalten. Nichts wird geloescht.', 'Entries from the file are added. Matching IDs are overwritten, everything else stays. Nothing is deleted.')}
               </p>
             </button>
@@ -476,7 +476,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
               className="w-full text-left p-4 mb-4 bg-brand-red/5 border border-brand-red/20 rounded-2xl active:scale-[0.98] transition-transform"
             >
               <p className="text-xs font-black text-brand-red">{tx('Ersetzen', 'Replace')}</p>
-              <p className="text-[10px] text-slate-500 leading-relaxed mt-1">
+              <p className="text-2xs text-slate-500 leading-relaxed mt-1">
                 {tx('Der Datenbestand entspricht danach exakt der Datei. Alles seit dieser Sicherung Erfasste geht verloren.', 'Afterwards your data matches the file exactly. Everything recorded since that backup is lost.')}
               </p>
             </button>
@@ -493,32 +493,32 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
 
       <div className="mt-6 p-5 bg-amber-50 rounded-3xl border border-amber-100 flex gap-4">
         <ShieldAlert className="w-6 h-6 text-amber-500 shrink-0" />
-        <p className="text-[10px] text-amber-700 leading-relaxed font-medium">
+        <p className="text-2xs text-amber-700 leading-relaxed font-medium">
           {tx('Ihre Daten werden nur lokal auf diesem Gerät gespeichert. SkyLog DE sendet keine Flugdaten an Cloud-Server.', 'Your data is stored only on this device. SkyLog DE sends no flight data to cloud servers.')}
         </p>
       </div>
 
       {/* Version & Impressum */}
       <div className="mt-6 p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">{tx('App-Info', 'App info')}</p>
+        <p className="text-2xs font-black text-slate-400 uppercase tracking-wider mb-3">{tx('App-Info', 'App info')}</p>
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold text-slate-500">Version</span>
-          <span className="text-[10px] font-bold text-slate-900">1.0.0</span>
+          <span className="text-2xs font-bold text-slate-500">Version</span>
+          <span className="text-2xs font-bold text-slate-900">1.0.0</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold text-slate-500">{tx('Plattform', 'Platform')}</span>
-          <span className="text-[10px] font-bold text-slate-900">PWA · IndexedDB</span>
+          <span className="text-2xs font-bold text-slate-500">{tx('Plattform', 'Platform')}</span>
+          <span className="text-2xs font-bold text-slate-900">PWA · IndexedDB</span>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[10px] font-bold text-slate-500">{tx('Lizenz', 'Licence')}</span>
-          <span className="text-[10px] font-bold text-slate-900">{tx('Privat / Nicht-kommerziell', 'Private / non-commercial')}</span>
+          <span className="text-2xs font-bold text-slate-500">{tx('Lizenz', 'Licence')}</span>
+          <span className="text-2xs font-bold text-slate-900">{tx('Privat / Nicht-kommerziell', 'Private / non-commercial')}</span>
         </div>
         <div className="pt-2 flex gap-3">
           <a
             href="/datenschutz.html"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-[10px] font-bold text-brand-blue"
+            className="flex items-center gap-1 text-2xs font-bold text-brand-blue"
           >
             <ExternalLink className="w-3 h-3" /> {tx('Datenschutzerklärung', 'Privacy policy')}
           </a>
@@ -566,7 +566,7 @@ function BeispieldatenKarte({ onUpdate }: { onUpdate: () => void }) {
   return (
     <div className="mt-10 p-5 bg-white rounded-3xl border border-slate-200">
       <h3 className="font-bold text-slate-900 text-sm mb-1">{tx('Beispieldaten', 'Sample data')}</h3>
-      <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+      <p className="text-2xs text-slate-600 leading-relaxed mb-3">
         {vorhanden
           ? tx('Beispieldaten sind geladen (2 Drohnen, 4 Akkus, 14 Flüge …). Entfernen löscht nur diese – deine eigenen Einträge bleiben.', 'Sample data is loaded (2 drones, 4 batteries, 14 flights …). Removing deletes only these – your own entries stay.')
           : tx('Zum Ausprobieren: lädt Beispiel-Drohnen, Akkus, Flüge, Wartung und Ersatzteile. Lässt sich jederzeit wieder entfernen.', 'For trying things out: loads sample drones, batteries, flights, maintenance and spare parts. Can be removed at any time.')}
@@ -610,7 +610,7 @@ function KalenderKarte({ profile }: { profile: UserProfile | null }) {
   return (
     <div className="mt-10 p-5 bg-white rounded-3xl border border-slate-200">
       <h3 className="font-bold text-slate-900 text-sm mb-1">{tx('Fristen im Kalender', 'Deadlines in your calendar')}</h3>
-      <p className="text-[11px] text-slate-600 leading-relaxed mb-3">
+      <p className="text-2xs text-slate-600 leading-relaxed mb-3">
         {tx('Lizenzablauf, Garantie-Ende, Wartung und fällige Sicherung als Kalenderdatei (.ics) für Outlook, Google oder Apple. Erneut importieren aktualisiert die Termine.', 'Licence expiry, warranty end, maintenance and backup due as a calendar file (.ics) for Outlook, Google or Apple. Importing again updates the entries.')}
       </p>
       <button onClick={exportieren} disabled={laeuft}

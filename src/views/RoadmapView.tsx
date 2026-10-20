@@ -51,7 +51,7 @@ export function RoadmapView() {
                   <step.icon className="w-5 h-5 text-brand-blue" />
                 </div>
                 <span className={cn(
-                  "text-[10px] font-black uppercase tracking-widest",
+                  "text-2xs font-black uppercase tracking-wider",
                   step.status === 'Live' ? "text-brand-green" : "text-slate-400"
                 )}>{step.status}</span>
               </div>
