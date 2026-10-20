@@ -1,21 +1,32 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useMap } from 'react-leaflet';
 import { leafletLayer } from 'protomaps-leaflet';
+import { PMTiles, FileSource } from 'pmtiles';
 import type { Layer } from 'leaflet';
-import type { PMTiles } from 'pmtiles';
+import type { GespeicherteKarte } from '../services/db';
+
+/** Baut aus der gespeicherten Datei die PMTiles-Quelle für die Karte.
+ *  FileSource erwartet ein File — ein Blob wird dafür umhüllt. */
+export function alsPmtiles(karte: GespeicherteKarte): PMTiles {
+  const datei = new File([karte.blob], `${karte.code}.pmtiles`);
+  return new PMTiles(new FileSource(datei));
+}
 
 /** Rendert eine PMTiles-Karte als Leaflet-Ebene.
  *
- *  `url` ist entweder eine Adresse (mitgelieferte Datei) ODER eine fertige
- *  PMTiles-Instanz aus einer heruntergeladenen Datei — leafletLayer nimmt
- *  laut Typdefinition `PMTiles | string`. Genau deshalb braucht es hier keine
- *  eigene Kachelverwaltung.
+ *  `quelle` ist entweder eine Adresse (mitgelieferte Datei) ODER eine
+ *  heruntergeladene, in der Datenbank gespeicherte Karte; daraus wird hier die
+ *  PMTiles-Instanz gebaut (leafletLayer nimmt `PMTiles | string`).
+ *
+ *  Diese Datei wird nur bei Bedarf geladen (lazy in DroneMap): protomaps-leaflet
+ *  und pmtiles gehören nicht in den Erststart, solange keine Offline-Karte da ist.
  *
  *  protomaps-leaflet ist eine klassische Leaflet-Ebene, kein react-leaflet-
  *  Baustein — deshalb der Wrapper: Ebene bauen, anhängen, beim Aufräumen
  *  wieder entfernen. */
-export function OfflineBasemap({ url }: { url: string | PMTiles }) {
+export function OfflineBasemap({ quelle }: { quelle: string | GespeicherteKarte }) {
   const map = useMap();
+  const url = useMemo(() => (typeof quelle === 'string' ? quelle : alsPmtiles(quelle)), [quelle]);
 
   useEffect(() => {
     // protomaps-leaflet bringt eigene, lose Typen mit; fuer Leaflet ist das

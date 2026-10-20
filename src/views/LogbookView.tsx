@@ -576,7 +576,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
       )}
 
       {showAssistant && (
-        <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto">
+        <div className="fixed inset-0 z-[60] bg-slate-50 overflow-y-auto">
           <FlightAssistant
             drones={drones}
             batteries={batteries}

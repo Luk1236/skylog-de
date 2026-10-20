@@ -1,11 +1,9 @@
 // Herunterladen und Bereitstellen der Offline-Karten.
 //
 // Ablauf: Regionsdatei (PMTiles) von GitHub laden → als Blob in IndexedDB →
-// beim Rendern als PMTiles-Instanz an protomaps-leaflet geben. Dass
-// leafletLayer `url?: PMTiles | string` akzeptiert, ist der Grund, warum hier
-// keine eigene Kachelverwaltung nötig ist.
+// beim Rendern als PMTiles-Instanz an protomaps-leaflet geben (das macht
+// OfflineBasemap.tsx, damit pmtiles nicht schon beim Start geladen wird).
 
-import { PMTiles, FileSource } from 'pmtiles';
 import { dbService, type GespeicherteKarte } from './db';
 import { quellUrl, type KartenRegion } from './mapRegions';
 
@@ -79,13 +77,6 @@ export async function ladeRegion(
   };
   await dbService.saveMapRegion(karte);
   return karte;
-}
-
-/** Baut aus der gespeicherten Datei die PMTiles-Quelle für die Karte.
- *  FileSource erwartet ein File — ein Blob wird dafür umhüllt. */
-export function alsPmtiles(karte: GespeicherteKarte): PMTiles {
-  const datei = new File([karte.blob], `${karte.code}.pmtiles`);
-  return new PMTiles(new FileSource(datei));
 }
 
 /** Die zuletzt geladene Karte, die diesen Standort abdeckt — oder null. */

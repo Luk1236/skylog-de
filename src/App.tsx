@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { Capacitor } from '@capacitor/core';
+import { App as CapacitorApp } from '@capacitor/app';
 import {
   Plane, Map as MapIcon, Book, Settings, ShieldCheck, AlertTriangle, User, ShieldAlert, Library, History,
   TrendingUp, Package, QrCode, Route, LayoutGrid, Building2, Shield, Layers, PlusCircle, DatabaseBackup,
@@ -15,6 +17,8 @@ import { planeBenachrichtigungen, synchronisiereBenachrichtigungen } from './ser
 import { getReminders } from './services/reminders';
 import { sichtbareHinweise } from './services/ausgeblendeteHinweise';
 import { startOrt } from './services/startOrt';
+import { schliesseOberste } from './services/ebenen';
+import { distanzMeter } from './services/geo';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
@@ -62,6 +66,12 @@ export default function App() {
   // Echtes GPS hat Vorrang vor dem Startort aus den eigenen Flügen.
   const gpsFix = useRef(false);
   const startOrtGeprueft = useRef(false);
+  // Wann und wo zuletzt Wetter geholt wurde
+  const wetterStand = useRef<{ zeit: number; lat: number; lon: number } | null>(null);
+  const holeWetter = (lat: number, lon: number) => {
+    wetterStand.current = { zeit: Date.now(), lat, lon };
+    fetchWeather(lat, lon).then(setWeather);
+  };
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -106,67 +116,94 @@ export default function App() {
     return () => { window.removeEventListener('online', goOnline); window.removeEventListener('offline', goOffline); };
   }, []);
 
+  // Einmal beim Start laden; loadData liest bei jedem Aufruf frisch aus der DB.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadData(); }, []);
+
+  // Seitensprache für Screenreader und Silbentrennung
   useEffect(() => {
-    loadData();
+    document.documentElement.lang = sprache;
+  }, [sprache]);
 
-    let weatherTickCounter = 0;
-
-    const locateAndUpdate = () => {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          // Echtes GPS ist verfügbar — es hat Vorrang, der Handbetrieb endet.
-          manuellerStandort.current = false;
-          gpsFix.current = true;
-          const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-          setLocation(newLoc);
-          setGpsFehler(null);
-          setIsLocating(false);
-          // Update weather on first call, then every 6th tick (= every 60 seconds)
-          if (weatherTickCounter === 0) {
-            fetchWeather(newLoc[0], newLoc[1]).then(setWeather);
-          }
-          weatherTickCounter = (weatherTickCounter + 1) % 6;
-        },
-        (err) => {
-          setIsLocating(false);
-          // Nach manuell gesetztem Standort nicht weiter mit dem Banner nerven.
-          if (manuellerStandort.current) return;
-          if (err.code === 1) setGpsFehler('verweigert');
-          else if (err.code === 3) setGpsFehler('timeout');
-        },
-        { enableHighAccuracy: true, timeout: 8000 }
-      );
+  // Vordergrund/Hintergrund: im Browser über visibilitychange, in der
+  // Android-App zusätzlich über den App-Status von Capacitor.
+  const [imVordergrund, setImVordergrund] = useState(() => document.visibilityState !== 'hidden');
+  useEffect(() => {
+    const sichtbarkeit = () => setImVordergrund(document.visibilityState !== 'hidden');
+    document.addEventListener('visibilitychange', sichtbarkeit);
+    const nativ = Capacitor.isNativePlatform()
+      ? CapacitorApp.addListener('appStateChange', ({ isActive }) => setImVordergrund(isActive))
+      : null;
+    return () => {
+      document.removeEventListener('visibilitychange', sichtbarkeit);
+      void nativ?.then(h => h.remove());
     };
-
-    setIsLocating(true);
-    locateAndUpdate();
-    const trackingInterval = setInterval(locateAndUpdate, 10000);
-    return () => clearInterval(trackingInterval);
   }, []);
 
-  // Escape schließt offene Overlays — auf Desktop (Windows/Mac) die erwartete
-  // Geste. Die App-Sperre (isAppLocked) bleibt bewusst außen vor, damit Esc den
-  // PIN-Schutz nicht umgeht. Setter sind stabil, daher leere Abhängigkeiten.
+  // Standort nur verfolgen, wo er gebraucht wird: auf der Karte und in der
+  // Sicherheitsansicht (Notfall-Koordinaten) - und nur im Vordergrund. Vorher
+  // fragte die App alle 10 s mit hoher Genauigkeit, in jeder Ansicht und auch
+  // im Hintergrund (Akku). Die übrigen Ansichten nutzen den letzten Standort.
+  const standortVerfolgen = imVordergrund && (activeView === 'map' || activeView === 'safety');
   useEffect(() => {
-    const beiTaste = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return;
-      setShowManualLocation(false);
-      setShowBehoerdenCheck(false);
-      setShowEidDialog(false);
-      setShowLocationFavoritesDialog(false);
-      setShowPinSetup(false);
-      setShowCustomerManager(false);
-      setShowSoraWizard(false);
-      setShowCloudBackup(false);
-      setShowStaffelMatrix(false);
-      setShowPreFlightSafety(false);
-      setShowRisiko(false);
-      setShowVorfall(false);
-      setShowMehr(false);
-      setShowPlaner(false);
-    };
+    if (!standortVerfolgen || !('geolocation' in navigator)) return;
+    setIsLocating(true);
+    const id = navigator.geolocation.watchPosition(
+      (pos) => {
+        // Echtes GPS ist verfügbar — es hat Vorrang, der Handbetrieb endet.
+        manuellerStandort.current = false;
+        const ersterFix = !gpsFix.current;
+        gpsFix.current = true;
+        setGpsFehler(null);
+        setIsLocating(false);
+        const neu: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+        // Kleine Schwankungen ignorieren, sonst springt die Karte ständig.
+        setLocation(alt => (!ersterFix && distanzMeter(alt[0], alt[1], neu[0], neu[1]) < 15 ? alt : neu));
+        // Wetter nur neu holen, wenn noch keins da ist, es älter als 10 min ist
+        // oder man sich mehr als 2 km bewegt hat.
+        const w = wetterStand.current;
+        if (!w || Date.now() - w.zeit > 10 * 60_000 || distanzMeter(w.lat, w.lon, neu[0], neu[1]) > 2000) {
+          wetterStand.current = { zeit: Date.now(), lat: neu[0], lon: neu[1] };
+          fetchWeather(neu[0], neu[1]).then(setWeather);
+        }
+      },
+      (err) => {
+        setIsLocating(false);
+        // Nach manuell gesetztem Standort nicht weiter mit dem Banner nerven.
+        if (manuellerStandort.current) return;
+        if (err.code === 1) setGpsFehler('verweigert');
+        else if (err.code === 3) setGpsFehler('timeout');
+      },
+      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 10_000 },
+    );
+    return () => navigator.geolocation.clearWatch(id);
+  }, [standortVerfolgen]);
+
+  // Escape (Laptop) wirkt wie Zurück: schließt nur die oberste Ebene
+  // (services/ebenen.ts). Die App-Sperre meldet sich dort gar nicht an,
+  // Escape umgeht den PIN-Schutz also nicht.
+  useEffect(() => {
+    const beiTaste = (e: KeyboardEvent) => { if (e.key === 'Escape') schliesseOberste(); };
     window.addEventListener('keydown', beiTaste);
     return () => window.removeEventListener('keydown', beiTaste);
+  }, []);
+
+  // Android-Zurück-Taste: erst die oberste Ebene schließen, dann zur Karte,
+  // erst dort die App minimieren. Ohne Listener beendete Zurück die App.
+  const zurueckZustand = useRef({ ansicht: activeView, gesperrt: isAppLocked });
+  useEffect(() => {
+    zurueckZustand.current = { ansicht: activeView, gesperrt: isAppLocked };
+  });
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    const handle = CapacitorApp.addListener('backButton', () => {
+      const { ansicht, gesperrt } = zurueckZustand.current;
+      if (gesperrt) { void CapacitorApp.minimizeApp(); return; }
+      if (schliesseOberste()) return;
+      if (ansicht !== 'map') { setActiveView('map'); return; }
+      void CapacitorApp.minimizeApp();
+    });
+    return () => { void handle.then(h => h.remove()); };
   }, []);
 
   async function loadData() {
@@ -194,7 +231,7 @@ export default function App() {
       const ort = !gpsFix.current && !manuellerStandort.current ? startOrt(favs, f) : null;
       if (ort) {
         setLocation(ort);
-        fetchWeather(ort[0], ort[1]).then(setWeather);
+        holeWetter(ort[0], ort[1]);
       }
     }
   }
@@ -206,7 +243,7 @@ export default function App() {
         const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
         gpsFix.current = true;
         setLocation(newLoc);
-        fetchWeather(newLoc[0], newLoc[1]).then(setWeather);
+        holeWetter(newLoc[0], newLoc[1]);
         setIsLocating(false);
       },
       () => setIsLocating(false),
@@ -593,7 +630,7 @@ export default function App() {
             manuellerStandort.current = true;
             setLocation([lat, lon]);
             setGpsFehler(null);
-            fetchWeather(lat, lon).then(setWeather);
+            holeWetter(lat, lon);
             setShowManualLocation(false);
           }}
           onClose={() => setShowManualLocation(false)}

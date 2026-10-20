@@ -5,6 +5,7 @@ import QRCode from 'qrcode';
 import { cn } from '../lib/utils';
 import type { UserProfile, Drone, AppDocument } from '../services/db';
 import { baueBehoerdenCheck } from '../services/authorityCheck';
+import { useEbene } from '../lib/useEbene';
 
 interface Props {
   profile: UserProfile | null;
@@ -19,6 +20,7 @@ interface Props {
 // Bewusst kein `Dialog` (Vollbild statt Popup), aber hell nach DESIGN.md.
 export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose }: Props) {
   const { tx } = useSprache();
+  useEbene(true, onClose);
   const [drohnenId, setDrohnenId] = useState<string>(drohnen[0]?.id ?? '');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
@@ -43,7 +45,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose
   }, [check.qrInhalt]);
 
   return (
-    <div className="fixed inset-0 bg-slate-50 z-[70] flex flex-col text-slate-900 overflow-y-auto">
+    <div className="fixed inset-0 bg-slate-50 z-[60] flex flex-col text-slate-900 overflow-y-auto">
       <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0 bg-white border-b border-slate-200">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />

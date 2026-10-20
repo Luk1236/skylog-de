@@ -111,6 +111,17 @@
   }
 }
 
+/* Zoomen ist erlaubt (Barrierefreiheit). Damit iOS beim Antippen eines Feldes
+   nicht von selbst hineinzoomt, brauchen Felder auf Touch-Geraeten mindestens
+   16 px Schrift. !important, weil die Felder sonst text-sm (14 px) setzen. */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* Bedienung: sichtbarer Tastatur-Fokus (Windows/Mac mit Tab-Navigation).
    :focus-visible zeigt den Ring nur bei Tastatur, nicht bei Maus/Touch. */
 :focus-visible {

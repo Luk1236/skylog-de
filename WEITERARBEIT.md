@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-20 (Runde 6: Software-Check umgesetzt).
+Zuletzt aktualisiert: 2026-10-20 (Runde 7: dringende Befunde aus Software-Check 2).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,9 +15,29 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-20
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **522 Unit-Tests** (52 Dateien) ·
-**Playwright** inkl. Kontrast-Wächter (hell/dunkel, mit und ohne Beispieldaten) und
-Regressionstests für die Handy-Abläufe (`e2e/ablauf.spec.ts`). Erststart ~207 kB gzip.
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **529 Unit-Tests** (54 Dateien) ·
+**74 Playwright-Tests** inkl. Kontrast-Wächter, Handy-Abläufen (`e2e/ablauf.spec.ts`) und
+Ebenen/Zurück (`e2e/ebenen.spec.ts`). Erststart ~173 kB gzip.
+
+Runde 7 (Branch `design/einheitliches-design`), Befunde N01–N06 aus dem zweiten Check:
+- **N01 Android-Standort:** ACCESS_FINE/COARSE_LOCATION + `uses-feature gps required=false`
+  im Manifest (Capacitor fragt die Freigabe zur Laufzeit an). Auf einem Gerät noch nicht getestet.
+- **N02 Zurück-Taste:** `@capacitor/app` + Ebenen-Stapel (`services/ebenen.ts`, `lib/useEbene.ts`):
+  Zurück/Escape schließen nur die oberste Ebene, dann geht es zur Karte, erst dort wird die App
+  minimiert. Der Flug-Assistent fragt, bevor ein aufgezeichneter Flug verworfen wird.
+  Feste z-Ordnung in DESIGN.md (Vollbild 60 < Dialog 70 < Bild 90 < Hinweis 95 < Rückfrage 150 < PIN 200).
+- **N03 GPS:** `watchPosition` nur auf Karte und Sicherheit und nur im Vordergrund; Wetter nur
+  bei >10 min oder >2 km neu; kleine Sprünge (<15 m) ignoriert. Distanz-Helfer in `services/geo.ts`.
+- **N04 Datenschutz:** Nominatim-Ortsname, DIPUL-Kartenausschnitt, GPS-Nutzung und
+  Android-Systemsicherung ergänzt (`public/datenschutz.html`).
+- **N05 Zoom:** Viewport ohne `user-scalable=no`/`maximum-scale`; Felder auf Touch-Geräten 16 px
+  (kein iOS-Eingabezoom); `<html lang="de">` + Sprache folgt der Einstellung.
+  `src/konfiguration.test.ts` bewacht Manifest und Viewport.
+- **N06 Start:** Offline-Karten-Bibliothek lazy (vendor-maps nicht mehr im Erststart),
+  registerSW `defer`, Preconnect zu Kachel- und DIPUL-Server. A/B-Messung (Lighthouse, Handy,
+  komprimiert, je 4 Läufe abwechselnd): FCP 2,5 → 2,1 s, Speed Index besser, übertragen
+  529 → 494 KiB; Punktzahl gleich (Median 65), LCP schwankt 3,3–5,3 s, weil das größte Element
+  eine OSM-Kachel ist. Großer Hebel bleibt eine leichtere Startseite statt der Karte.
 
 Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Checks
 (Dashboard „SkyLog Software-Check") bearbeitet:

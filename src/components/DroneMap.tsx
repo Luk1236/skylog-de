@@ -1,22 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { Info, Navigation, ShieldCheck, Wind, Thermometer, CloudRain, Route, DownloadCloud, Globe2 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
-import type { PMTiles } from 'pmtiles';
 import L from 'leaflet';
 
 import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
-import { dbService, type Flight, type LocationFavorite } from '../services/db';
+import { dbService, type Flight, type LocationFavorite, type GespeicherteKarte } from '../services/db';
 import type { WeatherData } from '../services/weather';
-import { OfflineBasemap } from './OfflineBasemap';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from '../services/offlineBasemap';
 import { EuZoneLayer } from './EuZoneLayer';
 import { zonenInUmkreis, parseEd269, type Ed269Zone } from '../services/ed269';
 import { laenderFuerKoordinate, quelleFuer, istErfundeneErsatzzone } from '../services/euZones';
 import { regionenFuerStandort } from '../services/mapRegions';
-import { karteFuerStandort, alsPmtiles } from '../services/mapDownload';
+import { karteFuerStandort } from '../services/mapDownload';
 import { OfflineMapsDialog, EuZonesDialog, PreFlightSafetyDialog } from './lazyDialogs';
+
+// Offline-Grundkarte erst laden, wenn eine da ist: protomaps-leaflet und
+// pmtiles (~35 kB gzip) gehören nicht in den Erststart.
+const OfflineBasemap = lazy(() => import('./OfflineBasemap').then(m => ({ default: m.OfflineBasemap })));
 
 // Die Startkarte: Grundkarte (online oder offline), DIPUL-Geozonen, importierte
 // EU-Zonen, eigene Flüge und Lieblingsorte. Aus App.tsx herausgelöst.
@@ -51,13 +53,13 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
   // Grundkarte waehlen. Reihenfolge: heruntergeladene Region (beste, weil
   // offline und vom Nutzer bewusst geholt) > mitgelieferte Datei > online.
   const [offlineKarte, setOfflineKarte] = useState(false);
-  const [geladeneKarte, setGeladeneKarte] = useState<PMTiles | null>(null);
+  const [geladeneKarte, setGeladeneKarte] = useState<GespeicherteKarte | null>(null);
   const [zeigeKarten, setZeigeKarten] = useState(false);
 
   const pruefeKarten = async () => {
     const codes = regionenFuerStandort(location[0], location[1]).map(r => r.code);
     const karte = await karteFuerStandort(codes);
-    setGeladeneKarte(karte ? alsPmtiles(karte) : null);
+    setGeladeneKarte(karte);
   };
 
   // Importierte Zonen fremder Laender. Nur die im Umkreis werden gezeichnet —
@@ -135,11 +137,13 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
             erzeugt, siehe scripts/karte-extrahieren.mjs), wird sie benutzt —
             sonst wie bisher die Online-Kacheln. Kein Bruch, wenn die Datei
             fehlt; beim Entwickeln ist das der Normalfall. */}
-        {geladeneKarte
-          ? <OfflineBasemap url={geladeneKarte} />
-          : offlineKarte
-            ? <OfflineBasemap url={OFFLINE_KARTE_URL} />
-            : (
+        {geladeneKarte || offlineKarte
+          ? (
+            <Suspense fallback={null}>
+              <OfflineBasemap quelle={geladeneKarte ?? OFFLINE_KARTE_URL} />
+            </Suspense>
+          )
+          : (
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"

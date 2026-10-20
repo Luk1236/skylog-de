@@ -2,12 +2,15 @@ import { Knopf } from './ui';
 import { useSyncExternalStore } from 'react';
 import { abonniereDialog, aktuelleAnfrage, antworteDialog } from '../services/dialog';
 import { useSprache } from '../lib/sprache';
+import { useEbene } from '../lib/useEbene';
 
 /** Rendert den jeweils aktuellen App-Dialog (Ersatz für alert/confirm).
  *  Einmal im App-Baum gemountet; der Dienst schiebt die Anfragen herein. */
 export function DialogHost() {
   const { t } = useSprache();
   const anfrage = useSyncExternalStore(abonniereDialog, aktuelleAnfrage, aktuelleAnfrage);
+  // Zurück/Escape = Abbrechen
+  useEbene(!!anfrage, () => antworteDialog(false));
 
   if (!anfrage) return null;
 
@@ -16,7 +19,7 @@ export function DialogHost() {
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[90] flex items-center justify-center p-6"
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[150] flex items-center justify-center p-6"
       onClick={() => antworteDialog(false)}
     >
       <div

@@ -1,7 +1,8 @@
-import { useEffect, useId, type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { X, type LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useSprache } from '../../lib/sprache';
+import { useEbene } from '../../lib/useEbene';
 
 export type DialogTon = 'blau' | 'gruen' | 'bernstein' | 'rot';
 
@@ -50,12 +51,9 @@ export function Dialog({
   const { t } = useSprache();
   const titelId = useId();
 
-  useEffect(() => {
-    if (!schliessbar) return;
-    const taste = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', taste);
-    return () => window.removeEventListener('keydown', taste);
-  }, [onClose, schliessbar]);
+  // Escape und die Android-Zurück-Taste schließen nur den obersten Dialog
+  // (Ebenen-Stapel, s. services/ebenen.ts).
+  useEbene(schliessbar, onClose);
 
   return (
     <div

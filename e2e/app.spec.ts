@@ -66,6 +66,9 @@ test('Ersatzteil anlegen, Bestand ändern, bleibt nach Neuladen erhalten', async
 });
 
 test('Bildschirmsperre: einrichten, falsche PIN abweisen, richtige entsperrt', async ({ page }) => {
+  // PBKDF2 mit 310.000 Runden ist absichtlich langsam - unter Last (parallele
+  // Tests) reichen die Standard-30-s nicht immer.
+  test.setTimeout(90_000);
   await oeffneApp(page);
   await oeffneMehr(page, 'Einstellungen');
   await page.getByRole('button', { name: 'PIN einrichten oder ändern' }).click();

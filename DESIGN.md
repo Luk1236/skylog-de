@@ -91,10 +91,22 @@ import { Dialog, Knopf, Feld, eingabe, SeitenKopf, Abschnitt } from '../componen
 
 - **Behörden-Check:** Vollbild zum Vorzeigen bei einer Kontrolle; QR-Code immer auf Weiß.
 - **PIN-Sperre beim Entsperren:** `Dialog` mit `schliessbar={false}` vor deckendem Hintergrund.
-- **Bestätigungsdialog** (`DialogHost`): kompakter Alert über allen Dialogen (z-[90]).
+- **Bestätigungsdialog** (`DialogHost`): kompakter Alert über allen Dialogen und Vollbild-Ansichten.
 - **Bild-Vollansicht**, **Flug-Assistent** und **Fehlerseite**: Vollbild.
 - **Notfall-Leitfaden**: die eine bewusst laute rote Fläche der App.
 - **Diagramme**: Farben über CSS-Variablen (`var(--color-brand-blue)`), damit sie den Dunkelmodus mitmachen; Achsentext mindestens 11 px.
+
+## Ebenen und Zurück
+
+Feste Reihenfolge der Überlagerungen (z-Index): Kartenelemente 20/30 · Vollbild-Ansichten
+(Flug-Assistent, Behörden-Check) 60 · Dialoge 70 · Bild-Vollansicht 90 · Hinweisleiste
+„Rückgängig“ 95 · Rückfragen (`DialogHost`) 150 · PIN-Sperre 200. Neue Überlagerungen
+reihen sich hier ein – ein Dialog aus einer Vollbild-Ansicht heraus muss darüber liegen.
+
+Jede Überlagerung meldet sich mit `useEbene(aktiv, schliessen)` beim Ebenen-Stapel an
+(`services/ebenen.ts`; `Dialog` macht das selbst). Escape und die Android-Zurück-Taste
+schließen dann immer nur die oberste Ebene; ohne offene Ebene führt Zurück zur Karte und
+erst dort aus der App.
 
 ## Prüfen
 

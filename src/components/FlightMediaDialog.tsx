@@ -9,6 +9,7 @@ import {
 } from '../services/flightMedia';
 import { bestaetige } from '../services/dialog';
 import { Dialog, knopfKlassen } from './ui';
+import { useEbene } from '../lib/useEbene';
 
 interface Props {
   flight: Flight;
@@ -33,6 +34,8 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
   const [gross, setGross] = useState<FlightMedia | null>(null);
+  // Zurück/Escape schließt zuerst die Bild-Vollansicht, erst dann den Dialog.
+  useEbene(!!gross, () => setGross(null));
 
   const media = flight.media ?? [];
   const belegt = gesamtGroesse(media);
