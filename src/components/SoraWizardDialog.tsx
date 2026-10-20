@@ -35,7 +35,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[160] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl text-white flex flex-col max-h-[92vh]">
+      <div className="immer-dunkel bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl text-white flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
           <div className="flex items-center gap-3">

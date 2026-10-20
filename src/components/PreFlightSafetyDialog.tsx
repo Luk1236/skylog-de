@@ -55,7 +55,7 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
 
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[160] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl text-white flex flex-col max-h-[90vh]">
+      <div className="immer-dunkel bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl text-white flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
           <div className="flex items-center gap-3">
@@ -168,7 +168,7 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
         <div className="p-4 border-t border-slate-800 bg-slate-900/60">
           <button
             onClick={onClose}
-            className="w-full bg-brand-blue hover:bg-brand-blue/90 text-white font-bold py-3 rounded-2xl text-xs transition-all active:scale-95 shadow-lg shadow-brand-blue/20"
+            className="w-full bg-brand-blue hover:bg-brand-blue/90 text-slate-950 font-bold py-3 rounded-2xl text-xs transition-all active:scale-95 shadow-lg shadow-brand-blue/20"
           >
             Verstanden & Schließen
           </button>

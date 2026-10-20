@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
@@ -15,6 +16,10 @@ export default defineConfig(() => {
   const isGhPages = process.env.DEPLOY_TARGET === 'pages';
   return {
     base: isGhPages ? '/skylog-de/' : '/',
+    // Vitest: die Playwright-Tests (e2e/) laufen separat mit `npm run e2e`.
+    test: {
+      exclude: ['**/node_modules/**', 'dist/**', 'android/**', 'e2e/**'],
+    },
     plugins: [
       react(),
       tailwindcss(),

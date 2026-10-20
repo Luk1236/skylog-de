@@ -220,12 +220,12 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
               <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
                 <button onClick={() => setModus('route')}
                   className={cn('flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
-                    modus === 'route' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                    modus === 'route' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500')}>
                   <Route className="w-3.5 h-3.5" /> {t('planer.modusRoute')}
                 </button>
                 <button onClick={() => setModus('flaeche')}
                   className={cn('flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-colors',
-                    modus === 'flaeche' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-400')}>
+                    modus === 'flaeche' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-500')}>
                   <Grid3x3 className="w-3.5 h-3.5" /> {t('planer.modusFlaeche')}
                 </button>
               </div>

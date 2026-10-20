@@ -38,7 +38,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
   }, [check.qrInhalt]);
 
   return (
-    <div className="fixed inset-0 bg-slate-900 z-[70] flex flex-col text-white overflow-y-auto">
+    <div className="immer-dunkel fixed inset-0 bg-slate-900 z-[70] flex flex-col text-white overflow-y-auto">
       <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />

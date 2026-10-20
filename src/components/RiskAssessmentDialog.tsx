@@ -12,8 +12,10 @@ interface Props {
 const feld = 'w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm';
 const label = 'text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block';
 
+// Ueber CSS-Variablen: im hellen Modus satte Toene (weisse Schrift ~5:1),
+// im Dunkelmodus helle Toene (dort wird text-white dunkel), s. index.css.
 const KAT_FARBE: Record<Kategorie, string> = {
-  A1: '#059669', A2: '#f59e0b', A3: '#f59e0b', Specific: '#b91c1c',
+  A1: 'var(--color-emerald-700)', A2: 'var(--color-amber-700)', A3: 'var(--color-amber-700)', Specific: 'var(--color-brand-red)',
 };
 const KAT_TEXT: Record<Kategorie, string> = {
   A1: 'Open A1', A2: 'Open A2', A3: 'Open A3', Specific: 'Specific',

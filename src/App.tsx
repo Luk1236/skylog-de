@@ -325,8 +325,11 @@ export default function App() {
               className="absolute inset-0"
             >
               <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} locationFavorites={locationFavorites} onPlaner={() => setShowPlaner(true)} />
+              {/* Kartenelemente bewusst nur z-20/z-30: genug, um ueber der Karte
+                  (.leaflet-container z-index 1) zu liegen, aber unter allen Dialogen
+                  (ab z-[60]). Frueher z-[400]/z-[500] - sie verdeckten offene Dialoge. */}
               {gpsError && (
-                <div className="absolute top-4 left-4 right-4 z-[500] bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
+                <div className="absolute top-4 left-4 right-4 z-30 bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
                   <span className="flex-1">{gpsError}</span>
                   <button
@@ -342,7 +345,7 @@ export default function App() {
                 const daysLeft = Math.ceil((new Date(profile.licenseExpiry).getTime() - Date.now()) / 86400000);
                 if (daysLeft > 60) return null;
                 return (
-                  <div className={`absolute ${gpsError ? 'top-16' : 'top-4'} left-4 right-4 z-[500] text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 ${daysLeft <= 0 ? 'bg-brand-red' : 'bg-amber-500'}`}>
+                  <div className={`absolute ${gpsError ? 'top-16' : 'top-4'} left-4 right-4 z-30 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-lg flex items-center gap-2 ${daysLeft <= 0 ? 'bg-brand-red' : 'bg-amber-500'}`}>
                     <ShieldAlert className="w-4 h-4 shrink-0" />
                     {daysLeft <= 0
                       ? `Fernpiloten-Lizenz abgelaufen! (${profile.licenseType})`
@@ -356,7 +359,7 @@ export default function App() {
                 if (!last) return null;
                 const drone = drones.find(d => d.id === last.droneId);
                 return (
-                  <div className="absolute bottom-20 left-4 right-4 z-[400] bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-100 px-4 py-3 flex items-center gap-3">
+                  <div className="absolute bottom-20 left-4 right-4 z-20 bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl border border-slate-100 px-4 py-3 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-brand-blue/10 flex items-center justify-center shrink-0">
                       {drone?.photoUrl
                         ? <img src={drone.photoUrl} alt="" className="w-full h-full object-cover rounded-xl" />
@@ -374,7 +377,7 @@ export default function App() {
               {/* Schnell-Log FAB */}
               <button
                 onClick={() => { setActiveView('logbook'); }}
-                className="absolute bottom-36 right-4 z-[400] flex items-center gap-2 bg-brand-blue text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-brand-blue/40 active:scale-95 transition-all hover:bg-brand-blue/90"
+                className="absolute bottom-36 right-4 z-20 flex items-center gap-2 bg-brand-blue text-white font-black text-xs px-4 py-3 rounded-2xl shadow-xl shadow-brand-blue/40 active:scale-95 transition-all hover:bg-brand-blue/90"
                 aria-label="Schnell-Log: Flug hinzufügen"
               >
                 <PlusCircle className="w-4 h-4" />
@@ -1050,7 +1053,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
       </MapContainer>
 
       {/* Map UI Overlays */}
-      <div className="absolute top-4 right-4 flex flex-col gap-2 z-[400]">
+      <div className="absolute top-4 right-4 flex flex-col gap-2 z-20">
         <button 
           onClick={onLocate}
           className={cn(
@@ -1108,7 +1111,7 @@ function DroneMap({ location, onLocate, isLocating, weather, flights, locationFa
         )}
       </div>
 
-      <div className="absolute bottom-6 left-4 right-4 z-[400]">
+      <div className="absolute bottom-6 left-4 right-4 z-20">
         <button 
           onClick={() => setZeigePreFlightSafety(true)}
           className="w-full bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-xl border border-white/50 flex items-center justify-between hover:bg-white active:scale-[0.98] transition-all text-left group"

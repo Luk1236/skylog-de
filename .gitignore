@@ -26,3 +26,7 @@ android/app/src/main/assets/capacitor.config.json
 *.p12
 *.jks
 *.keystore
+
+# Playwright
+test-results/
+playwright-report/

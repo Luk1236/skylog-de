@@ -87,7 +87,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-slate-400">
+                    <p className="text-[10px] text-slate-500">
                       {da
                         ? `Geladen · ${formatBytes(da.groesse)}`
                         : `Zoom bis ${region.maxZoom}`}
