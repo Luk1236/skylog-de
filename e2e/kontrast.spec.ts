@@ -1,5 +1,5 @@
 import { test, type Page } from '@playwright/test';
-import { oeffneApp, navigiere, oeffneMehr, erwarteKontrast } from './hilfen';
+import { oeffneApp, oeffneAppMitDemo, navigiere, oeffneMehr, erwarteKontrast } from './hilfen';
 
 // Kontrast-Wächter: misst in hellem und dunklem Modus jede Hauptansicht und
 // die wichtigsten Dialoge. Grenze 3.8:1 statt WCAG-AA 4.5:1, weil der
@@ -44,6 +44,28 @@ for (const theme of ['light', 'dark'] as const) {
         await a.oeffnen(page);
         await page.waitForTimeout(600); // lazy geladene Teile
         await erwarteKontrast(page, `${a.name} (${theme})`, GRENZE);
+      });
+    }
+  });
+}
+
+// Mit Beispieldaten: Listen, Abzeichen und Diagramme gibt es erst mit Daten
+// (z.B. stand „Wetter-Warnung" als Bernstein auf Bernstein bei ~2:1).
+const MIT_DATEN: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
+  { name: 'Logbuch', oeffnen: p => navigiere(p, 'Logbuch') },
+  { name: 'Flotte', oeffnen: p => navigiere(p, 'Flotte') },
+  { name: 'Inventar', oeffnen: p => oeffneMehr(p, 'Inventar') },
+  { name: 'Staffelmatrix', oeffnen: p => oeffneMehr(p, 'Staffel- & Flottenmatrix') },
+];
+
+for (const theme of ['light', 'dark'] as const) {
+  test.describe(`Kontrast mit Daten ${theme === 'light' ? 'hell' : 'dunkel'}`, () => {
+    for (const a of MIT_DATEN) {
+      test(a.name, async ({ page }) => {
+        await oeffneAppMitDemo(page, theme);
+        await a.oeffnen(page);
+        await page.waitForTimeout(600);
+        await erwarteKontrast(page, `${a.name} mit Daten (${theme})`, GRENZE);
       });
     }
   });

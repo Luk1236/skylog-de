@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Package, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Layers, DownloadCloud, Globe2, X, PlusCircle, DatabaseBackup, type LucideIcon } from 'lucide-react';
+import { Plane, Map as MapIcon, Book, ChevronRight, Info, Navigation, Settings, ShieldCheck, Wind, Thermometer, CloudRain, AlertTriangle, User, ShieldAlert, Library, History, TrendingUp, Package, QrCode, Moon, Sun, Route, LayoutGrid, Languages, Building2, Shield, Layers, DownloadCloud, Globe2, PlusCircle, DatabaseBackup, type LucideIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 import { cn } from './lib/utils';
+import { Dialog } from './components/ui';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile } from './services/db';
 import { fetchWeather, type WeatherData } from './services/weather';
 
@@ -232,11 +233,11 @@ export default function App() {
 
   // Werkzeuge hinter „Mehr" (Handy) bzw. direkt in der Seitenleiste (Laptop).
   const werkzeuge: Werkzeug[] = [
-    { icon: ShieldCheck, farbe: 'text-emerald-600', label: tx('Vorflug-Check & Kp-Index', 'Pre-flight check & Kp index'), oeffnen: () => setShowPreFlightSafety(true) },
-    { icon: Building2, farbe: 'text-blue-600', label: tx('Kunden (CRM)', 'Customers (CRM)'), oeffnen: () => setShowCustomerManager(true) },
-    { icon: Shield, farbe: 'text-indigo-600', label: tx('SORA-2.5-Assistent (PDF)', 'SORA 2.5 assistant (PDF)'), oeffnen: () => setShowSoraWizard(true) },
-    { icon: DatabaseBackup, farbe: 'text-cyan-600', label: tx('Datensicherung & Erinnerung', 'Backup & reminder'), oeffnen: () => setShowCloudBackup(true) },
-    { icon: Layers, farbe: 'text-amber-600', label: tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix'), oeffnen: () => setShowStaffelMatrix(true) },
+    { icon: ShieldCheck, farbe: 'text-brand-blue', label: tx('Vorflug-Check & Kp-Index', 'Pre-flight check & Kp index'), oeffnen: () => setShowPreFlightSafety(true) },
+    { icon: Building2, farbe: 'text-brand-blue', label: tx('Kunden (CRM)', 'Customers (CRM)'), oeffnen: () => setShowCustomerManager(true) },
+    { icon: Shield, farbe: 'text-brand-blue', label: tx('SORA-2.5-Assistent (PDF)', 'SORA 2.5 assistant (PDF)'), oeffnen: () => setShowSoraWizard(true) },
+    { icon: DatabaseBackup, farbe: 'text-brand-blue', label: tx('Datensicherung & Erinnerung', 'Backup & reminder'), oeffnen: () => setShowCloudBackup(true) },
+    { icon: Layers, farbe: 'text-brand-blue', label: tx('Staffel- & Flottenmatrix', 'Squadron & fleet matrix'), oeffnen: () => setShowStaffelMatrix(true) },
   ];
 
   // Android: Fristen als echte Benachrichtigungen planen (im Browser ohne Wirkung).
@@ -784,19 +785,7 @@ function MehrSheet({
   const eintraege = mehrAnsichten(t);
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div
-        className="bg-slate-50 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[85vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
-          <h3 className="font-black text-slate-900">{t('nav.mehr')}</h3>
-          <button onClick={onClose} aria-label={t('aktion.schliessen')} className="p-2 rounded-xl hover:bg-slate-100">
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto px-4 py-4 space-y-4">
+    <Dialog titel={t('nav.mehr')} icon={LayoutGrid} onClose={onClose}>
           <div>
             <p className="text-2xs font-bold text-brand-blue uppercase tracking-wider px-1 mb-1.5">{tx('Werkzeuge', 'Tools')}</p>
             <div className="space-y-1.5">
@@ -858,9 +847,7 @@ function MehrSheet({
               </button>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+    </Dialog>
   );
 }
 

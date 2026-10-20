@@ -14,6 +14,7 @@ interface Props {
 
 // Vollbild-Ansicht für eine Polizei-/Behördenkontrolle: große, gut lesbare
 // Nachweise plus QR-Code der Betreiberdaten. Gedacht zum Vorzeigen.
+// Bewusst kein `Dialog` (Vollbild statt Popup), aber hell nach DESIGN.md.
 export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
   const { tx } = useSprache();
   const [drohnenId, setDrohnenId] = useState<string>(drohnen[0]?.id ?? '');
@@ -40,31 +41,35 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
   }, [check.qrInhalt]);
 
   return (
-    <div className="immer-dunkel fixed inset-0 bg-slate-900 z-[70] flex flex-col text-white overflow-y-auto">
-      <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0">
+    <div className="fixed inset-0 bg-slate-50 z-[70] flex flex-col text-slate-900 overflow-y-auto">
+      <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0 bg-white border-b border-slate-200">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />
-          <span className="font-black text-sm uppercase tracking-wider">{tx('Behörden-Check', 'Authority check')}</span>
+          <span className="font-black text-sm uppercase tracking-wider text-slate-900">{tx('Behörden-Check', 'Authority check')}</span>
         </div>
-        <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl bg-white/10 active:scale-95">
+        <button
+          onClick={onClose}
+          aria-label={tx('Schließen', 'Close')}
+          className="p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-95 transition-colors"
+        >
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      <div className="px-5 pb-10 max-w-md mx-auto w-full">
-        <p className="text-2xs text-slate-400 text-center mb-5">
+      <div className="px-4 pt-5 pb-10 max-w-md mx-auto w-full">
+        <p className="text-xs text-slate-500 text-center mb-5">
           {tx('Diesen Bildschirm der kontrollierenden Person zeigen.', 'Show this screen to the inspecting officer.')}
         </p>
 
         {check.warnungen.length > 0 && (
-          <div className="mb-5 rounded-2xl bg-brand-red/15 border border-brand-red/30 p-4">
+          <div className="mb-5 rounded-3xl bg-red-50 border border-red-100 p-4">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="w-4 h-4 text-brand-red" />
-              <span className="text-xs font-black text-brand-red">{tx('Vor der Kontrolle prüfen', 'Check before the inspection')}</span>
+              <AlertTriangle className="w-4 h-4 text-brand-red shrink-0" />
+              <span className="text-sm font-bold text-brand-red">{tx('Vor der Kontrolle prüfen', 'Check before the inspection')}</span>
             </div>
             <ul className="space-y-1">
               {check.warnungen.map((w, i) => (
-                <li key={i} className="text-2xs text-red-200 leading-relaxed">• {w}</li>
+                <li key={i} className="text-xs text-brand-red leading-relaxed">• {w}</li>
               ))}
             </ul>
           </div>
@@ -72,20 +77,22 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
 
         {qrDataUrl && (
           <div className="flex justify-center mb-6">
-            <div className="bg-white p-3 rounded-2xl">
+            {/* Fester weißer Grund (auch im Dunkelmodus), damit der QR scanbar bleibt.
+                Inline statt bg-white, weil bg-white im Dunkelmodus umgefärbt wird. */}
+            <div className="p-3 rounded-2xl border border-slate-200 shadow-sm" style={{ backgroundColor: '#ffffff' }}>
               {/* Der QR kodiert dieselben Daten wie die Liste darunter. */}
               <img src={qrDataUrl} alt={tx('QR-Code der Betreiberdaten', 'QR code of the operator data')} width={200} height={200} />
             </div>
           </div>
         )}
 
-        <div className="rounded-2xl bg-white/5 border border-white/10 divide-y divide-white/10">
+        <div className="rounded-3xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-200">
           {check.zeilen.map((z, i) => (
-            <div key={i} className="flex items-start justify-between gap-4 px-4 py-3">
-              <span className="text-2xs uppercase tracking-wider text-slate-400 shrink-0 pt-0.5">{z.label}</span>
+            <div key={i} className="flex items-start justify-between gap-4 px-4 py-3.5">
+              <span className="text-2xs font-bold uppercase tracking-wider text-slate-500 shrink-0 pt-1">{z.label}</span>
               <span className={cn(
-                'text-sm font-bold text-right break-words',
-                z.problem ? 'text-brand-red' : 'text-white'
+                'text-base font-bold text-right break-words',
+                z.problem ? 'text-brand-red' : 'text-slate-900'
               )}>
                 {z.wert}
               </span>
@@ -94,13 +101,13 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
         </div>
 
         {drohnen.length > 1 && (
-          <label className="mt-5 flex items-center gap-2 rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-            <span className="text-2xs uppercase tracking-wider text-slate-400">{tx('Drohne', 'Drone')}</span>
+          <label className="mt-3 flex items-center gap-2 rounded-2xl bg-white border border-slate-200 shadow-sm px-4 py-3">
+            <span className="text-2xs font-bold uppercase tracking-wider text-slate-500">{tx('Drohne', 'Drone')}</span>
             <div className="relative flex-1">
               <select
                 value={drohnenId}
                 onChange={e => setDrohnenId(e.target.value)}
-                className="w-full appearance-none bg-transparent text-sm font-bold text-white text-right pr-6 outline-none"
+                className="w-full appearance-none bg-transparent text-sm font-bold text-slate-900 text-right pr-6 outline-none"
               >
                 {drohnen.map(d => (
                   <option key={d.id} value={d.id} className="text-slate-900">
@@ -108,7 +115,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, onClose }: Props) {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="w-4 h-4 text-slate-400 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-slate-500 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </label>
         )}

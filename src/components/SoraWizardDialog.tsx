@@ -1,8 +1,9 @@
 import { useSprache } from '../lib/sprache';
-import React, { useState } from 'react';
-import { X, Shield, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
+import React, { useId, useState } from 'react';
+import { Shield, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
 import type { Drone, UserProfile } from '../services/db';
 import { evaluateSora, generateSoraPdf, type SoraInput } from '../services/sora25';
+import { Dialog, Knopf, Feld, eingabe } from './ui';
 
 interface Props {
   drones: Drone[];
@@ -12,6 +13,7 @@ interface Props {
 
 export function SoraWizardDialog({ drones, profile, onClose }: Props) {
   const { tx } = useSprache();
+  const id = useId();
   const [step, setStep] = useState<'form' | 'result'>('form');
   const [selectedDroneId, setSelectedDroneId] = useState<string>(drones[0]?.id || '');
 
@@ -36,213 +38,189 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-[160] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="immer-dunkel bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl text-white flex flex-col max-h-[92vh]">
-        {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-          <div className="flex items-center gap-3">
-            <div className="p-3 rounded-2xl bg-indigo-500/20 text-indigo-400 border border-indigo-500/20">
-              <Shield className="w-6 h-6" />
+    <Dialog
+      titel={tx('EASA SORA 2.5 — ConOps & Behörden-Assistent', 'EASA SORA 2.5 — ConOps & authority assistant')}
+      untertitel={tx('Erstellung behördengerechter Betriebsanträge (Spezifische Kategorie)', 'Preparing operation applications for the authority (Specific category)')}
+      icon={Shield}
+      ton="blau"
+      breite="xl"
+      onClose={onClose}
+      fuss={step === 'form' ? (
+        <Knopf voll onClick={() => setStep('result')}>
+          <span>{tx('SORA 2.5 Risikobewertung Ausführen', 'Run SORA 2.5 risk assessment')}</span>
+          <ChevronRight className="w-4 h-4" />
+        </Knopf>
+      ) : (
+        <div className="flex flex-col sm:flex-row gap-2 w-full">
+          <Knopf variante="sekundaer" className="flex-1" onClick={() => setStep('form')}>
+            {tx('Parameter Ändern', 'Change parameters')}
+          </Knopf>
+          <Knopf className="flex-1" icon={FileText} onClick={handleGeneratePdf}>
+            <span>{tx('SORA PDF Dossier Exportieren', 'Export SORA PDF dossier')}</span>
+          </Knopf>
+        </div>
+      )}
+    >
+      {step === 'form' ? (
+        <div className="space-y-4">
+          <Feld label={tx('Bezeichnung des Flugvorhabens / ConOps Title', 'Operation name / ConOps title')} htmlFor={`${id}-titel`}>
+            <input
+              id={`${id}-titel`}
+              type="text"
+              className={eingabe}
+              value={input.operationTitle}
+              onChange={e => setInput({ ...input, operationTitle: e.target.value })}
+            />
+          </Feld>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Feld label={tx('Eingesetzte Drohne', 'Drone used')} htmlFor={`${id}-drohne`}>
+              <select
+                id={`${id}-drohne`}
+                className={`${eingabe} cursor-pointer`}
+                value={selectedDroneId}
+                onChange={e => {
+                  setSelectedDroneId(e.target.value);
+                  const d = drones.find(dr => dr.id === e.target.value);
+                  if (d?.weight) {
+                    const mtom = d.weight > 50 ? d.weight / 1000 : d.weight;
+                    setInput(prev => ({ ...prev, droneMtomKg: mtom }));
+                  }
+                }}
+              >
+                {drones.map(d => (
+                  <option key={d.id} value={d.id}>
+                    {d.model} ({d.weight ? `${d.weight}g` : 'MTOM k.A.'})
+                  </option>
+                ))}
+              </select>
+            </Feld>
+
+            <Feld label={tx('MTOM Abflugmasse (kg)', 'MTOM take-off mass (kg)')} htmlFor={`${id}-mtom`}>
+              <input
+                id={`${id}-mtom`}
+                type="number"
+                step="0.1"
+                min="0.1"
+                className={eingabe}
+                value={input.droneMtomKg}
+                onChange={e => setInput({ ...input, droneMtomKg: parseFloat(e.target.value) || 1.0 })}
+              />
+            </Feld>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <Feld label={tx('Betriebsumgebung (Ground Environment)', 'Ground environment')} htmlFor={`${id}-umgebung`}>
+              <select
+                id={`${id}-umgebung`}
+                className={`${eingabe} cursor-pointer`}
+                value={input.environment}
+                onChange={e => setInput({ ...input, environment: e.target.value as SoraInput['environment'] })}
+              >
+                <option value="controlled">{tx('Kontrollierter Bereich am Boden (Controlled Ground)', 'Controlled ground area')}</option>
+                <option value="sparse">{tx('Dünn besiedeltes Gebiet (Sparsely Populated Area)', 'Sparsely populated area')}</option>
+                <option value="populated">{tx('Besiedeltes Gebiet (Populated Area)', 'Populated area')}</option>
+                <option value="assembly">{tx('Menschenansammlungen (Assemblies of People)', 'Assemblies of people')}</option>
+              </select>
+            </Feld>
+
+            <Feld label={tx('Luftraumklasse (Airspace)', 'Airspace class')} htmlFor={`${id}-luftraum`}>
+              <select
+                id={`${id}-luftraum`}
+                className={`${eingabe} cursor-pointer`}
+                value={input.airspace}
+                onChange={e => setInput({ ...input, airspace: e.target.value as SoraInput['airspace'] })}
+              >
+                <option value="uncontrolled">{tx('Unkontrollierter Luftraum (G / E)', 'Uncontrolled airspace (G / E)')}</option>
+                <option value="controlled">{tx('Kontrollierter Luftraum (CTR / C / D)', 'Controlled airspace (CTR / C / D)')}</option>
+                <option value="airport">{tx('Flughafennahbereich / CTR', 'Airport vicinity / CTR')}</option>
+                <option value="prohibited">{tx('Sperrgebiet / ED-R', 'Restricted area / ED-R')}</option>
+              </select>
+            </Feld>
+          </div>
+
+          <Feld label={tx('Max. Flughöhe (m AGL)', 'Max. altitude (m AGL)')} htmlFor={`${id}-hoehe`}>
+            <input
+              id={`${id}-hoehe`}
+              type="number"
+              className={eingabe}
+              value={input.maxAltitudeM}
+              onChange={e => setInput({ ...input, maxAltitudeM: parseInt(e.target.value) || 120 })}
+            />
+          </Feld>
+
+          {/* Mitigations Checkboxes */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-sm text-slate-700">
+            <h4 className="font-bold text-slate-500 uppercase text-2xs tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h4>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="w-5 h-5 rounded accent-brand-blue cursor-pointer shrink-0"
+                checked={input.m1Mitigation}
+                onChange={e => setInput({ ...input, m1Mitigation: e.target.checked })}
+              />
+              <span><strong className="text-slate-900">M1 Mitigation:</strong> {tx('Strategische Bodenpufferzonen & zeitliche/räumliche Isolation (-1 GRC)', 'Strategic ground buffers & temporal/spatial isolation (-1 GRC)')}</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="w-5 h-5 rounded accent-brand-blue cursor-pointer shrink-0"
+                checked={input.m2Mitigation}
+                onChange={e => setInput({ ...input, m2Mitigation: e.target.checked })}
+              />
+              <span><strong className="text-slate-900">M2 Mitigation:</strong> {tx('Notfall-Fallschirm / Aufprallminderung am Boden (-1 GRC)', 'Emergency parachute / ground impact reduction (-1 GRC)')}</span>
+            </label>
+
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                className="w-5 h-5 rounded accent-brand-blue cursor-pointer shrink-0"
+                checked={input.m3Mitigation}
+                onChange={e => setInput({ ...input, m3Mitigation: e.target.checked })}
+              />
+              <span><strong className="text-slate-900">M3 Mitigation:</strong> {tx('Validierter Notfallaktionsplan (Emergency Response Plan - ERP) (-1 GRC)', 'Validated emergency response plan (ERP) (-1 GRC)')}</span>
+            </label>
+          </div>
+        </div>
+      ) : (
+        /* Result Step */
+        <div className="space-y-4">
+          {/* Summary Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+              <p className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Initial GRC</p>
+              <p className="text-xl font-black text-slate-900 mt-1">{result.initialGrc}</p>
             </div>
-            <div>
-              <h2 className="font-bold text-base">{tx('EASA SORA 2.5 — ConOps & Behörden-Assistent', 'EASA SORA 2.5 — ConOps & authority assistant')}</h2>
-              <p className="text-xs text-slate-400">{tx('Erstellung behördengerechter Betriebsanträge (Spezifische Kategorie)', 'Preparing operation applications for the authority (Specific category)')}</p>
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
+              <p className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Final GRC</p>
+              <p className="text-xl font-black text-brand-green mt-1">{result.finalGrc}</p>
+            </div>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
+              <p className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Air Risk Class</p>
+              <p className="text-xl font-black text-brand-blue mt-1">{result.finalArc}</p>
+            </div>
+            <div className="p-3 bg-brand-blue border border-brand-blue rounded-2xl text-center shadow-sm">
+              <p className="text-2xs text-white/80 uppercase font-bold tracking-wider">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
+              <p className="text-xl font-black text-white mt-1">{result.sail}</p>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
 
-        {/* Form Body */}
-        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
-          {step === 'form' ? (
-            <div className="space-y-5">
-              <div>
-                <label className="font-bold text-slate-300 block mb-1.5">{tx('Bezeichnung des Flugvorhabens / ConOps Title', 'Operation name / ConOps title')}</label>
-                <input
-                  type="text"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  value={input.operationTitle}
-                  onChange={e => setInput({ ...input, operationTitle: e.target.value })}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">{tx('Eingesetzte Drohne', 'Drone used')}</label>
-                  <select
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
-                    value={selectedDroneId}
-                    onChange={e => {
-                      setSelectedDroneId(e.target.value);
-                      const d = drones.find(dr => dr.id === e.target.value);
-                      if (d?.weight) {
-                        const mtom = d.weight > 50 ? d.weight / 1000 : d.weight;
-                        setInput(prev => ({ ...prev, droneMtomKg: mtom }));
-                      }
-                    }}
-                  >
-                    {drones.map(d => (
-                      <option key={d.id} value={d.id}>
-                        {d.model} ({d.weight ? `${d.weight}g` : 'MTOM k.A.'})
-                      </option>
-                    ))}
-                  </select>
+          {/* OSOs List */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+            <h4 className="font-bold text-sm text-slate-900">{tx('Erforderliche Operational Safety Objectives (OSOs):', 'Required operational safety objectives (OSOs):')}</h4>
+            <div className="space-y-2 text-sm text-slate-700">
+              {result.requiredOsos.map((oso, idx) => (
+                <div key={idx} className="flex items-start gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-brand-green shrink-0 mt-0.5" />
+                  <span>{oso}</span>
                 </div>
-
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">{tx('MTOM Abflugmasse (kg)', 'MTOM take-off mass (kg)')}</label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
-                    value={input.droneMtomKg}
-                    onChange={e => setInput({ ...input, droneMtomKg: parseFloat(e.target.value) || 1.0 })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">{tx('Betriebsumgebung (Ground Environment)', 'Ground environment')}</label>
-                  <select
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
-                    value={input.environment}
-                    onChange={e => setInput({ ...input, environment: e.target.value as SoraInput['environment'] })}
-                  >
-                    <option value="controlled">{tx('Kontrollierter Bereich am Boden (Controlled Ground)', 'Controlled ground area')}</option>
-                    <option value="sparse">{tx('Dünn besiedeltes Gebiet (Sparsely Populated Area)', 'Sparsely populated area')}</option>
-                    <option value="populated">{tx('Besiedeltes Gebiet (Populated Area)', 'Populated area')}</option>
-                    <option value="assembly">{tx('Menschenansammlungen (Assemblies of People)', 'Assemblies of people')}</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="font-bold text-slate-300 block mb-1.5">{tx('Luftraumklasse (Airspace)', 'Airspace class')}</label>
-                  <select
-                    className="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500 cursor-pointer"
-                    value={input.airspace}
-                    onChange={e => setInput({ ...input, airspace: e.target.value as SoraInput['airspace'] })}
-                  >
-                    <option value="uncontrolled">{tx('Unkontrollierter Luftraum (G / E)', 'Uncontrolled airspace (G / E)')}</option>
-                    <option value="controlled">{tx('Kontrollierter Luftraum (CTR / C / D)', 'Controlled airspace (CTR / C / D)')}</option>
-                    <option value="airport">{tx('Flughafennahbereich / CTR', 'Airport vicinity / CTR')}</option>
-                    <option value="prohibited">{tx('Sperrgebiet / ED-R', 'Restricted area / ED-R')}</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-300 block mb-1.5">{tx('Max. Flughöhe (m AGL)', 'Max. altitude (m AGL)')}</label>
-                <input
-                  type="number"
-                  className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500"
-                  value={input.maxAltitudeM}
-                  onChange={e => setInput({ ...input, maxAltitudeM: parseInt(e.target.value) || 120 })}
-                />
-              </div>
-
-              {/* Mitigations Checkboxes */}
-              <div className="p-4 bg-slate-800/60 border border-slate-700/80 rounded-2xl space-y-3">
-                <h4 className="font-bold text-indigo-400 uppercase text-2xs tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h4>
-                
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-0 cursor-pointer"
-                    checked={input.m1Mitigation}
-                    onChange={e => setInput({ ...input, m1Mitigation: e.target.checked })}
-                  />
-                  <span><strong>M1 Mitigation:</strong> {tx('Strategische Bodenpufferzonen & zeitliche/räumliche Isolation (-1 GRC)', 'Strategic ground buffers & temporal/spatial isolation (-1 GRC)')}</span>
-                </label>
-
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-0 cursor-pointer"
-                    checked={input.m2Mitigation}
-                    onChange={e => setInput({ ...input, m2Mitigation: e.target.checked })}
-                  />
-                  <span><strong>M2 Mitigation:</strong> {tx('Notfall-Fallschirm / Aufprallminderung am Boden (-1 GRC)', 'Emergency parachute / ground impact reduction (-1 GRC)')}</span>
-                </label>
-
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    className="w-4 h-4 rounded text-indigo-600 focus:ring-0 cursor-pointer"
-                    checked={input.m3Mitigation}
-                    onChange={e => setInput({ ...input, m3Mitigation: e.target.checked })}
-                  />
-                  <span><strong>M3 Mitigation:</strong> {tx('Validierter Notfallaktionsplan (Emergency Response Plan - ERP) (-1 GRC)', 'Validated emergency response plan (ERP) (-1 GRC)')}</span>
-                </label>
-              </div>
-
-              <button
-                onClick={() => setStep('result')}
-                className="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 font-bold text-sm text-white shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2 transition-all"
-              >
-                <span>{tx('SORA 2.5 Risikobewertung Ausführen', 'Run SORA 2.5 risk assessment')}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              ))}
             </div>
-          ) : (
-            /* Result Step */
-            <div className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-center">
-                  <p className="text-2xs text-slate-400 uppercase font-bold">Initial GRC</p>
-                  <p className="text-xl font-black text-slate-200 mt-1">{result.initialGrc}</p>
-                </div>
-                <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-center">
-                  <p className="text-2xs text-slate-400 uppercase font-bold">Final GRC</p>
-                  <p className="text-xl font-black text-emerald-400 mt-1">{result.finalGrc}</p>
-                </div>
-                <div className="p-3 bg-slate-800/80 border border-slate-700 rounded-2xl text-center">
-                  <p className="text-2xs text-slate-400 uppercase font-bold">Air Risk Class</p>
-                  <p className="text-xl font-black text-sky-400 mt-1">{result.finalArc}</p>
-                </div>
-                <div className="p-3 bg-indigo-600 border border-indigo-500 rounded-2xl text-center shadow-lg shadow-indigo-600/20">
-                  <p className="text-2xs text-indigo-200 uppercase font-bold">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
-                  <p className="text-xl font-black text-white mt-1">{result.sail}</p>
-                </div>
-              </div>
-
-              {/* OSOs List */}
-              <div className="p-4 bg-slate-800/60 border border-slate-700 rounded-2xl space-y-3">
-                <h4 className="font-bold text-sm text-indigo-400">{tx('Erforderliche Operational Safety Objectives (OSOs):', 'Required operational safety objectives (OSOs):')}</h4>
-                <div className="space-y-2 text-slate-300">
-                  {result.requiredOsos.map((oso, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                      <span>{oso}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  onClick={() => setStep('form')}
-                  className="flex-1 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 font-bold text-slate-300 text-xs"
-                >
-                  {tx('Parameter Ändern', 'Change parameters')}
-                </button>
-                <button
-                  onClick={handleGeneratePdf}
-                  className="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-white text-xs shadow-lg shadow-indigo-600/25 flex items-center justify-center gap-2"
-                >
-                  <FileText className="w-4 h-4" />
-                  <span>{tx('SORA PDF Dossier Exportieren', 'Export SORA PDF dossier')}</span>
-                </button>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
-      </div>
-    </div>
+      )}
+    </Dialog>
   );
 }

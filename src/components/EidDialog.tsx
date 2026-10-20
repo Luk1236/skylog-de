@@ -1,8 +1,10 @@
 import { useSprache } from '../lib/sprache';
 import { useState } from 'react';
-import { X, Shield, Check, AlertCircle, ExternalLink, Copy } from 'lucide-react';
+import { Shield, Check, AlertCircle, ExternalLink, Copy } from 'lucide-react';
 import type { UserProfile } from '../services/db';
 import { validateEID, getPublicEID, AUTHORITY_PORTALS } from '../services/eidManager';
+import { Dialog, Knopf, Abschnitt, eingabe, beschriftung } from './ui';
+import { cn } from '../lib/utils';
 
 interface Props {
   profile: UserProfile | null;
@@ -61,123 +63,101 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="immer-dunkel bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl text-white">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
-              <Shield className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-bold text-base">{tx('Betreiber-Registrierung (e-ID)', 'Operator registration (e-ID)')}</h2>
-              <p className="text-xs text-slate-400">{tx('EASA Registrierungs-ID & LBA Portal', 'EASA registration ID & LBA portal')}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Content */}
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-          {errorMsg && (
-            <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center gap-3 text-red-300 text-xs">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMsg}</span>
-            </div>
-          )}
-
-          {successMsg && (
-            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-emerald-300 text-xs">
-              <Check className="w-4 h-4 shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
-
-          {/* e-ID Input Section */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
-              <span>{tx('Betreiber-ID (e-ID)', 'Operator ID (e-ID)')}</span>
-              <span className="text-2xs text-slate-400 font-normal">Format: DEU123456789012-xyz</span>
-            </label>
-            <input
-              type="text"
-              value={eidInput}
-              onChange={e => setEidInput(e.target.value)}
-              placeholder={tx('z.B. DEU87AST46RAC38A-XYZ', 'e.g. DEU87AST46RAC38A-XYZ')}
-              className="w-full px-4 py-3 rounded-2xl bg-slate-800/80 border border-slate-700 text-white font-mono text-sm focus:outline-none focus:border-sky-500"
-            />
-            {eidInput.trim() !== '' && (
-              <div className="pt-1 flex items-center justify-between text-xs">
-                <span className={validation.isValid ? 'text-emerald-400 font-medium flex items-center gap-1' : 'text-amber-400 flex items-center gap-1'}>
-                  {validation.isValid ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
-                  {validation.isValid ? 'Gültiges EU e-ID Format' : validation.reason}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Public e-ID Display for Label Marking */}
-          {publicPart && (
-            <div className="p-4 rounded-2xl bg-slate-800/50 border border-slate-700/60 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-2xs uppercase tracking-wider text-slate-400 font-bold">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
-                <button
-                  onClick={handleCopyPublicEID}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 text-xs font-semibold transition-all"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'Kopiert!' : 'Kopieren'}</span>
-                </button>
-              </div>
-              <p className="font-mono text-base font-bold text-sky-300 tracking-wider break-all">{publicPart}</p>
-              <p className="text-2xs text-slate-400 leading-relaxed">
-                {tx('Dies ist der sichtbare Teil deiner Betreiber-ID. Er muss gemäß EU-Verordnung 2019/947 gut sichtbar auf all deinen Drohnen angebracht sein.', 'This is the visible part of your operator ID. Under EU Regulation 2019/947 it must be clearly displayed on all your drones.')}
-              </p>
-            </div>
-          )}
-
-          {/* Direct Links to Authority Portals */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">{tx('Luftfahrtbehörden & Portale', 'Aviation authorities & portals')}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {AUTHORITY_PORTALS.map(portal => (
-                <a
-                  key={portal.countryCode}
-                  href={portal.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 rounded-2xl bg-slate-800/40 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 flex items-center justify-between text-xs font-medium text-slate-200 transition-all group"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sky-400">{portal.countryName}</span>
-                    <span className="text-2xs text-slate-400">{portal.portalName}</span>
-                  </div>
-                  <ExternalLink className="w-4 h-4 text-slate-500 group-hover:text-sky-400 transition-colors" />
-                </a>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 bg-slate-800/50 border-t border-slate-800 flex items-center justify-end gap-3">
-          <button
-            onClick={onClose}
-            className="px-4 py-2.5 rounded-xl text-slate-300 hover:bg-slate-800 text-xs font-semibold"
-          >
+    <Dialog
+      titel={tx('Betreiber-Registrierung (e-ID)', 'Operator registration (e-ID)')}
+      untertitel={tx('EASA Registrierungs-ID & LBA Portal', 'EASA registration ID & LBA portal')}
+      icon={Shield}
+      ton="blau"
+      breite="lg"
+      onClose={onClose}
+      fuss={
+        <>
+          <Knopf variante="geist" className="ml-auto" onClick={onClose}>
             {tx('Abbrechen', 'Cancel')}
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="px-5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shadow-lg shadow-sky-500/20 active:scale-95 transition-all"
-          >
+          </Knopf>
+          <Knopf onClick={handleSave} disabled={saving}>
             {saving ? 'Speichere...' : 'Speichern'}
-          </button>
+          </Knopf>
+        </>
+      }
+    >
+      {errorMsg && (
+        <div className="p-3.5 rounded-2xl bg-red-50 border border-red-100 flex items-center gap-3 text-brand-red text-sm font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center gap-3 text-brand-green text-sm font-medium">
+          <Check className="w-4 h-4 shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      {/* e-ID Input Section */}
+      <div>
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <label htmlFor="eid-eingabe" className={cn(beschriftung, 'mb-0')}>
+            {tx('Betreiber-ID (e-ID)', 'Operator ID (e-ID)')}
+          </label>
+          <span className="text-2xs text-slate-500">Format: DEU123456789012-xyz</span>
+        </div>
+        <input
+          id="eid-eingabe"
+          type="text"
+          value={eidInput}
+          onChange={e => setEidInput(e.target.value)}
+          placeholder={tx('z.B. DEU87AST46RAC38A-XYZ', 'e.g. DEU87AST46RAC38A-XYZ')}
+          className={cn(eingabe, 'font-mono')}
+        />
+        {eidInput.trim() !== '' && (
+          <div className="pt-1.5 flex items-center justify-between text-xs">
+            <span className={validation.isValid ? 'text-brand-green font-medium flex items-center gap-1' : 'text-amber-700 font-medium flex items-center gap-1'}>
+              {validation.isValid ? <Check className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+              {validation.isValid ? 'Gültiges EU e-ID Format' : validation.reason}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Public e-ID Display for Label Marking */}
+      {publicPart && (
+        <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-2xs uppercase tracking-wider text-slate-500 font-bold">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
+            <Knopf variante="sekundaer" groesse="sm" icon={copied ? Check : Copy} onClick={handleCopyPublicEID}>
+              <span>{copied ? 'Kopiert!' : 'Kopieren'}</span>
+            </Knopf>
+          </div>
+          <p className="font-mono text-base font-bold text-brand-blue tracking-wider break-all">{publicPart}</p>
+          <p className="text-xs text-slate-500 leading-relaxed">
+            {tx('Dies ist der sichtbare Teil deiner Betreiber-ID. Er muss gemäß EU-Verordnung 2019/947 gut sichtbar auf all deinen Drohnen angebracht sein.', 'This is the visible part of your operator ID. Under EU Regulation 2019/947 it must be clearly displayed on all your drones.')}
+          </p>
+        </div>
+      )}
+
+      {/* Direct Links to Authority Portals */}
+      <div>
+        <Abschnitt titel={tx('Luftfahrtbehörden & Portale', 'Aviation authorities & portals')} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {AUTHORITY_PORTALS.map(portal => (
+            <a
+              key={portal.countryCode}
+              href={portal.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-3 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 hover:border-slate-300 flex items-center justify-between gap-2 text-xs font-medium text-slate-700 transition-colors group"
+            >
+              <div className="flex flex-col min-w-0">
+                <span className="font-bold text-brand-blue">{portal.countryName}</span>
+                <span className="text-2xs text-slate-500">{portal.portalName}</span>
+              </div>
+              <ExternalLink className="w-4 h-4 shrink-0 text-slate-500 group-hover:text-brand-blue transition-colors" />
+            </a>
+          ))}
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

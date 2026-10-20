@@ -266,8 +266,8 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
     <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.flotte')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Drohnen Management', 'Drone management')}</p>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.flotte')}</h2>
+          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Drohnen Management', 'Drone management')}</p>
         </div>
         <button 
           onClick={() => {
@@ -513,7 +513,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                       </span>
                     )}
                     {gStatus.status === 'abgelaufen' && (
-                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-400">
+                      <span className="text-2xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
                         {tx('Garantie abgelaufen', 'Warranty expired')}
                       </span>
                     )}
@@ -568,7 +568,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
                                 <span className="text-2xs font-black text-slate-800 uppercase tracking-tight">{alert.reason}</span>
                               </div>
-                              <span className="text-2xs font-black text-white bg-amber-500 px-2 py-0.5 rounded-full uppercase">{alert.type}</span>
+                              <span className="text-2xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full uppercase">{alert.type}</span>
                             </div>
                             <p className="text-2xs text-slate-500 leading-tight font-medium pl-3.5">{alert.detail}</p>
                           </div>
@@ -827,8 +827,8 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
 
       <div className="flex items-center justify-between mb-6 pt-4 border-t border-slate-200">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.akkus')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Inventar & Zyklen', 'Inventory & cycles')}</p>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.akkus')}</h2>
+          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Inventar & Zyklen', 'Inventory & cycles')}</p>
         </div>
         <button 
           onClick={() => setShowAddBattery(!showAddBattery)}
@@ -903,10 +903,10 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                   </div>
                 </div>
                 <span className={cn(
-                  "text-2xs font-black uppercase px-2 py-1 rounded-lg border",
-                  health < 50 ? "bg-brand-red/5 border-brand-red/10 text-brand-red" : 
-                  health < 80 ? "bg-amber-500/5 border-amber-500/10 text-amber-600" : 
-                  "bg-brand-green/5 border-brand-green/10 text-brand-green"
+                  "text-2xs font-bold uppercase px-2 py-1 rounded-full",
+                  health < 50 ? "bg-red-50 text-brand-red" :
+                  health < 80 ? "bg-amber-50 text-amber-800" :
+                  "bg-emerald-50 text-brand-green"
                 )}>
                   {health > 80 ? 'Exzellent' : health > 50 ? 'Gut' : 'Verschlissen'}
                 </span>

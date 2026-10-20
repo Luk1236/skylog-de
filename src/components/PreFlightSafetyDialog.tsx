@@ -1,10 +1,21 @@
 import { useSprache } from '../lib/sprache';
 import React, { useEffect, useState } from 'react';
-import { X, ShieldCheck, AlertTriangle, Activity, Loader2, Wifi, WifiOff } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Activity, Loader2, Wifi, WifiOff } from 'lucide-react';
 import type { WeatherData } from '../services/weather';
 import type { Drone, Battery, UserProfile } from '../services/db';
 import { calculatePreFlightSafetyScore } from '../services/safetyScore';
 import { fetchKpIndex, type KpData } from '../services/kpIndex';
+import { Dialog, Knopf } from './ui';
+
+/** Textfarbe der Kp-Bewertung im hellen Design. Der Dienst liefert in `color`
+ *  noch Töne für dunkle Flächen (sky-400 …), daher hier nach Status abgeleitet. */
+const KP_TEXT: Record<KpData['status'], string> = {
+  quiet: 'text-brand-green',
+  unsettled: 'text-brand-blue',
+  active: 'text-amber-700',
+  minor_storm: 'text-brand-orange',
+  major_storm: 'text-brand-red',
+};
 
 interface Props {
   weather: WeatherData | null;
@@ -31,151 +42,131 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
   const safety = calculatePreFlightSafetyScore(weather, drone, battery, profile, kpIndex);
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return 'text-emerald-500 border-emerald-500/30 bg-emerald-500/10';
-    if (score >= 60) return 'text-amber-500 border-amber-500/30 bg-amber-500/10';
-    return 'text-red-500 border-red-500/30 bg-red-500/10';
+    if (score >= 85) return 'text-brand-green border-emerald-200 bg-emerald-50';
+    if (score >= 60) return 'text-amber-800 border-amber-200 bg-amber-50';
+    return 'text-brand-red border-red-200 bg-red-50';
   };
 
   const getBarColor = (score: number) => {
-    if (score >= 85) return 'bg-emerald-500';
-    if (score >= 60) return 'bg-amber-400';
-    return 'bg-red-500';
+    if (score >= 85) return 'bg-brand-green';
+    if (score >= 60) return 'bg-amber-500';
+    return 'bg-brand-red';
   };
 
   const getStatusIcon = (status: 'pass' | 'warn' | 'fail') => {
-    if (status === 'pass') return <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />;
-    if (status === 'warn') return <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />;
-    return <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />;
+    if (status === 'pass') return <ShieldCheck className="w-5 h-5 text-brand-green shrink-0" />;
+    if (status === 'warn') return <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />;
+    return <AlertTriangle className="w-5 h-5 text-brand-red shrink-0" />;
   };
 
   const kpBarWidth = Math.min((kpIndex / 9) * 100, 100);
   const kpColor =
-    kpIndex < 2 ? 'bg-emerald-500' :
-    kpIndex < 4 ? 'bg-sky-400' :
-    kpIndex < 5 ? 'bg-amber-400' :
-    kpIndex < 7 ? 'bg-orange-500' : 'bg-red-600';
+    kpIndex < 2 ? 'bg-brand-green' :
+    kpIndex < 4 ? 'bg-brand-blue' :
+    kpIndex < 5 ? 'bg-amber-500' :
+    kpIndex < 7 ? 'bg-brand-orange' : 'bg-brand-red';
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[160] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="immer-dunkel bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl text-white flex flex-col max-h-[90vh]">
-        {/* Header */}
-        <div className="p-5 border-b border-slate-800 flex items-center justify-between bg-slate-900/60">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-brand-blue/20 text-brand-blue border border-brand-blue/30">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <h2 className="font-bold text-base">{tx('Pre-Flight Safety & Score', 'Pre-flight check & score')}</h2>
-              <p className="text-xs text-slate-400">{tx('Vorflug-Sicherheitsanalyse & Live Kp-Index', 'Pre-flight safety analysis & live Kp index')}</p>
-            </div>
+    <Dialog
+      titel={tx('Vorflug-Check & Score', 'Pre-flight check & score')}
+      untertitel={tx('Vorflug-Sicherheitsanalyse & Live Kp-Index', 'Pre-flight safety analysis & live Kp index')}
+      icon={ShieldCheck}
+      ton="blau"
+      breite="lg"
+      onClose={onClose}
+      fuss={
+        <Knopf voll onClick={onClose}>
+          {tx('Verstanden & Schließen', 'Got it & close')}
+        </Knopf>
+      }
+    >
+      {/* Score Card */}
+      <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
+            <h3 className="text-lg font-black text-slate-900 leading-tight">
+              {safety.status === 'SAFE' && '🟢 Startfreigabe optimal'}
+              {safety.status === 'WARNING' && '🟡 Erhöhte Aufmerksamkeit'}
+              {safety.status === 'CRITICAL' && '🔴 Hohes Risiko – Start abgeraten'}
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">{tx('Wetter · Wind · Solarsturm · Akku', 'Weather · wind · solar storm · battery')}</p>
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
-            <X className="w-5 h-5" />
-          </button>
+          <div className={`w-20 h-20 shrink-0 rounded-2xl border-2 flex flex-col items-center justify-center font-black ${getScoreColor(safety.score)}`}>
+            <span className="text-2xl leading-none">{safety.score}%</span>
+            <span className="text-2xs uppercase tracking-wider mt-1">Score</span>
+          </div>
         </div>
-
-        {/* Content */}
-        <div className="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
-
-          {/* Score Card */}
-          <div className="bg-slate-800/60 border border-slate-700/60 rounded-3xl p-5 space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-2xs font-bold text-slate-400 uppercase tracking-wider block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
-                <h3 className="text-lg font-extrabold text-white leading-tight">
-                  {safety.status === 'SAFE' && '🟢 Startfreigabe optimal'}
-                  {safety.status === 'WARNING' && '🟡 Erhöhte Aufmerksamkeit'}
-                  {safety.status === 'CRITICAL' && '🔴 Hohes Risiko – Start abgeraten'}
-                </h3>
-                <p className="text-2xs text-slate-400 mt-1">{tx('Wetter · Wind · Solarsturm · Akku', 'Weather · wind · solar storm · battery')}</p>
-              </div>
-              <div className={`w-20 h-20 rounded-2xl border-2 flex flex-col items-center justify-center font-black ${getScoreColor(safety.score)}`}>
-                <span className="text-2xl leading-none">{safety.score}%</span>
-                <span className="text-2xs uppercase tracking-wider mt-1 opacity-80">Score</span>
-              </div>
-            </div>
-            {/* Score progress bar */}
-            <div className="w-full bg-slate-700/60 rounded-full h-2 overflow-hidden">
-              <div
-                className={`h-2 rounded-full transition-all duration-700 ${getBarColor(safety.score)}`}
-                style={{ width: `${safety.score}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Live Kp Solar Storm Widget */}
-          <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2.5">
-                <Activity className="w-5 h-5 text-indigo-400 shrink-0" />
-                <div>
-                  <strong className="text-slate-200 block text-xs">{tx('Geomagnetischer Kp-Index (NOAA)', 'Geomagnetic Kp index (NOAA)')}</strong>
-                  {kpLoading
-                    ? <span className="text-2xs text-slate-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {tx('Lade Echtzeit-Daten…', 'Loading live data…')}</span>
-                    : <span className={`text-2xs font-medium ${kpData?.color ?? 'text-slate-400'}`}>{kpData?.label}</span>
-                  }
-                </div>
-              </div>
-              {!kpLoading && (
-                <div className="flex items-center gap-1.5">
-                  {kpData?.source === 'live'
-                    ? <Wifi className="w-3 h-3 text-emerald-400" />
-                    : <WifiOff className="w-3 h-3 text-slate-500" />}
-                  <span className={`px-2.5 py-1 rounded-full text-2xs font-black uppercase tracking-wider border
-                    ${kpIndex < 4 ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-orange-500/20 text-orange-400 border-orange-500/30'}`}>
-                    {kpIndex < 4 ? 'GPS Stabil' : 'GPS Warnung!'}
-                  </span>
-                </div>
-              )}
-            </div>
-            {/* Kp bar */}
-            <div className="flex items-center gap-2">
-              <span className="text-2xs text-slate-500 w-4 shrink-0">0</span>
-              <div className="flex-1 bg-slate-700/60 rounded-full h-1.5 overflow-hidden">
-                <div
-                  className={`h-1.5 rounded-full transition-all duration-700 ${kpLoading ? 'bg-slate-600 animate-pulse w-1/4' : kpColor}`}
-                  style={!kpLoading ? { width: `${kpBarWidth}%` } : {}}
-                />
-              </div>
-              <span className="text-2xs text-slate-500 w-4 shrink-0">9</span>
-            </div>
-            {kpData?.gpsWarning && (
-              <p className="text-2xs text-orange-400 mt-2 font-medium">
-                {tx('⚠️ Erhöhte geomagnetische Aktivität – GPS-Präzision eingeschränkt möglich. Kompasskalibrierung empfohlen.', '⚠️ Increased geomagnetic activity – GPS accuracy may be reduced. Compass calibration recommended.')}
-              </p>
-            )}
-          </div>
-
-          {/* Checklist Items */}
-          <div className="space-y-3">
-            <h4 className="font-bold text-slate-300 uppercase tracking-wider text-2xs px-1">{tx('Prüfpunkte der Vorflug-Analyse', 'Pre-flight analysis check items')}</h4>
-            {safety.items.map((item) => (
-              <div key={item.id} className="p-3.5 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-start gap-3">
-                {getStatusIcon(item.status)}
-                <div className="flex-1">
-                  <h5 className="font-bold text-slate-200 text-xs">{item.title}</h5>
-                  <p className="text-slate-400 text-2xs mt-0.5 leading-relaxed">{item.detail}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* NOAA Attribution */}
-          <p className="text-center text-2xs text-slate-600">
-            {tx('Kp-Daten: NOAA Space Weather Prediction Center (swpc.noaa.gov)', 'Kp data: NOAA Space Weather Prediction Center (swpc.noaa.gov)')}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-slate-800 bg-slate-900/60">
-          <button
-            onClick={onClose}
-            className="w-full bg-brand-blue hover:bg-brand-blue/90 text-slate-950 font-bold py-3 rounded-2xl text-xs transition-all active:scale-95 shadow-lg shadow-brand-blue/20"
-          >
-            {tx('Verstanden & Schließen', 'Got it & close')}
-          </button>
+        {/* Score progress bar */}
+        <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+          <div
+            className={`h-2 rounded-full transition-all duration-700 ${getBarColor(safety.score)}`}
+            style={{ width: `${safety.score}%` }}
+          />
         </div>
       </div>
-    </div>
+
+      {/* Live Kp Solar Storm Widget */}
+      <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2.5">
+            <Activity className="w-5 h-5 text-brand-blue shrink-0" />
+            <div>
+              <strong className="text-slate-900 block text-sm font-bold">{tx('Geomagnetischer Kp-Index (NOAA)', 'Geomagnetic Kp index (NOAA)')}</strong>
+              {kpLoading
+                ? <span className="text-xs text-slate-500 flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin" /> {tx('Lade Echtzeit-Daten…', 'Loading live data…')}</span>
+                : <span className={`text-xs font-bold ${kpData ? KP_TEXT[kpData.status] : 'text-slate-500'}`}>{kpData?.label}</span>
+              }
+            </div>
+          </div>
+          {!kpLoading && (
+            <div className="flex items-center gap-1.5 shrink-0">
+              {kpData?.source === 'live'
+                ? <Wifi className="w-3.5 h-3.5 text-brand-green" />
+                : <WifiOff className="w-3.5 h-3.5 text-slate-500" />}
+              <span className={`px-2.5 py-1 rounded-full text-2xs font-bold uppercase tracking-wider border
+                ${kpIndex < 4 ? 'bg-emerald-50 text-brand-green border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>
+                {kpIndex < 4 ? 'GPS Stabil' : 'GPS Warnung!'}
+              </span>
+            </div>
+          )}
+        </div>
+        {/* Kp bar */}
+        <div className="flex items-center gap-2">
+          <span className="text-2xs text-slate-500 w-4 shrink-0">0</span>
+          <div className="flex-1 bg-slate-200 rounded-full h-1.5 overflow-hidden">
+            <div
+              className={`h-1.5 rounded-full transition-all duration-700 ${kpLoading ? 'bg-slate-300 animate-pulse w-1/4' : kpColor}`}
+              style={!kpLoading ? { width: `${kpBarWidth}%` } : {}}
+            />
+          </div>
+          <span className="text-2xs text-slate-500 w-4 shrink-0">9</span>
+        </div>
+        {kpData?.gpsWarning && (
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mt-3 font-medium">
+            {tx('⚠️ Erhöhte geomagnetische Aktivität – GPS-Präzision eingeschränkt möglich. Kompasskalibrierung empfohlen.', '⚠️ Increased geomagnetic activity – GPS accuracy may be reduced. Compass calibration recommended.')}
+          </p>
+        )}
+      </div>
+
+      {/* Checklist Items */}
+      <div className="space-y-2">
+        <h4 className="font-bold text-slate-500 uppercase tracking-wider text-2xs px-1">{tx('Prüfpunkte der Vorflug-Analyse', 'Pre-flight analysis check items')}</h4>
+        {safety.items.map((item) => (
+          <div key={item.id} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3">
+            {getStatusIcon(item.status)}
+            <div className="flex-1">
+              <h5 className="font-bold text-slate-900 text-sm">{item.title}</h5>
+              <p className="text-slate-600 text-xs mt-0.5 leading-relaxed">{item.detail}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* NOAA Attribution */}
+      <p className="text-center text-2xs text-slate-500">
+        {tx('Kp-Daten: NOAA Space Weather Prediction Center (swpc.noaa.gov)', 'Kp data: NOAA Space Weather Prediction Center (swpc.noaa.gov)')}
+      </p>
+    </Dialog>
   );
 }

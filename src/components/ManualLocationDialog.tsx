@@ -1,7 +1,9 @@
 import { useSprache } from '../lib/sprache';
 import { useState, useRef, useEffect, type FormEvent } from 'react';
-import { X, Search, MapPin, Crosshair, AlertCircle, Loader2 } from 'lucide-react';
+import { Search, MapPin, Crosshair, AlertCircle, Loader2 } from 'lucide-react';
 import { sucheOrte, parseKoordinaten, type OrtsTreffer } from '../services/geocode';
+import { cn } from '../lib/utils';
+import { Dialog, Knopf, Feld, eingabe } from './ui';
 
 interface Props {
   /** Startwert für die Koordinatenanzeige (aktueller Kartenmittelpunkt). */
@@ -51,81 +53,76 @@ export function ManualLocationDialog({ aktuell, onPick, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center">
-      <div className="bg-slate-50 w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
-          <div className="flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">{tx('Standort setzen', 'Set location')}</h3>
+    <Dialog
+      titel={tx('Standort setzen', 'Set location')}
+      icon={MapPin}
+      breite="md"
+      onClose={onClose}
+    >
+      {/* Ortssuche */}
+      <div className="space-y-2">
+        <Feld label={tx('Ort suchen', 'Search place')} htmlFor="standort-suche">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              id="standort-suche"
+              autoFocus
+              className={cn(eingabe, 'pl-9 pr-9')}
+              placeholder={tx('z. B. Offenburg, Flugplatz Griesheim …', 'e.g. Offenburg, Griesheim airfield …')}
+              value={suche}
+              onChange={e => setSuche(e.target.value)}
+            />
+            {laedt && <Loader2 className="w-4 h-4 text-slate-400 animate-spin absolute right-3 top-1/2 -translate-y-1/2" />}
           </div>
-          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
-            <X className="w-5 h-5 text-slate-500" />
+        </Feld>
+
+        {suche.trim().length >= 2 && !laedt && treffer.length === 0 && (
+          <p className="text-xs text-slate-500 py-2 text-center">{tx('Keine Treffer.', 'No results.')}</p>
+        )}
+        {treffer.map((t, i) => (
+          <button
+            key={i}
+            onClick={() => onPick(t.lat, t.lon, t.name)}
+            className="w-full flex items-start gap-2 bg-white rounded-2xl border border-slate-200 p-3 text-left hover:border-brand-blue/40 active:scale-[.99]"
+          >
+            <MapPin className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-slate-900 leading-snug">{t.name}</p>
+              <p className="text-xs text-slate-500 font-mono">{t.lat.toFixed(5)}, {t.lon.toFixed(5)}</p>
+            </div>
           </button>
-        </div>
-
-        <div className="overflow-y-auto px-5 py-4 space-y-5">
-          {/* Ortssuche */}
-          <div className="space-y-2">
-            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Ort suchen', 'Search place')}</p>
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
-              <Search className="w-4 h-4 text-slate-400 shrink-0" />
-              <input
-                autoFocus
-                className="flex-1 bg-transparent text-sm focus:outline-none"
-                placeholder={tx('z. B. Offenburg, Flugplatz Griesheim …', 'e.g. Offenburg, Griesheim airfield …')}
-                value={suche}
-                onChange={e => setSuche(e.target.value)}
-              />
-              {laedt && <Loader2 className="w-4 h-4 text-slate-300 animate-spin shrink-0" />}
-            </div>
-
-            {suche.trim().length >= 2 && !laedt && treffer.length === 0 && (
-              <p className="text-xs text-slate-400 py-2 text-center">{tx('Keine Treffer.', 'No results.')}</p>
-            )}
-            {treffer.map((t, i) => (
-              <button
-                key={i}
-                onClick={() => onPick(t.lat, t.lon, t.name)}
-                className="w-full flex items-start gap-2 bg-white rounded-xl border border-slate-200 p-3 text-left active:scale-[.99]"
-              >
-                <MapPin className="w-4 h-4 text-brand-blue shrink-0 mt-0.5" />
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900 leading-snug">{t.name}</p>
-                  <p className="text-2xs text-slate-400 font-mono">{t.lat.toFixed(5)}, {t.lon.toFixed(5)}</p>
-                </div>
-              </button>
-            ))}
-            <p className="text-2xs text-slate-400 leading-relaxed">
-              {tx('Ortssuche über OpenStreetMap (Nominatim). Benötigt eine Internetverbindung.', 'Place search via OpenStreetMap (Nominatim). Requires an internet connection.')}
-            </p>
-          </div>
-
-          {/* Koordinaten von Hand */}
-          <form onSubmit={koordUebernehmen} className="space-y-2 border-t border-slate-100 pt-4">
-            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider">{tx('Oder Koordinaten eingeben', 'Or enter coordinates')}</p>
-            <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-3 py-2.5">
-              <Crosshair className="w-4 h-4 text-slate-400 shrink-0" />
-              <input
-                className="flex-1 bg-transparent text-sm font-mono focus:outline-none"
-                placeholder="52.5200, 13.4050"
-                value={koordText}
-                onChange={e => { setKoordText(e.target.value); setFehler(''); }}
-              />
-            </div>
-            {fehler && (
-              <p className="text-2xs text-brand-red flex items-center gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fehler}
-              </p>
-            )}
-            <button
-              type="submit"
-              className="w-full bg-brand-blue text-white font-bold py-2.5 rounded-xl text-sm active:scale-95"
-            >
-              {tx('Standort übernehmen', 'Use location')}
-            </button>
-          </form>
-        </div>
+        ))}
+        <p className="text-xs text-slate-500 leading-relaxed">
+          {tx('Ortssuche über OpenStreetMap (Nominatim). Benötigt eine Internetverbindung.', 'Place search via OpenStreetMap (Nominatim). Requires an internet connection.')}
+        </p>
       </div>
-    </div>
+
+      {/* Koordinaten von Hand */}
+      <form onSubmit={koordUebernehmen} className="space-y-2 border-t border-slate-100 pt-4">
+        <Feld
+          label={tx('Oder Koordinaten eingeben', 'Or enter coordinates')}
+          htmlFor="standort-koordinaten"
+          fehler={fehler ? (
+            <span className="inline-flex items-center gap-1.5">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {fehler}
+            </span>
+          ) : undefined}
+        >
+          <div className="relative">
+            <Crosshair className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              id="standort-koordinaten"
+              className={cn(eingabe, 'pl-9 font-mono')}
+              placeholder="52.5200, 13.4050"
+              value={koordText}
+              onChange={e => { setKoordText(e.target.value); setFehler(''); }}
+            />
+          </div>
+        </Feld>
+        <Knopf type="submit" voll>
+          {tx('Standort übernehmen', 'Use location')}
+        </Knopf>
+      </form>
+    </Dialog>
   );
 }

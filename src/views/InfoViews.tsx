@@ -49,8 +49,8 @@ export function KnowledgeView() {
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.lbaWissen')}</h2>
-        <p className="text-slate-500 text-sm font-medium">{tx('Offizielle Regeln & Informationen', 'Official rules & information')}</p>
+        <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.lbaWissen')}</h2>
+        <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Offizielle Regeln & Informationen', 'Official rules & information')}</p>
       </div>
 
       <div className="space-y-8">
@@ -204,8 +204,8 @@ export function InventoryView() {
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-6 flex items-end justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-black tracking-tight text-brand-blue">{t('view.ersatzteile')}</h2>
-          <p className="text-slate-500 font-medium uppercase tracking-wider text-2xs">{tx('Ersatzteile, Bestand & Links', 'Spare parts, stock & links')}</p>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.ersatzteile')}</h2>
+          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Ersatzteile, Bestand & Links', 'Spare parts, stock & links')}</p>
         </div>
         <button
           onClick={() => setZeigeForm(v => !v)}
@@ -357,8 +357,8 @@ export function PilotsView() {
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto pb-12">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.pilotenManagement')}</h2>
-        <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('LBA Registrierungen & Gast-Zugänge', 'LBA registrations & guest access')}</p>
+        <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.pilotenManagement')}</h2>
+        <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('LBA Registrierungen & Gast-Zugänge', 'LBA registrations & guest access')}</p>
       </div>
 
       <div className="space-y-4">

@@ -1,3 +1,4 @@
+import { Knopf } from './ui';
 import { useSyncExternalStore } from 'react';
 import { abonniereDialog, aktuelleAnfrage, antworteDialog } from '../services/dialog';
 import { useSprache } from '../lib/sprache';
@@ -15,38 +16,29 @@ export function DialogHost() {
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/50 z-[90] flex items-center justify-center p-6"
+      className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[90] flex items-center justify-center p-6"
       onClick={() => antworteDialog(false)}
     >
       <div
-        className="bg-white w-full max-w-xs rounded-3xl border border-slate-200 shadow-lg p-5"
+        className="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-5"
         onClick={(e) => e.stopPropagation()}
         role="alertdialog"
         aria-modal="true"
       >
         {anfrage.titel && (
-          <h3 className="font-black text-slate-900 mb-1.5">{anfrage.titel}</h3>
+          <h3 className="text-base font-black text-slate-900 mb-1.5">{anfrage.titel}</h3>
         )}
         <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{anfrage.text}</p>
 
         <div className="flex gap-2 mt-5">
           {istBestaetigen && (
-            <button
-              onClick={() => antworteDialog(false)}
-              className="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-500 bg-slate-100 active:scale-95 transition-transform"
-            >
+            <Knopf variante="sekundaer" className="flex-1" onClick={() => antworteDialog(false)}>
               {t('aktion.abbrechen')}
-            </button>
+            </Knopf>
           )}
-          <button
-            onClick={() => antworteDialog(true)}
-            className={
-              'flex-1 py-2.5 rounded-xl text-sm font-bold text-white active:scale-95 transition-transform ' +
-              (anfrage.gefaehrlich ? 'bg-brand-red' : 'bg-brand-blue')
-            }
-          >
+          <Knopf variante={anfrage.gefaehrlich ? 'gefahr' : 'primaer'} className="flex-1" onClick={() => antworteDialog(true)}>
             {istBestaetigen ? bestaetigenLabel : t('dialog.ok')}
-          </button>
+          </Knopf>
         </div>
       </div>
     </div>

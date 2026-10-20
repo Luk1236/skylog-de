@@ -19,15 +19,15 @@ export function SafetyView({ profile, drones, onBehoerdenCheck, onOpenEid }: { p
     <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-red">{t('view.safetyHub')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Notfall-Leitfaden & LBA Meldung', 'Emergency guide & LBA reporting')}</p>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.safetyHub')}</h2>
+          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Notfall-Leitfaden & LBA Meldung', 'Emergency guide & LBA reporting')}</p>
         </div>
         {onOpenEid && (
           <button
             onClick={onOpenEid}
             className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 rounded-2xl text-xs font-bold text-slate-700 shadow-sm hover:border-slate-300 active:scale-95 transition-all"
           >
-            <ShieldCheck className="w-4 h-4 text-sky-500" />
+            <ShieldCheck className="w-4 h-4 text-brand-blue" />
             <span>{tx('e-ID Verwalten', 'Manage e-ID')}</span>
           </button>
         )}

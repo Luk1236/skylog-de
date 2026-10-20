@@ -1,11 +1,13 @@
 import { useEffect, useState, type ChangeEvent } from 'react';
-import { X, Upload, Trash2, ExternalLink, AlertTriangle, Globe2, RefreshCw } from 'lucide-react';
+import { Upload, Trash2, ExternalLink, AlertTriangle, Globe2, RefreshCw } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import { dbService, type GespeicherteZonen } from '../services/db';
 import { parseEd269 } from '../services/ed269';
 import { ZONEN_QUELLEN } from '../services/euZones';
 import { melde, bestaetige } from '../services/dialog';
 import { useSprache } from '../lib/sprache';
+import { cn } from '../lib/utils';
+import { Dialog, Knopf, Abschnitt, knopfKlassen } from './ui';
 
 interface Props {
   onClose: () => void;
@@ -21,7 +23,7 @@ function alterText(importiertAm: number): { text: string; warnen: boolean } {
 }
 
 export function EuZonesDialog({ onClose, onGeaendert }: Props) {
-  const { t, tx } = useSprache();
+  const { tx } = useSprache();
   const [gespeichert, setGespeichert] = useState<GespeicherteZonen[]>([]);
   const [laeuft, setLaeuft] = useState(false);
 
@@ -96,85 +98,79 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center">
-      <div className="bg-slate-50 w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl max-h-[88vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
-          <div className="flex items-center gap-2">
-            <Globe2 className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">{tx('Zonen anderer Länder', 'Zones of other countries')}</h3>
-          </div>
-          <button onClick={onClose} aria-label={t('aktion.schliessen')} className="p-2 rounded-xl hover:bg-slate-100">
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
+    <Dialog
+      titel={tx('Zonen anderer Länder', 'Zones of other countries')}
+      icon={Globe2}
+      breite="lg"
+      onClose={onClose}
+      fuss={
+        // Datei-Auswahl braucht ein <label> - Knopf-Optik über knopfKlassen.
+        <label className={cn(knopfKlassen('primaer', 'md', true), laeuft && 'opacity-50')}>
+          <Upload className="w-4 h-4" />
+          {laeuft ? 'Wird gelesen…' : 'ED-269-Datei importieren'}
+          <input type="file" accept=".json,application/json" className="hidden" onChange={importieren} disabled={laeuft} />
+        </label>
+      }
+    >
+      <p className="text-sm text-slate-700 leading-relaxed">
+        {tx('Das eingebaute Overlay gilt nur für Deutschland. Für andere Länder lädst du die amtliche Zonendatei (ED-269) herunter und importierst sie hier.', 'The built-in overlay covers Germany only. For other countries, download the official zone file (ED-269) and import it here.')}
+      </p>
 
-        <div className="overflow-y-auto px-4 py-4 space-y-3">
-          <p className="text-2xs text-slate-500 leading-relaxed px-1">
-            {tx('Das eingebaute Overlay gilt nur für Deutschland. Für andere Länder lädst du die amtliche Zonendatei (ED-269) herunter und importierst sie hier.', 'The built-in overlay covers Germany only. For other countries, download the official zone file (ED-269) and import it here.')}
-          </p>
-
-          <label className="w-full flex items-center justify-center gap-2 bg-brand-blue text-white font-bold py-3 rounded-2xl active:scale-95 cursor-pointer">
-            <Upload className="w-4 h-4" />
-            {laeuft ? 'Wird gelesen…' : 'ED-269-Datei importieren'}
-            <input type="file" accept=".json,application/json" className="hidden" onChange={importieren} disabled={laeuft} />
-          </label>
-
-          {gespeichert.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider px-1">{tx('Importiert', 'Imported')}</p>
-              {gespeichert.map(e => {
-                const alter = alterText(e.importiertAm);
-                return (
-                  <div key={e.land} className="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-900">{e.land} · {e.anzahl} {tx('Zonen', 'Zones')}</p>
-                      <p className={alter.warnen ? 'text-2xs text-brand-red font-bold' : 'text-2xs text-slate-400'}>
-                        {alter.text}{alter.warnen && ' — bitte erneuern'}
-                      </p>
-                    </div>
-                    <button onClick={() => loeschen(e)} aria-label={`Zonen ${e.land} löschen`}
-                      className="p-1.5 text-slate-300 hover:text-brand-red shrink-0">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+      {gespeichert.length > 0 && (
+        <div>
+          <Abschnitt titel={tx('Importiert', 'Imported')} />
+          <div className="space-y-2">
+            {gespeichert.map(e => {
+              const alter = alterText(e.importiertAm);
+              return (
+                <div key={e.land} className="bg-white rounded-2xl border border-slate-200 p-3 flex items-center gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900">{e.land} · {e.anzahl} {tx('Zonen', 'Zones')}</p>
+                    <p className={alter.warnen ? 'text-xs text-brand-red font-bold' : 'text-xs text-slate-500'}>
+                      {alter.text}{alter.warnen && ' — bitte erneuern'}
+                    </p>
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          <div>
-            <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5">{tx('Amtliche Quellen', 'Official sources')}</p>
-            <div className="space-y-1">
-              {ZONEN_QUELLEN.filter(q => q.code !== 'DE').map(q => (
-                <div key={q.code} className="flex items-center gap-2 bg-white rounded-xl border border-slate-200 px-3 py-2">
-                  <span className="text-2xs font-bold text-slate-700 flex-1">{q.land}</span>
-                  {q.direktUrl ? (
-                    <button onClick={() => direktLaden(q)} disabled={laeuft}
-                      className="bg-brand-blue text-white font-bold px-2.5 py-1 rounded-lg text-2xs active:scale-95 disabled:opacity-40 flex items-center gap-1">
-                      <RefreshCw className="w-3 h-3" />
-                      {tx('Laden', 'Load')}{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
-                    </button>
-                  ) : q.maschinenlesbar ? (
-                    <span className="text-2xs font-black text-slate-400 uppercase tracking-wider">{tx('Datei von Hand', 'File by hand')}</span>
-                  ) : (
-                    <span className="text-2xs font-black text-slate-300 uppercase tracking-wider">{tx('nur Karte', 'map only')}</span>
-                  )}
-                  <a href={q.url} target="_blank" rel="noopener noreferrer" aria-label={`${q.land} öffnen`}>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
-                  </a>
+                  <button onClick={() => loeschen(e)} aria-label={`Zonen ${e.land} löschen`}
+                    className="p-2 rounded-xl text-slate-400 hover:bg-red-50 hover:text-brand-red shrink-0">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
+        </div>
+      )}
 
-          <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3">
-            <p className="text-2xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-              {tx('Zonendaten ändern sich. Die App lädt sie bewusst nicht automatisch nach — ein stillschweigend veralteter Stand wäre gefährlicher als keiner. Vor Flügen im Ausland die Datei neu holen.', 'Zone data changes. The app deliberately does not refresh it automatically — silently outdated data would be more dangerous than none. Fetch the file again before flying abroad.')}
-            </p>
-          </div>
+      <div>
+        <Abschnitt titel={tx('Amtliche Quellen', 'Official sources')} />
+        <div className="space-y-2">
+          {ZONEN_QUELLEN.filter(q => q.code !== 'DE').map(q => (
+            <div key={q.code} className="flex items-center gap-2 bg-white rounded-2xl border border-slate-200 pl-3 pr-1.5 py-1.5">
+              <span className="text-xs font-bold text-slate-900 flex-1">{q.land}</span>
+              {q.direktUrl ? (
+                <Knopf variante="sekundaer" groesse="sm" icon={RefreshCw} onClick={() => direktLaden(q)} disabled={laeuft}>
+                  {tx('Laden', 'Load')}{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
+                </Knopf>
+              ) : q.maschinenlesbar ? (
+                <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Datei von Hand', 'File by hand')}</span>
+              ) : (
+                <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('nur Karte', 'map only')}</span>
+              )}
+              <a href={q.url} target="_blank" rel="noopener noreferrer" aria-label={`${q.land} öffnen`}
+                className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-brand-blue shrink-0">
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
+          ))}
         </div>
       </div>
-    </div>
+
+      <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3">
+        <p className="text-xs text-amber-800 flex items-start gap-2 leading-relaxed">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          {tx('Zonendaten ändern sich. Die App lädt sie bewusst nicht automatisch nach — ein stillschweigend veralteter Stand wäre gefährlicher als keiner. Vor Flügen im Ausland die Datei neu holen.', 'Zone data changes. The app deliberately does not refresh it automatically — silently outdated data would be more dangerous than none. Fetch the file again before flying abroad.')}
+        </p>
+      </div>
+    </Dialog>
   );
 }

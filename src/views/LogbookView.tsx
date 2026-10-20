@@ -227,8 +227,8 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
     <div className="max-w-md lg:max-w-3xl xl:max-w-6xl mx-auto pb-20">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.logbuch')}</h2>
-          <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Statistik & Dokumentation', 'Statistics & documentation')}</p>
+          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.logbuch')}</h2>
+          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Statistik & Dokumentation', 'Statistics & documentation')}</p>
         </div>
         <div className="flex gap-2">
           {verfuegbareJahre.length > 0 && (
@@ -533,7 +533,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                         onChange={e => setNewFlight({...newFlight, isNightFlight: e.target.checked})}
                         className="rounded text-brand-blue"
                       />
-                      <Moon className="w-4 h-4 text-indigo-500" />
+                      <Moon className="w-4 h-4 text-brand-blue" />
                       <span>{tx('Nachtflug', 'Night flight')}</span>
                     </label>
                   </div>
@@ -629,33 +629,33 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
                     <p className="text-2xs text-slate-500 font-medium">{flight.duration} {tx('Minuten', 'minutes')}</p>
                     <div className="flex gap-1">
                       {flight.isNightFlight && (
-                        <div className="flex items-center gap-0.5 px-1 bg-indigo-50 rounded border border-indigo-100">
-                          <Moon className="w-2.5 h-2.5 text-indigo-600" />
-                          <span className="text-2xs font-black text-indigo-600 uppercase">{tx('Nachtflug', 'Night flight')}</span>
+                        <div className="flex items-center gap-1 px-1.5 bg-slate-100 rounded-full">
+                          <Moon className="w-2.5 h-2.5 text-slate-600" />
+                          <span className="text-2xs font-bold text-slate-700 uppercase">{tx('Nachtflug', 'Night flight')}</span>
                         </div>
                       )}
                       {flight.coPilotName && (
-                        <div className="flex items-center gap-0.5 px-1 bg-sky-50 rounded border border-sky-100">
-                          <User className="w-2.5 h-2.5 text-sky-600" />
-                          <span className="text-2xs font-black text-sky-600 uppercase">Co: {flight.coPilotName}</span>
+                        <div className="flex items-center gap-1 px-1.5 bg-brand-blue/10 rounded-full">
+                          <User className="w-2.5 h-2.5 text-brand-blue" />
+                          <span className="text-2xs font-bold text-brand-blue uppercase">Co: {flight.coPilotName}</span>
                         </div>
                       )}
                       {flight.weather && (flight.weather.windSpeed > 15 || flight.weather.temp > 30) && (
-                        <div className="flex items-center gap-0.5 px-1 bg-amber-50 rounded border border-amber-100">
-                          <Wind className="w-2.5 h-2.5 text-amber-500" />
-                          <span className="text-2xs font-black text-amber-500 uppercase">{tx('Wetter-Warnung', 'Weather warning')}</span>
+                        <div className="flex items-center gap-1 px-1.5 bg-amber-50 rounded-full">
+                          <Wind className="w-2.5 h-2.5 text-amber-700" />
+                          <span className="text-2xs font-bold text-amber-800 uppercase">{tx('Wetter-Warnung', 'Weather warning')}</span>
                         </div>
                       )}
                       {flight.batteryStatus?.endPercent != null && flight.batteryStatus.endPercent < 15 && (
-                        <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
+                        <div className="flex items-center gap-1 px-1.5 bg-red-50 rounded-full">
                           <ShieldAlert className="w-2.5 h-2.5 text-brand-red" />
-                          <span className="text-2xs font-black text-brand-red uppercase">{tx('Tiefentladungs-Risiko', 'Deep discharge risk')}</span>
+                          <span className="text-2xs font-bold text-brand-red uppercase">{tx('Tiefentladungs-Risiko', 'Deep discharge risk')}</span>
                         </div>
                       )}
                       {flight.incidents && (
-                        <div className="flex items-center gap-0.5 px-1 bg-brand-red/5 rounded border border-brand-red/10">
+                        <div className="flex items-center gap-1 px-1.5 bg-red-50 rounded-full">
                           <AlertTriangle className="w-2.5 h-2.5 text-brand-red" />
-                          <span className="text-2xs font-black text-brand-red uppercase">{tx('Vorkommnis', 'Occurrence')}</span>
+                          <span className="text-2xs font-bold text-brand-red uppercase">{tx('Vorkommnis', 'Occurrence')}</span>
                         </div>
                       )}
                     </div>

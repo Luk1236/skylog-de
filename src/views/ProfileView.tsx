@@ -187,8 +187,8 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight text-brand-blue">{t('view.profil')}</h2>
-            <p className="text-slate-500 text-sm font-medium uppercase tracking-wider text-2xs">{tx('Stammdaten & Lizenzen', 'Personal data & licences')}</p>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.profil')}</h2>
+            <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Stammdaten & Lizenzen', 'Personal data & licences')}</p>
           </div>
           <div className="flex items-center gap-2">
             {profile?.isBOS && (
@@ -197,7 +197,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
             {onOpenPinSetup && (
               <button
                 onClick={onOpenPinSetup}
-                className="p-2.5 text-slate-400 hover:text-sky-600 bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
+                className="p-2.5 text-slate-400 hover:text-brand-blue bg-white border border-slate-200 rounded-2xl shadow-sm transition-all"
                 title={tx('Bildschirmsperre (PIN) verwalten', 'Manage screen lock (PIN)')}
               >
                 <Lock className="w-5 h-5" />
@@ -244,7 +244,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid, onOpenPin
                   <div className="flex items-center justify-between">
                     <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-0.5">LBA e-ID</p>
                     {onOpenEid && (
-                      <button onClick={onOpenEid} className="text-2xs font-bold text-sky-600 hover:underline">{tx('Verwalten', 'Manage')}</button>
+                      <button onClick={onOpenEid} className="text-2xs font-bold text-brand-blue hover:underline">{tx('Verwalten', 'Manage')}</button>
                     )}
                   </div>
                   <p className="text-xs font-bold text-slate-800 font-mono">{profile?.eid || 'Nicht hinterlegt'}</p>

@@ -47,7 +47,7 @@ export function Dialog({
   titel, untertitel, icon: Icon, ton = 'blau', breite = 'md', onClose, fuss, kopfAktionen,
   schliesstBeiKlickDaneben = true, ohneInnenabstand = false, schliessbar = true, children,
 }: Props) {
-  const { tx } = useSprache();
+  const { t } = useSprache();
   const titelId = useId();
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export function Dialog({
           {kopfAktionen}
           {schliessbar && <button
             onClick={onClose}
-            aria-label={tx('Schließen', 'Close')}
+            aria-label={t('aktion.schliessen')}
             className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 shrink-0"
           >
             <X className="w-5 h-5" />

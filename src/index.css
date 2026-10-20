@@ -40,7 +40,7 @@
   --color-black: #f8fafc;
 
   --color-slate-50:  #0f172a;  /* Seitenhintergrund */
-  --color-slate-100: #1e293b;
+  --color-slate-100: #283548;  /* eine Spur heller als Karten: sekundäre Knöpfe/Flächen bleiben sichtbar */
   --color-slate-200: #334155;  /* Ränder */
   --color-slate-300: #475569;
   --color-slate-400: #94a3b8;  /* gedämpfter Text bleibt lesbar */
@@ -78,6 +78,10 @@
      Score-Knopf) oder als dunkler Text auf -50-Tönungen stehen. Im Dunkelmodus
      wird weiß zu dunkel und die -50-Tönung dunkel - daher hier aufhellen. */
   --color-amber-700:   #fbbf24;
+  /* red-700/800 stehen als Text auf red-50-Flächen (Erinnerungen, Fehler) -
+     im Dunkelmodus sonst dunkelrot auf dunkelrot (~2,5:1). */
+  --color-red-700:     #fca5a5;
+  --color-red-800:     #fecaca;
   --color-amber-800:   #fcd34d;
   --color-emerald-700: #34d399;
   --color-emerald-800: #6ee7b7;
@@ -92,51 +96,6 @@
   --color-emerald-50: #022c22;
   --color-emerald-100:#064e3b;
   --color-green-50:   #052e16;
-}
-
-/* Bewusst dunkel gestaltete Dialoge (PIN, Vorflug-Check, SORA, Staffelmatrix,
-   e-ID, Kunden, Favoriten, Behörden-Check) tragen die Klasse .immer-dunkel.
-   Ohne sie kippte der Dunkelmodus ihren slate-900-Hintergrund ins Helle,
-   während ihre hellen Akzente (sky-400, red-200 …) blieben - gemessen bis
-   hinunter auf 1,2:1 Kontrast. Hier wird die Original-Palette wiederhergestellt,
-   damit sie in beiden Modi so aussehen, wie sie gestaltet sind. Nur die
-   Markenfarben werden aufgehellt (das dunkle Navy wäre auf slate-900 unlesbar). */
-.immer-dunkel {
-  color-scheme: dark;
-  --color-white: #ffffff;
-  --color-black: #000000;
-  --color-slate-50:  oklch(98.4% 0.003 247.858);
-  --color-slate-100: oklch(96.8% 0.007 247.896);
-  --color-slate-200: oklch(92.9% 0.013 255.508);
-  --color-slate-300: oklch(86.9% 0.022 252.894);
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #94a3b8;  /* statt oklch 55.4 %: auf slate-900 sonst nur ~3.7 */
-  --color-slate-600: #94a3b8;  /* dito, sonst ~2.4 */
-  --color-slate-700: oklch(37.2% 0.044 257.287);
-  --color-slate-800: oklch(27.9% 0.041 260.031);
-  --color-slate-900: oklch(20.8% 0.042 265.755);
-  --color-slate-950: oklch(12.9% 0.042 264.695);
-  --color-brand-blue:   #60a5fa;
-  --color-brand-red:    #f87171;
-  --color-brand-green:  #34d399;
-  --color-brand-orange: #fb923c;
-  --color-red-500:     oklch(63.7% 0.237 25.331);
-  --color-blue-200:    oklch(88.2% 0.059 254.128);
-  --color-blue-300:    oklch(80.9% 0.105 251.813);
-  --color-orange-100:  oklch(95.4% 0.038 75.164);
-  --color-amber-700:   oklch(55.5% 0.163 48.998);
-  --color-amber-800:   oklch(47.3% 0.137 46.201);
-  --color-emerald-700: oklch(50.8% 0.118 165.612);
-  --color-emerald-800: oklch(43.2% 0.095 166.913);
-  --color-blue-50:     oklch(97% 0.014 254.604);
-  --color-blue-100:    oklch(93.2% 0.032 255.585);
-  --color-red-50:      oklch(97.1% 0.013 17.38);
-  --color-red-100:     oklch(93.6% 0.032 17.717);
-  --color-amber-50:    oklch(98.7% 0.022 95.277);
-  --color-amber-100:   oklch(96.2% 0.059 95.617);
-  --color-emerald-50:  oklch(97.9% 0.021 166.113);
-  --color-emerald-100: oklch(95% 0.052 163.051);
-  --color-green-50:    oklch(98.2% 0.018 155.826);
 }
 
 /* Leaflet Container Fixes */

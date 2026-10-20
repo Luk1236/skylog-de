@@ -68,10 +68,19 @@ import { Dialog, Knopf, Feld, eingabe, SeitenKopf, Abschnitt } from '../componen
 | Baustein | Varianten | Hinweise |
 |---|---|---|
 | `Dialog` | `breite`: `sm` · `md` (Std.) · `lg` · `xl`; `ton`: `blau` · `gruen` · `bernstein` · `rot` (Icon-Kachel) | Unten aufsteigend auf dem Handy, zentriert ab `sm`. Escape und Klick daneben schließen. `role="dialog"`. |
-| `Knopf` | `variante`: `primaer` · `sekundaer` · `gefahr` · `geist`; `groesse`: `md` (44 px) · `sm` (36 px); `voll`, `icon` | Ein `primaer` pro Bereich. |
+| `Knopf` | `variante`: `primaer` · `sekundaer` · `gefahr` · `geist`; `groesse`: `md` (44 px) · `sm` (40 px); `voll`, `icon` | Ein `primaer` pro Bereich. |
+| `knopfKlassen()` | wie `Knopf` | Knopf-Optik für Nicht-Buttons, z. B. das `<label>` einer Dateiauswahl. |
+| `IconKnopf` | `variante`: `geist` · `gefahr` · `sekundaer`; `aria-label` Pflicht | Quadratisch 40 × 40 px, z. B. Löschen in Listen. |
 | `Feld` + `eingabe` | – | Beschriftung über dem Feld, `htmlFor`/`id` setzen. |
 | `SeitenKopf` | `titel`, `untertitel`, `aktionen` | Kopf jeder Ansicht. |
 | `Abschnitt` | `titel`, `aktion` | Eyebrow-Überschrift über einer Gruppe. |
+
+## Ausnahmen (bewusst eigener Aufbau)
+
+- **Behörden-Check:** Vollbild zum Vorzeigen bei einer Kontrolle; QR-Code immer auf Weiß.
+- **PIN-Sperre beim Entsperren:** `Dialog` mit `schliessbar={false}` vor deckendem Hintergrund.
+- **Bestätigungsdialog** (`DialogHost`): kompakter Alert über allen Dialogen (z-[90]).
+- **Bild-Vollansicht** und **Fehlerseite**: Vollbild.
 
 ## Prüfen
 

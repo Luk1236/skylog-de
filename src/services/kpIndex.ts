@@ -29,12 +29,13 @@ function kpToLabel(kp: number): string {
   return `Starker Sonnensturm (Kp ${kp}) 🔴`;
 }
 
+// Textfarben nach DESIGN.md (helle Flaechen; der Dunkelmodus hellt sie selbst auf).
 function kpToColor(kp: number): string {
-  if (kp < 2) return 'text-emerald-400';
-  if (kp < 4) return 'text-sky-400';
-  if (kp < 5) return 'text-amber-400';
-  if (kp < 7) return 'text-orange-400';
-  return 'text-red-500';
+  if (kp < 2) return 'text-brand-green';
+  if (kp < 4) return 'text-brand-blue';
+  if (kp < 5) return 'text-amber-700';
+  if (kp < 7) return 'text-brand-orange';
+  return 'text-brand-red';
 }
 
 /** Ruft den aktuellen Kp-Index von der NOAA SWPC API ab.
@@ -68,7 +69,7 @@ export async function fetchKpIndex(): Promise<KpData> {
       kpIndex: 2,
       status: 'unsettled',
       label: 'Ruhig (Kp 2) — Offline',
-      color: 'text-sky-400',
+      color: 'text-brand-blue',
       gpsWarning: false,
       source: 'fallback',
     };

@@ -37,8 +37,8 @@ export function RoadmapView() {
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto pb-8">
       <div className="mb-8">
-        <h2 className="text-2xl font-black text-slate-900 tracking-tight">{t('view.roadmap')}</h2>
-        <p className="text-slate-500 text-sm font-medium">{tx('Unsere Vision für SkyLog DE', 'Our vision for SkyLog DE')}</p>
+        <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.roadmap')}</h2>
+        <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Unsere Vision für SkyLog DE', 'Our vision for SkyLog DE')}</p>
       </div>
 
       <div className="space-y-6">

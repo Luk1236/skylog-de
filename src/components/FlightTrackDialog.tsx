@@ -2,11 +2,12 @@ import { useSprache } from '../lib/sprache';
 import { useState, useMemo, type ChangeEvent } from 'react';
 import { MapContainer, TileLayer, Polyline, Marker, useMap } from 'react-leaflet';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { X, Upload, Route, Mountain, Gauge, BatteryMedium, AlertTriangle, type LucideIcon } from 'lucide-react';
+import { Upload, Route, Mountain, Gauge, BatteryMedium, AlertTriangle, type LucideIcon } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
 import { dbService, type Flight, type TrackPoint } from '../services/db';
 import { parseTrackCsv, berechneTrackStats, analysiereTrack, type WarnStufe } from '../services/flightTrack';
+import { Dialog, knopfKlassen } from './ui';
 
 interface Props {
   flight: Flight;
@@ -46,7 +47,7 @@ function Stat({ icon: Icon, label, wert }: { icon: LucideIcon, label: string, we
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col items-center gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
       <span className="text-sm font-black text-slate-900">{wert}</span>
-      <span className="text-2xs text-slate-400 uppercase tracking-wider">{label}</span>
+      <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
     </div>
   );
 }
@@ -90,101 +91,93 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
   const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 z-[70] flex items-end sm:items-center justify-center">
-      <div className="bg-slate-50 w-full sm:max-w-lg sm:rounded-3xl rounded-t-3xl max-h-[92vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-100 shrink-0 bg-white sm:rounded-t-3xl">
-          <div className="flex items-center gap-2">
-            <Route className="w-5 h-5 text-brand-blue" />
-            <h3 className="font-black text-slate-900">{tx('Flug-Track', 'Flight track')}</h3>
-          </div>
-          <button onClick={onClose} aria-label={tx('Schließen', 'Close')} className="p-2 rounded-xl hover:bg-slate-100">
-            <X className="w-5 h-5 text-slate-500" />
-          </button>
-        </div>
-
-        <div className="overflow-y-auto px-5 py-4 space-y-4">
-          {track.length === 0 ? (
-            <div className="text-center py-8">
-              <Route className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-sm text-slate-500 mb-1 font-medium">{tx('Für diesen Flug ist noch kein Track gespeichert.', 'No track saved for this flight yet.')}</p>
-              <p className="text-2xs text-slate-400 mb-5 leading-relaxed">
-                {tx('Detaillierte Telemetrie-CSV (z.B. Airdata-Export mit Zeit, Position, Höhe, Speed, Akku) laden — daraus werden Flugpfad und Diagramme erzeugt.', 'Load a detailed telemetry CSV (e.g. an Airdata export with time, position, altitude, speed, battery) — the flight path and charts are generated from it.')}
-              </p>
-              <label className={cn('inline-flex items-center gap-2 bg-brand-blue text-white font-bold py-3 px-5 rounded-xl text-sm cursor-pointer active:scale-95 transition-all', laeuft && 'opacity-60')}>
-                <Upload className="w-4 h-4" /> {laeuft ? 'Lese…' : 'Track-CSV laden'}
-                <input type="file" accept=".csv,text/csv" className="hidden" onChange={importieren} disabled={laeuft} />
-              </label>
-              {fehler && (
-                <p className="mt-4 text-2xs text-brand-red flex items-center justify-center gap-1">
-                  <AlertTriangle className="w-3 h-3" /> {fehler}
-                </p>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-4 gap-2">
-                <Stat icon={Mountain} label="Max. Höhe" wert={stats.maxHoeheM !== null ? `${Math.round(stats.maxHoeheM)} m` : '—'} />
-                <Stat icon={Gauge} label="Max. Speed" wert={stats.maxSpeedKmh !== null ? `${Math.round(stats.maxSpeedKmh)} km/h` : '—'} />
-                <Stat icon={Route} label="Max. Dist." wert={`${stats.maxDistanzM} m`} />
-                <Stat icon={BatteryMedium} label="Dauer" wert={mmss(stats.dauerS)} />
-              </div>
-
-              {/* Auto-Auswertung: Warnungen aus der Aufzeichnung */}
-              {warnungen.length > 0 ? (
-                <div className="space-y-1.5">
-                  {warnungen.map((w, i) => {
-                    const stil: Record<WarnStufe, string> = {
-                      kritisch: 'bg-brand-red/10 border-brand-red/30 text-brand-red',
-                      warnung: 'bg-amber-50 border-amber-200 text-amber-800',
-                      info: 'bg-slate-50 border-slate-200 text-slate-600',
-                    };
-                    return (
-                      <div key={i} className={cn('flex items-start gap-2 px-3 py-2 rounded-xl border text-2xs font-medium leading-relaxed', stil[w.stufe])}>
-                        <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                        <span>{w.text}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-xl border border-brand-green/20 bg-brand-green/5 text-brand-green text-2xs font-bold">
-                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                  {tx('Keine Auffälligkeiten in der Aufzeichnung.', 'No anomalies in the recording.')}
-                </div>
-              )}
-
-              <div className="h-56 rounded-2xl overflow-hidden border border-slate-200">
-                <MapContainer center={linie[0]} zoom={15} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3 }} />
-                  <Marker position={linie[0]} icon={startIcon} />
-                  <Marker position={linie[linie.length - 1]} icon={endIcon} />
-                  <FitBounds punkte={linie} />
-                </MapContainer>
-              </div>
-
-              {hatHoehe && <Diagramm titel="Höhe (m)" farbe="#1e3a8a" daten={chartDaten} feld="alt" />}
-              {hatSpeed && <Diagramm titel="Geschwindigkeit (km/h)" farbe="#059669" daten={chartDaten} feld="speed" />}
-              {hatAkku && <Diagramm titel="Akku (%)" farbe="#b91c1c" daten={chartDaten} feld="battery" />}
-
-              <p className="text-2xs text-slate-400 text-center">{stats.punkte} {tx('Messpunkte', 'data points')}</p>
-            </>
+    <Dialog
+      titel={tx('Flug-Track', 'Flight track')}
+      icon={Route}
+      breite="lg"
+      onClose={onClose}
+    >
+      {track.length === 0 ? (
+        <div className="text-center py-8">
+          <Route className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+          <p className="text-sm text-slate-700 mb-1 font-medium">{tx('Für diesen Flug ist noch kein Track gespeichert.', 'No track saved for this flight yet.')}</p>
+          <p className="text-xs text-slate-500 mb-5 leading-relaxed">
+            {tx('Detaillierte Telemetrie-CSV (z.B. Airdata-Export mit Zeit, Position, Höhe, Speed, Akku) laden — daraus werden Flugpfad und Diagramme erzeugt.', 'Load a detailed telemetry CSV (e.g. an Airdata export with time, position, altitude, speed, battery) — the flight path and charts are generated from it.')}
+          </p>
+          {/* Datei-Auswahl braucht ein <label> - Knopf-Optik über knopfKlassen. */}
+          <label className={cn(knopfKlassen('primaer', 'md', false), laeuft && 'opacity-50')}>
+            <Upload className="w-4 h-4" /> {laeuft ? 'Lese…' : 'Track-CSV laden'}
+            <input type="file" accept=".csv,text/csv" className="hidden" onChange={importieren} disabled={laeuft} />
+          </label>
+          {fehler && (
+            <p className="mt-4 text-xs text-brand-red flex items-center justify-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5" /> {fehler}
+            </p>
           )}
         </div>
-      </div>
-    </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-4 gap-2">
+            <Stat icon={Mountain} label="Max. Höhe" wert={stats.maxHoeheM !== null ? `${Math.round(stats.maxHoeheM)} m` : '—'} />
+            <Stat icon={Gauge} label="Max. Speed" wert={stats.maxSpeedKmh !== null ? `${Math.round(stats.maxSpeedKmh)} km/h` : '—'} />
+            <Stat icon={Route} label="Max. Dist." wert={`${stats.maxDistanzM} m`} />
+            <Stat icon={BatteryMedium} label="Dauer" wert={mmss(stats.dauerS)} />
+          </div>
+
+          {/* Auto-Auswertung: Warnungen aus der Aufzeichnung */}
+          {warnungen.length > 0 ? (
+            <div className="space-y-2">
+              {warnungen.map((w, i) => {
+                const stil: Record<WarnStufe, string> = {
+                  kritisch: 'bg-red-50 border-red-100 text-brand-red',
+                  warnung: 'bg-amber-50 border-amber-100 text-amber-800',
+                  info: 'bg-slate-50 border-slate-200 text-slate-700',
+                };
+                return (
+                  <div key={i} className={cn('flex items-start gap-2 px-3 py-2.5 rounded-2xl border text-xs font-medium leading-relaxed', stil[w.stufe])}>
+                    <AlertTriangle className="w-4 h-4 shrink-0 mt-px" />
+                    <span>{w.text}</span>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-3 py-2.5 rounded-2xl border border-emerald-100 bg-emerald-50 text-brand-green text-xs font-bold">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              {tx('Keine Auffälligkeiten in der Aufzeichnung.', 'No anomalies in the recording.')}
+            </div>
+          )}
+
+          <div className="h-56 rounded-2xl overflow-hidden border border-slate-200">
+            <MapContainer center={linie[0]} zoom={15} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3 }} />
+              <Marker position={linie[0]} icon={startIcon} />
+              <Marker position={linie[linie.length - 1]} icon={endIcon} />
+              <FitBounds punkte={linie} />
+            </MapContainer>
+          </div>
+
+          {hatHoehe && <Diagramm titel="Höhe (m)" farbe="#1e3a8a" daten={chartDaten} feld="alt" />}
+          {hatSpeed && <Diagramm titel="Geschwindigkeit (km/h)" farbe="#059669" daten={chartDaten} feld="speed" />}
+          {hatAkku && <Diagramm titel="Akku (%)" farbe="#b91c1c" daten={chartDaten} feld="battery" />}
+
+          <p className="text-xs text-slate-500 text-center">{stats.punkte} {tx('Messpunkte', 'data points')}</p>
+        </>
+      )}
+    </Dialog>
   );
 }
 
 function Diagramm({ titel, farbe, daten, feld }: { titel: string, farbe: string, daten: object[], feld: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3">
-      <p className="text-2xs font-bold text-slate-400 uppercase tracking-wider mb-2">{titel}</p>
+      <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider mb-2">{titel}</p>
       <div className="h-28">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={daten} margin={{ top: 4, right: 8, bottom: 0, left: -20 }}>
-            <XAxis dataKey="t" tick={{ fontSize: 9 }} tickFormatter={(s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`} />
-            <YAxis tick={{ fontSize: 9 }} width={40} />
+            <XAxis dataKey="t" tick={{ fontSize: 11 }} tickFormatter={(s) => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`} />
+            <YAxis tick={{ fontSize: 11 }} width={40} />
             <Tooltip labelFormatter={(s) => `${Math.floor(Number(s) / 60)}:${String(Math.round(Number(s) % 60)).padStart(2, '0')} min`} />
             <Line type="monotone" dataKey={feld} stroke={farbe} strokeWidth={2} dot={false} isAnimationActive={false} />
           </LineChart>

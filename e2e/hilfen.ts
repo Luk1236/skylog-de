@@ -14,6 +14,18 @@ export async function oeffneApp(page: Page, theme: 'light' | 'dark' = 'light') {
   await setzeTheme(page, theme);
 }
 
+/** App öffnen und über den Willkommensbildschirm die Beispieldaten laden. */
+export async function oeffneAppMitDemo(page: Page, theme: 'light' | 'dark' = 'light') {
+  await page.addInitScript((t) => {
+    try { localStorage.setItem('skylog_theme', t); } catch { /* egal */ }
+  }, theme);
+  await page.goto('/');
+  await page.addStyleTag({ content: '*,*::before,*::after{transition:none!important;animation:none!important}' });
+  await page.getByRole('button', { name: 'Mit Beispieldaten ausprobieren' }).click();
+  await page.getByRole('heading', { name: 'Logbuch' }).waitFor();
+  await setzeTheme(page, theme);
+}
+
 export async function setzeTheme(page: Page, theme: 'light' | 'dark') {
   await page.evaluate((t) => { document.documentElement.dataset.theme = t; }, theme);
 }

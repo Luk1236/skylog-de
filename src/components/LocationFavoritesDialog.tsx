@@ -1,8 +1,10 @@
 import { useSprache } from '../lib/sprache';
 import React, { useState, useMemo, FormEvent } from 'react';
-import { X, MapPin, Plus, Search, Trash2, Check, AlertCircle } from 'lucide-react';
+import { MapPin, Plus, Search, Trash2, Check, AlertCircle } from 'lucide-react';
 import type { LocationFavorite } from '../services/db';
 import { createLocationFavorite, filterLocationFavorites, formatCoordinates } from '../services/locationFavorites';
+import { Dialog, Knopf, Feld, eingabe } from './ui';
+import { cn } from '../lib/utils';
 
 interface Props {
   favorites: LocationFavorite[];
@@ -11,6 +13,9 @@ interface Props {
   onSelectFavorite?: (fav: LocationFavorite) => void;
   onClose: () => void;
 }
+
+// Eingabefelder im slate-50 hinterlegten Formular weiß absetzen.
+const formFeld = cn(eingabe, 'bg-white');
 
 export function LocationFavoritesDialog({
   favorites,
@@ -64,195 +69,170 @@ export function LocationFavoritesDialog({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4 overflow-y-auto">
-      <div className="immer-dunkel bg-slate-900 border border-slate-700/80 rounded-3xl w-full max-w-xl overflow-hidden shadow-2xl text-white">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-400">
-              <MapPin className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="font-bold text-base">{tx('Standort-Favoriten', 'Location favourites')}</h2>
-              <p className="text-xs text-slate-400">{tx('Gespeicherte Orte für Logbuch & Flugplaner', 'Saved places for logbook & flight planner')}</p>
-            </div>
+    <Dialog
+      titel={tx('Standort-Favoriten', 'Location favourites')}
+      untertitel={tx('Gespeicherte Orte für Logbuch & Flugplaner', 'Saved places for logbook & flight planner')}
+      icon={MapPin}
+      ton="blau"
+      breite="lg"
+      onClose={onClose}
+    >
+      {/* Controls Bar */}
+      {!isAdding && (
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder={tx('Standorte durchsuchen...', 'Search locations…')}
+              className={cn(eingabe, 'pl-10')}
+            />
           </div>
-          <button onClick={onClose} className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400">
-            <X className="w-5 h-5" />
-          </button>
+          <Knopf icon={Plus} className="shrink-0" onClick={() => setIsAdding(true)}>
+            <span>{tx('Neuer Ort', 'New place')}</span>
+          </Knopf>
         </div>
+      )}
 
-        {/* Body */}
-        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
-          {/* Controls Bar */}
-          {!isAdding && (
-            <div className="flex items-center gap-3">
-              <div className="relative flex-1">
-                <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder={tx('Standorte durchsuchen...', 'Search locations…')}
-                  className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
-                />
-              </div>
-              <button
-                onClick={() => setIsAdding(true)}
-                className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>{tx('Neuer Ort', 'New place')}</span>
-              </button>
+      {/* Form: Add New Favorite */}
+      {isAdding && (
+        <form onSubmit={handleAddSubmit} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-2xs font-bold uppercase tracking-wider text-brand-blue">{tx('Neuen Standort speichern', 'Save new location')}</h3>
+            <Knopf variante="geist" groesse="sm" onClick={() => setIsAdding(false)}>
+              {tx('Abbrechen', 'Cancel')}
+            </Knopf>
+          </div>
+
+          {errorMsg && (
+            <div className="p-3 rounded-2xl bg-red-50 border border-red-100 flex items-center gap-2 text-brand-red text-sm font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{errorMsg}</span>
             </div>
           )}
 
-          {/* Form: Add New Favorite */}
-          {isAdding && (
-            <form onSubmit={handleAddSubmit} className="p-5 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">{tx('Neuen Standort speichern', 'Save new location')}</h3>
-                <button type="button" onClick={() => setIsAdding(false)} className="text-xs text-slate-400 hover:text-white">
-                  {tx('Abbrechen', 'Cancel')}
-                </button>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <Feld label={tx('Name (z.B. Modellflugplatz)', 'Name (e.g. model airfield)')} htmlFor="favorit-name">
+              <input
+                id="favorit-name"
+                type="text"
+                required
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={tx('Titel des Ortes', 'Place title')}
+                className={formFeld}
+              />
+            </Feld>
+            <Feld label={tx('Ort / Gemeinde', 'Town / municipality')} htmlFor="favorit-ort">
+              <input
+                id="favorit-ort"
+                type="text"
+                value={locationName}
+                onChange={e => setLocationName(e.target.value)}
+                placeholder={tx('z.B. Griesheim', 'e.g. Griesheim')}
+                className={formFeld}
+              />
+            </Feld>
+            <Feld label={tx('Breitengrad (Latitude)', 'Latitude')} htmlFor="favorit-lat">
+              <input
+                id="favorit-lat"
+                type="number"
+                step="any"
+                required
+                value={latStr}
+                onChange={e => setLatStr(e.target.value)}
+                placeholder="z.B. 49.8730"
+                className={cn(formFeld, 'font-mono')}
+              />
+            </Feld>
+            <Feld label={tx('Längengrad (Longitude)', 'Longitude')} htmlFor="favorit-lon">
+              <input
+                id="favorit-lon"
+                type="number"
+                step="any"
+                required
+                value={lonStr}
+                onChange={e => setLonStr(e.target.value)}
+                placeholder="z.B. 8.6520"
+                className={cn(formFeld, 'font-mono')}
+              />
+            </Feld>
+          </div>
 
-              {errorMsg && (
-                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center gap-2 text-red-300 text-xs">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errorMsg}</span>
-                </div>
-              )}
+          <Feld label={tx('Notizen / Hindernisse', 'Notes / obstacles')} htmlFor="favorit-notizen">
+            <input
+              id="favorit-notizen"
+              type="text"
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder={tx('z.B. Starker Seitenwind bei Nordost, Hochspannungsleitung in 400m', 'e.g. strong crosswind from the north-east, power line at 400 m')}
+              className={formFeld}
+            />
+          </Feld>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div>
-                  <label className="block mb-1 font-medium text-slate-300">{tx('Name (z.B. Modellflugplatz)', 'Name (e.g. model airfield)')}</label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={e => setName(e.target.value)}
-                    placeholder={tx('Titel des Ortes', 'Place title')}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-slate-300">{tx('Ort / Gemeinde', 'Town / municipality')}</label>
-                  <input
-                    type="text"
-                    value={locationName}
-                    onChange={e => setLocationName(e.target.value)}
-                    placeholder={tx('z.B. Griesheim', 'e.g. Griesheim')}
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-slate-300">{tx('Breitengrad (Latitude)', 'Latitude')}</label>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    value={latStr}
-                    onChange={e => setLatStr(e.target.value)}
-                    placeholder="z.B. 49.8730"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500 font-mono"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 font-medium text-slate-300">{tx('Längengrad (Longitude)', 'Longitude')}</label>
-                  <input
-                    type="number"
-                    step="any"
-                    required
-                    value={lonStr}
-                    onChange={e => setLonStr(e.target.value)}
-                    placeholder="z.B. 8.6520"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-amber-500 font-mono"
-                  />
-                </div>
-              </div>
+          <div className="flex justify-end gap-2 pt-1">
+            <Knopf variante="sekundaer" onClick={() => setIsAdding(false)}>
+              {tx('Abbrechen', 'Cancel')}
+            </Knopf>
+            <Knopf type="submit" disabled={saving}>
+              {saving ? 'Speichert...' : 'Favorit Hinzufügen'}
+            </Knopf>
+          </div>
+        </form>
+      )}
 
-              <div>
-                <label className="block mb-1 text-xs font-medium text-slate-300">{tx('Notizen / Hindernisse', 'Notes / obstacles')}</label>
-                <input
-                  type="text"
-                  value={notes}
-                  onChange={e => setNotes(e.target.value)}
-                  placeholder={tx('z.B. Starker Seitenwind bei Nordost, Hochspannungsleitung in 400m', 'e.g. strong crosswind from the north-east, power line at 400 m')}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white focus:outline-none focus:border-amber-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsAdding(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-700 text-slate-300 text-xs font-medium"
-                >
-                  {tx('Abbrechen', 'Cancel')}
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md"
-                >
-                  {saving ? 'Speichert...' : 'Favorit Hinzufügen'}
-                </button>
-              </div>
-            </form>
-          )}
-
-          {/* List of Favorites */}
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center text-slate-400 text-xs">
-              <MapPin className="w-8 h-8 mx-auto mb-2 opacity-30 text-amber-400" />
-              <p>{tx('Keine Standort-Favoriten vorhanden.', 'No location favourites yet.')}</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {filtered.map(fav => (
-                <div
-                  key={fav.id}
-                  className="p-4 rounded-2xl bg-slate-800/40 hover:bg-slate-800/70 border border-slate-800 flex items-start justify-between gap-4 transition-all"
-                >
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-slate-100">{fav.name}</span>
-                      <span className="text-2xs px-2 py-0.5 rounded-lg bg-slate-700/60 text-slate-300 font-medium">
-                        {fav.locationName}
-                      </span>
-                    </div>
-                    <p className="text-xs font-mono text-amber-400/90">{formatCoordinates(fav.coordinates)}</p>
-                    {fav.notes && <p className="text-xs text-slate-400 italic pt-0.5">{fav.notes}</p>}
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {onSelectFavorite && (
-                      <button
-                        onClick={() => {
-                          onSelectFavorite(fav);
-                          onClose();
-                        }}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-semibold"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                        <span>{tx('Auswählen', 'Select')}</span>
-                      </button>
-                    )}
-                    <button
-                      onClick={() => onDeleteFavorite(fav.id)}
-                      className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 hover:text-red-300 transition-colors"
-                      title={tx('Löschen', 'Delete')}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+      {/* List of Favorites */}
+      {filtered.length === 0 ? (
+        <div className="py-12 text-center text-slate-500 text-sm">
+          <MapPin className="w-8 h-8 mx-auto mb-2 opacity-40 text-brand-blue" />
+          <p>{tx('Keine Standort-Favoriten vorhanden.', 'No location favourites yet.')}</p>
         </div>
-      </div>
-    </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map(fav => (
+            <div
+              key={fav.id}
+              className="p-4 rounded-2xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-start justify-between gap-4 transition-colors"
+            >
+              <div className="space-y-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-bold text-sm text-slate-900">{fav.name}</span>
+                  <span className="text-2xs px-2 py-0.5 rounded-full bg-white border border-slate-200 text-slate-600 font-medium">
+                    {fav.locationName}
+                  </span>
+                </div>
+                <p className="text-xs font-mono text-brand-blue">{formatCoordinates(fav.coordinates)}</p>
+                {fav.notes && <p className="text-xs text-slate-500 italic pt-0.5">{fav.notes}</p>}
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0">
+                {onSelectFavorite && (
+                  <Knopf
+                    variante="sekundaer"
+                    groesse="sm"
+                    icon={Check}
+                    onClick={() => {
+                      onSelectFavorite(fav);
+                      onClose();
+                    }}
+                  >
+                    <span>{tx('Auswählen', 'Select')}</span>
+                  </Knopf>
+                )}
+                <button
+                  onClick={() => onDeleteFavorite(fav.id)}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-red-50 hover:bg-red-100 text-brand-red transition-colors"
+                  title={tx('Löschen', 'Delete')}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Dialog>
   );
 }
