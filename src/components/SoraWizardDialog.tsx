@@ -1,8 +1,8 @@
 import { useSprache } from '../lib/sprache';
 import React, { useId, useState } from 'react';
-import { Shield, CheckCircle2, FileText, ChevronRight } from 'lucide-react';
+import { Shield, CheckCircle2, FileText, ChevronRight, AlertTriangle, Info } from 'lucide-react';
 import type { Drone, UserProfile } from '../services/db';
-import { evaluateSora, generateSoraPdf, type SoraInput } from '../services/sora25';
+import { evaluateSora, generateSoraPdf, robustheitText, HINWEIS, HINWEIS_EN, type SoraInput } from '../services/sora25';
 import { Dialog, Knopf, Feld, eingabe } from './ui';
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export function SoraWizardDialog({ drones, profile, onClose }: Props) {
-  const { tx } = useSprache();
+  const { tx, sprache } = useSprache();
   const id = useId();
   const [step, setStep] = useState<'form' | 'result'>('form');
   const [selectedDroneId, setSelectedDroneId] = useState<string>(drones[0]?.id || '');
@@ -28,7 +28,6 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
     droneMtomKg: selectedDrone?.weight ? (selectedDrone.weight > 50 ? selectedDrone.weight / 1000 : selectedDrone.weight) : 1.5,
     m1Mitigation: true,
     m2Mitigation: false,
-    m3Mitigation: true,
   });
 
   const result = evaluateSora(input);
@@ -151,7 +150,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
 
           {/* Mitigations Checkboxes */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-sm text-slate-700">
-            <h4 className="font-bold text-slate-500 uppercase text-2xs tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h4>
+            <h3 className="font-bold text-slate-500 uppercase text-2xs tracking-wider">{tx('Risikominderungsmaßnahmen (Mitigations)', 'Mitigations')}</h3>
 
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -173,15 +172,10 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
               <span><strong className="text-slate-900">M2 Mitigation:</strong> {tx('Notfall-Fallschirm / Aufprallminderung am Boden (-1 GRC)', 'Emergency parachute / ground impact reduction (-1 GRC)')}</span>
             </label>
 
-            <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                className="w-5 h-5 rounded accent-brand-blue cursor-pointer shrink-0"
-                checked={input.m3Mitigation}
-                onChange={e => setInput({ ...input, m3Mitigation: e.target.checked })}
-              />
-              <span><strong className="text-slate-900">M3 Mitigation:</strong> {tx('Validierter Notfallaktionsplan (Emergency Response Plan - ERP) (-1 GRC)', 'Validated emergency response plan (ERP) (-1 GRC)')}</span>
-            </label>
+            {/* SORA 2.5 hat M3 gestrichen - der Notfallplan ist jetzt Teil von OSO #08. */}
+            <p className="text-xs text-slate-500 leading-relaxed">
+              {tx('Notfallplan (ERP): In SORA 2.5 keine eigene Minderung mehr, sondern Teil von OSO #08.', 'Emergency response plan (ERP): no longer a separate mitigation in SORA 2.5, but part of OSO #08.')}
+            </p>
           </div>
         </div>
       ) : (
@@ -207,17 +201,35 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
             </div>
           </div>
 
+          {result.ausserhalbSora && (
+            <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-100 rounded-2xl text-brand-red">
+              <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+              <p className="text-sm font-bold leading-relaxed">
+                {tx('Finaler GRC über 7: Das liegt außerhalb von SORA. Solche Einsätze fallen in die zulassungspflichtige Kategorie (certified).', 'Final GRC above 7: this is outside the scope of SORA. Such operations fall under the certified category.')}
+              </p>
+            </div>
+          )}
+
           {/* OSOs List */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
-            <h4 className="font-bold text-sm text-slate-900">{tx('Erforderliche Operational Safety Objectives (OSOs):', 'Required operational safety objectives (OSOs):')}</h4>
+            <h3 className="font-bold text-sm text-slate-900">{tx('Erforderliche Operational Safety Objectives (OSOs):', 'Required operational safety objectives (OSOs):')}</h3>
             <div className="space-y-2 text-sm text-slate-700">
-              {result.requiredOsos.map((oso, idx) => (
-                <div key={idx} className="flex items-start gap-2">
+              {result.requiredOsos.map(oso => (
+                <div key={oso.nummer} className="flex items-start gap-2">
                   <CheckCircle2 className="w-4 h-4 text-brand-green shrink-0 mt-0.5" />
-                  <span>{oso}</span>
+                  <span>
+                    <strong className="text-slate-900">{oso.nummer}</strong>{' '}
+                    <span className="text-xs font-bold text-brand-blue">({tx('Robustheit', 'robustness')} {robustheitText(oso.robustheit, sprache)})</span>{' '}
+                    {sprache === 'en' ? oso.titelEn : oso.titel}
+                  </span>
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="flex items-start gap-2 px-1 text-xs text-slate-500 leading-relaxed">
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            <p>{sprache === 'en' ? HINWEIS_EN : HINWEIS}</p>
           </div>
         </div>
       )}
