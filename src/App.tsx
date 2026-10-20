@@ -9,6 +9,7 @@ import { fetchWeather, type WeatherData } from './services/weather';
 
 import { getLastBackupAt } from './services/backup';
 import { getSicherungsIntervall } from './services/sicherungsErinnerung';
+import { planeBenachrichtigungen, synchronisiereBenachrichtigungen } from './services/benachrichtigungen';
 import { getReminders } from './services/reminders';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
@@ -218,6 +219,15 @@ export default function App() {
   // Dringende Erinnerungen (level 'alert') als roter Zaehler in der Navigation.
   // Frueher stand hier r.priority === 'high' - das Feld gibt es nicht, der Zaehler blieb immer leer.
   const highPrioCount = appReminders.filter(r => r.level === 'alert').length;
+
+  // Android: Fristen als echte Benachrichtigungen planen (im Browser ohne Wirkung).
+  // Erst nach dem Laden - sonst wuerden leere Listen alle geplanten Termine loeschen.
+  useEffect(() => {
+    if (isLoading) return;
+    void synchronisiereBenachrichtigungen(
+      planeBenachrichtigungen(profile, drones, batteries, getLastBackupAt(), getSicherungsIntervall()),
+    );
+  }, [isLoading, profile, drones, batteries]);
 
   if (isLoading) {
     return (
