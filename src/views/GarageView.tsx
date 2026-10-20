@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   BadgeAlert, Calendar, Camera, Clock, Plane, Plus, Settings2,
-  ShieldAlert, Sparkles, Trash2, Wrench, XCircle, Zap,
+  ShieldAlert, Sparkles, Trash2, Wrench, X, XCircle, Zap,
 } from 'lucide-react';
 import {
   dbService, type Drone, type Battery, type MaintenanceRecord,
@@ -14,6 +14,7 @@ import { effektiveGesundheit } from '../services/batteryHealth';
 import { cn } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
 import { BatteryDetailDialog } from '../components/lazyDialogs';
+import { Dialog, Knopf, IconKnopf, Feld, eingabe, SeitenKopf } from '../components/ui';
 
 export function GarageView({ drones, flights, batteries, onUpdate }: { drones: Drone[], flights: Flight[], batteries: Battery[], onUpdate: () => void }) {
   const { t, tx } = useSprache();
@@ -264,11 +265,10 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
 
   return (
     <div className="max-w-md lg:max-w-3xl mx-auto pb-20">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.flotte')}</h2>
-          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Drohnen Management', 'Drone management')}</p>
-        </div>
+      <SeitenKopf
+        titel={t('view.flotte')}
+        untertitel={tx('Drohnen-Management', 'Drone management')}
+        aktionen={
         <button 
           onClick={() => {
             if (showAdd && editingDroneId) {
@@ -278,73 +278,68 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
               setShowAdd(!showAdd);
             }
           }}
+          aria-label={showAdd ? tx('Abbrechen', 'Cancel') : tx('Drohne hinzufügen', 'Add drone')}
           className="bg-brand-blue text-white p-2.5 rounded-2xl shadow-lg shadow-brand-blue/20 transition-transform active:scale-95"
         >
           {showAdd ? <XCircle className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
         </button>
-      </div>
+        }
+      />
 
-      {/* Prominent Maintenance Dashboard Summary */}
+      {/* Sammelhinweis: welche Drohnen Wartung brauchen */}
       {drones.some(d => getMaintenanceAlerts(d.id).length > 0) && (
-        <motion.div 
-          initial={{ y: -20, opacity: 0 }}
+        <motion.div
+          initial={{ y: -12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="mb-8 p-5 bg-gradient-to-br from-amber-500 to-brand-orange rounded-3xl shadow-xl shadow-brand-orange/20 text-white overflow-hidden relative"
+          className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-3xl"
         >
-          <div className="absolute top-[-20%] right-[-10%] opacity-10 rotate-12">
-            <Wrench className="w-32 h-32" />
+          <div className="flex items-center gap-2 mb-1">
+            <BadgeAlert className="w-4 h-4 text-amber-800" />
+            <h3 className="text-sm font-bold text-amber-800">{tx('Wartung erforderlich', 'Maintenance required')}</h3>
           </div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-2">
-              <BadgeAlert className="w-5 h-5 text-white animate-bounce" />
-              <h3 className="font-black text-xs uppercase tracking-[0.2em]">{tx('Wartung erforderlich', 'Maintenance required')}</h3>
-            </div>
-            <p className="text-sm font-medium opacity-90 mb-4">{tx('Mehrere Drohnen benötigen Aufmerksamkeit für sicheren Flugbetrieb.', 'Several drones need attention for safe operation.')}</p>
-            <div className="flex flex-wrap gap-2">
-              {drones.filter(d => getMaintenanceAlerts(d.id).length > 0).map(d => (
-                <button 
-                  key={d.id}
-                  onClick={() => setSelectedDroneId(d.id)}
-                  className="bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-xl text-2xs font-black uppercase tracking-wider hover:bg-white/30 transition-all border border-white/10"
-                >
-                  {d.model} ({getMaintenanceAlerts(d.id).length})
-                </button>
-              ))}
-            </div>
+          <p className="text-xs text-slate-700 mb-3">{tx('Mehrere Drohnen benötigen Aufmerksamkeit für sicheren Flugbetrieb.', 'Several drones need attention for safe operation.')}</p>
+          <div className="flex flex-wrap gap-2">
+            {drones.filter(d => getMaintenanceAlerts(d.id).length > 0).map(d => (
+              <button
+                key={d.id}
+                onClick={() => setSelectedDroneId(d.id)}
+                className="h-10 px-3 rounded-xl bg-white border border-amber-200 text-xs font-bold text-amber-800 hover:bg-amber-100 transition-colors"
+              >
+                {d.model} ({getMaintenanceAlerts(d.id).length})
+              </button>
+            ))}
           </div>
         </motion.div>
       )}
 
       <AnimatePresence>
         {showAdd && (
-          <motion.div 
+          <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-6"
           >
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <h3 className="font-black text-slate-900 text-sm uppercase tracking-wider">
-                {editingDroneId ? 'Drohne bearbeiten' : 'Neue Drohne registrieren'}
+              <h3 className="text-base font-black text-slate-900">
+                {editingDroneId ? tx('Drohne bearbeiten', 'Edit drone') : tx('Neue Drohne registrieren', 'Register new drone')}
               </h3>
-              <div>
-                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Modell / Name', 'Model / name')}</label>
-                <input 
-                  type="text" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
+              <Feld label={tx('Modell / Name', 'Model / name')} htmlFor="dr-modell">
+                <input
+                  id="dr-modell"
+                  type="text"
+                  className={eingabe}
                   placeholder={tx('z.B. DJI Mini 4 Pro', 'e.g. DJI Mini 4 Pro')}
                   value={newDrone.model || ''}
                   onChange={e => setNewDrone({...newDrone, model: e.target.value})}
                 />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Gewicht (g)', 'Weight (g)')}</label>
-                  <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="249" value={newDrone.weight || ''} onChange={e => setNewDrone({...newDrone, weight: Number(e.target.value)})} />
-                </div>
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('C-Klasse', 'C class')}</label>
-                  <select className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" value={newDrone.uasClass || 'Legacy'} onChange={e => setNewDrone({...newDrone, uasClass: e.target.value as UASClass})}>
+              </Feld>
+              <div className="grid grid-cols-2 gap-3">
+                <Feld label={tx('Gewicht (g)', 'Weight (g)')} htmlFor="dr-gewicht">
+                  <input id="dr-gewicht" type="number" className={eingabe} placeholder="249" value={newDrone.weight || ''} onChange={e => setNewDrone({...newDrone, weight: Number(e.target.value)})} />
+                </Feld>
+                <Feld label={tx('C-Klasse', 'C class')} htmlFor="dr-klasse">
+                  <select id="dr-klasse" className={eingabe} value={newDrone.uasClass || 'Legacy'} onChange={e => setNewDrone({...newDrone, uasClass: e.target.value as UASClass})}>
                     <option value="C0">C0 (&lt; 250g)</option>
                     <option value="C1">C1 (&lt; 900g)</option>
                     <option value="C2">C2 (&lt; 4kg)</option>
@@ -353,83 +348,81 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                     <option value="Legacy">{tx('Bestandsdrohne', 'Legacy drone')}</option>
                     <option value="Self-built">{tx('Eigenbau', 'Self-built')}</option>
                   </select>
-                </div>
+                </Feld>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Seriennummer', 'Serial number')}</label>
-                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="SN123..." value={newDrone.serialNumber || ''} onChange={e => setNewDrone({...newDrone, serialNumber: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Firmware Version', 'Firmware version')}</label>
-                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="v01.00..." value={newDrone.firmwareVersion || ''} onChange={e => setNewDrone({...newDrone, firmwareVersion: e.target.value})} />
-                </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Feld label={tx('Seriennummer', 'Serial number')} htmlFor="dr-sn">
+                  <input id="dr-sn" type="text" className={eingabe} placeholder="SN123..." value={newDrone.serialNumber || ''} onChange={e => setNewDrone({...newDrone, serialNumber: e.target.value})} />
+                </Feld>
+                <Feld label={tx('Firmware Version', 'Firmware version')} htmlFor="dr-fw">
+                  <input id="dr-fw" type="text" className={eingabe} placeholder="v01.00..." value={newDrone.firmwareVersion || ''} onChange={e => setNewDrone({...newDrone, firmwareVersion: e.target.value})} />
+                </Feld>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('LBA e-ID (Optional)', 'LBA e-ID (optional)')}</label>
-                  <input type="text" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm" placeholder="DEU..." value={newDrone.eId || ''} onChange={e => setNewDrone({...newDrone, eId: e.target.value})} />
-                </div>
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Spezielle Versicherung', 'Separate insurance')}</label>
+              <div className="grid grid-cols-2 gap-3">
+                <Feld label={tx('LBA e-ID (Optional)', 'LBA e-ID (optional)')} htmlFor="dr-eid">
+                  <input id="dr-eid" type="text" className={eingabe} placeholder="DEU..." value={newDrone.eId || ''} onChange={e => setNewDrone({...newDrone, eId: e.target.value})} />
+                </Feld>
+                <Feld label={tx('Spezielle Versicherung', 'Separate insurance')} htmlFor="dr-vers">
                   <input
+                    id="dr-vers"
                     type="text"
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm"
+                    className={eingabe}
                     placeholder={tx('Nur falls abweichend', 'Only if different')}
                     value={newDrone.insuranceNumber || ''}
                     onChange={e => setNewDrone({...newDrone, insuranceNumber: e.target.value})}
                   />
-                </div>
+                </Feld>
               </div>
-              <div>
-                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Max. Windgrenze (km/h)', 'Max. wind limit (km/h)')}</label>
+              <Feld label={tx('Max. Windgrenze (km/h)', 'Max. wind limit (km/h)')} htmlFor="dr-wind">
                 <input
+                  id="dr-wind"
                   type="number"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm"
+                  className={eingabe}
                   placeholder={tx('z.B. 28 (leer = Standard 28 km/h)', 'e.g. 28 (empty = default 28 km/h)')}
                   value={newDrone.maxWindSpeed || ''}
                   onChange={e => setNewDrone({...newDrone, maxWindSpeed: e.target.value ? Number(e.target.value) : undefined})}
                 />
-              </div>
+              </Feld>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Garantie bis', 'Warranty until')}</label>
-                  <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
+                <Feld label={tx('Garantie bis', 'Warranty until')} htmlFor="dr-garantie">
+                  <input id="dr-garantie" type="date" className={eingabe}
                     value={newDrone.warrantyUntil?.slice(0,10) || ''}
                     onChange={e => setNewDrone({...newDrone, warrantyUntil: e.target.value || undefined})} />
-                </div>
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Kaufdatum', 'Purchase date')}</label>
-                  <input type="date" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm"
+                </Feld>
+                <Feld label={tx('Kaufdatum', 'Purchase date')} htmlFor="dr-kauf">
+                  <input id="dr-kauf" type="date" className={eingabe}
                     value={newDrone.purchaseDate?.slice(0,10) || ''}
                     onChange={e => setNewDrone({...newDrone, purchaseDate: e.target.value || undefined})} />
-                </div>
+                </Feld>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Wartung alle (Tage)', 'Maintenance every (days)')}</label>
-                  <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" placeholder="z.B. 180"
+                <Feld label={tx('Wartung alle (Tage)', 'Maintenance every (days)')} htmlFor="dr-tage">
+                  <input id="dr-tage" type="number" className={eingabe} placeholder={tx('z.B. 180', 'e.g. 180')}
                     value={newDrone.maintenanceIntervalDays || ''}
                     onChange={e => setNewDrone({...newDrone, maintenanceIntervalDays: e.target.value ? Number(e.target.value) : undefined})} />
-                </div>
-                <div>
-                  <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Wartung alle (Std.)', 'Maintenance every (hours)')}</label>
-                  <input type="number" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-sm" placeholder="z.B. 50"
+                </Feld>
+                <Feld label={tx('Wartung alle (Std.)', 'Maintenance every (hours)')} htmlFor="dr-std">
+                  <input id="dr-std" type="number" className={eingabe} placeholder={tx('z.B. 50', 'e.g. 50')}
                     value={newDrone.maintenanceIntervalHours || ''}
                     onChange={e => setNewDrone({...newDrone, maintenanceIntervalHours: e.target.value ? Number(e.target.value) : undefined})} />
-                </div>
+                </Feld>
               </div>
-              <div>
-                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Drohnen-Foto (optional)', 'Drone photo (optional)')}</label>
+              <Feld label={tx('Drohnen-Foto (optional)', 'Drone photo (optional)')}>
                 {newDrone.photoUrl ? (
                   <div className="relative">
                     <img src={newDrone.photoUrl} alt={tx('Vorschau', 'Preview')} className="w-full h-28 object-cover rounded-xl border border-slate-200" />
-                    <button onClick={() => setNewDrone({...newDrone, photoUrl: undefined})} className="absolute top-2 right-2 bg-brand-red text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">✕</button>
+                    <IconKnopf
+                      icon={X}
+                      variante="sekundaer"
+                      aria-label={tx('Foto entfernen', 'Remove photo')}
+                      onClick={() => setNewDrone({...newDrone, photoUrl: undefined})}
+                      className="absolute top-2 right-2 shadow-sm"
+                    />
                   </div>
                 ) : (
                   <label className="flex items-center gap-2 p-3 bg-slate-50 border border-dashed border-slate-300 rounded-xl cursor-pointer hover:bg-slate-100 transition-colors">
-                    <Camera className="w-4 h-4 text-slate-400" />
-                    <span className="text-xs text-slate-400">{tx('Foto aufnehmen oder hochladen', 'Take or upload a photo')}</span>
+                    <Camera className="w-4 h-4 text-slate-500" />
+                    <span className="text-xs text-slate-500">{tx('Foto aufnehmen oder hochladen', 'Take or upload a photo')}</span>
                     <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => {
                       const file = e.target.files?.[0];
                       if (!file) return;
@@ -439,13 +432,10 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                     }} />
                   </label>
                 )}
-              </div>
-              <button
-                onClick={handleAdd}
-                className="w-full bg-brand-blue text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-blue/20 active:scale-95 transition-all text-sm"
-              >
-                {editingDroneId ? 'Änderungen speichern' : 'Drohne registrieren'}
-              </button>
+              </Feld>
+              <Knopf voll onClick={handleAdd}>
+                {editingDroneId ? tx('Änderungen speichern', 'Save changes') : tx('Drohne registrieren', 'Register drone')}
+              </Knopf>
             </div>
           </motion.div>
         )}
@@ -461,408 +451,342 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
           const wStatus = wartungStatus(drone, droneFlights, alleWartungen);
           const gStatus = garantieStatus(drone);
           const wartungsKosten = gesamtKosten(alleWartungen, drone.id);
+          const hinweise = getMaintenanceAlerts(drone.id);
 
           return (
-            <div key={drone.id} className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex items-center justify-between group">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-brand-blue/5 flex items-center justify-center border border-brand-blue/10 overflow-hidden shrink-0">
+            <div key={drone.id} className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+              {/* Kopf: Bild, Name, Aktionen */}
+              <div className="flex items-start gap-3">
+                <div className="w-11 h-11 rounded-2xl bg-brand-blue/5 flex items-center justify-center border border-brand-blue/10 overflow-hidden shrink-0">
                   {drone.photoUrl
                     ? <img src={drone.photoUrl} alt={drone.model} className="w-full h-full object-cover" />
-                    : <Plane className="w-6 h-6 text-brand-blue" />}
+                    : <Plane className="w-5 h-5 text-brand-blue" />}
                 </div>
-                <div>
-                  <h3 className="font-bold text-slate-900 text-sm">{drone.model}</h3>
-                  <div className="flex flex-wrap items-center gap-x-2 text-2xs text-slate-400 font-bold uppercase tracking-wider">
-                    <span>{drone.uasClass || 'Legacy'}</span>
-                    <span>&bull; {drone.weight}g</span>
-                    {drone.serialNumber && <span>&bull; SN: {drone.serialNumber}</span>}
-                  </div>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <p className="text-2xs text-brand-blue font-black uppercase tracking-tight flex items-center gap-1">
-                      <Clock className="w-2.5 h-2.5" />
-                      {hours}h {mins}{tx('m Flugzeit', 'm flight time')}
-                    </p>
-                    {drone.firmwareVersion && (
-                      <p className="text-2xs text-slate-400 font-bold uppercase tracking-tight">
-                        &bull; FW: {drone.firmwareVersion}
-                      </p>
-                    )}
-                    <p className="text-2xs text-slate-400 font-bold uppercase tracking-tight">
-                      &bull; {droneFlights.length} {tx('Flüge', 'Flights')}
-                    </p>
-                  </div>
-
-                  {/* Wartung / Garantie / Kosten */}
-                  <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                    {wStatus.level !== 'ok' && (
-                      <span className={cn(
-                        'text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1',
-                        wStatus.level === 'alert' ? 'bg-brand-red/10 text-brand-red' : 'bg-amber-50 text-amber-600'
-                      )} title={wStatus.gruende.join(' ')}>
-                        <Wrench className="w-2.5 h-2.5" /> {tx('Wartung', 'Maintenance')} {wStatus.level === 'alert' ? 'fällig' : 'bald'}
-                      </span>
-                    )}
-                    {gStatus.status === 'aktiv' && (
-                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-brand-green/10 text-brand-green">
-                        {tx('Garantie', 'Warranty')} {gStatus.tage}d
-                      </span>
-                    )}
-                    {gStatus.status === 'bald' && (
-                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-600">
-                        {tx('Garantie endet in', 'Warranty ends in')} {gStatus.tage}d
-                      </span>
-                    )}
-                    {gStatus.status === 'abgelaufen' && (
-                      <span className="text-2xs font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                        {tx('Garantie abgelaufen', 'Warranty expired')}
-                      </span>
-                    )}
-                    {wartungsKosten > 0 && (
-                      <span className="text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 flex items-center gap-1">
-                        <span className="text-brand-blue">€</span> {wartungsKosten.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="mt-2 flex items-center gap-2">
-                    <button 
-                      onClick={async () => {
-                        const statsForDrone = droneStats[drone.id];
-                        const record: MaintenanceRecord = {
-                          id: crypto.randomUUID(),
-                          droneId: drone.id,
-                          date: new Date().toISOString().split('T')[0],
-                          type: 'Motor',
-                          description: 'Motoren gereinigt (Benutzer-Schnellaktion)',
-                          hoursAtMaintenance: statsForDrone?.hours || 0,
-                          createdAt: Date.now()
-                        };
-                        await dbService.saveMaintenance(record);
-                        onUpdate();
-                      }}
-                      className="text-2xs font-black uppercase tracking-wider text-brand-blue bg-brand-blue/5 px-2 py-1 rounded hover:bg-brand-blue hover:text-white transition-all flex items-center gap-1"
-                    >
-                      <Sparkles className="w-2 h-2" /> {tx('Motoren reinigen', 'Clean motors')}
-                    </button>
-                    {stats.lastMaint['Motor'] && (
-                      <span className="text-2xs text-slate-400 font-bold uppercase">{tx('Zuletzt:', 'Last:')} {new Date(stats.lastMaint['Motor']).toLocaleDateString('de-DE')}</span>
-                    )}
-                  </div>
-                  
-                  {getMaintenanceAlerts(drone.id).length > 0 && (
-                    <div className="mt-4 space-y-3 p-4 bg-white border-2 border-amber-100 rounded-3xl shadow-sm relative overflow-hidden group/alert">
-                       <div className="absolute top-0 right-0 p-3 opacity-5 group-hover/alert:opacity-10 transition-opacity">
-                        <Wrench className="w-12 h-12" />
-                      </div>
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="w-6 h-6 rounded-lg bg-amber-700 text-white flex items-center justify-center shadow-lg shadow-amber-500/20">
-                          <BadgeAlert className="w-3.5 h-3.5" />
-                        </div>
-                        <span className="text-2xs font-black text-slate-900 uppercase tracking-[0.2em]">{tx('Sicherheits-Check fällig', 'Safety check due')}</span>
-                      </div>
-                      <div className="space-y-2">
-                        {getMaintenanceAlerts(drone.id).map((alert, idx) => (
-                          <div key={idx} className="flex flex-col gap-1 bg-amber-50/50 p-2 rounded-xl border border-amber-100/30">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                                <span className="text-2xs font-black text-slate-800 uppercase tracking-tight">{alert.reason}</span>
-                              </div>
-                              <span className="text-2xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full uppercase">{alert.type}</span>
-                            </div>
-                            <p className="text-2xs text-slate-500 leading-tight font-medium pl-3.5">{alert.detail}</p>
-                          </div>
-                        ))}
-                      </div>
-                      <button 
-                        onClick={() => setSelectedDroneId(drone.id)}
-                        className="w-full mt-2 py-2 bg-slate-900 text-white text-2xs font-black uppercase tracking-wider rounded-xl hover:bg-brand-blue transition-colors shadow-lg shadow-slate-900/10 active:scale-[0.98]"
-                      >
-                        {tx('Wartung protokollieren', 'Log maintenance')}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            <div className="flex items-center gap-1">
-              <button 
-                onClick={() => handleEditDrone(drone)}
-                className="p-2 text-slate-300 hover:text-brand-blue active:scale-95 transition-all"
-                title={tx('Bearbeiten', 'Edit')}
-              >
-                <Settings2 className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={() => setSelectedDroneId(drone.id)}
-                className="p-2 text-slate-300 hover:text-brand-orange active:scale-95 transition-all"
-                title={tx('Wartung', 'Maintenance')}
-              >
-                <Wrench className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={() => handleDelete(drone.id)}
-                className="p-2 text-slate-300 hover:text-brand-red active:scale-90 transition-all"
-              >
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        );
-      })}
-      </div>
-
-      {/* Maintenance Sheet Overlay */}
-      <AnimatePresence>
-        {selectedDroneId && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[1000] flex items-end sm:items-center justify-center p-0 sm:p-4"
-            onClick={() => setSelectedDroneId(null)}
-          >
-            <motion.div 
-              initial={{ y: 100 }}
-              animate={{ y: 0 }}
-              exit={{ y: 100 }}
-              className="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl p-6 relative flex flex-col max-h-[85vh]"
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="w-12 h-1.5 bg-slate-100 rounded-full mx-auto mb-6 sm:hidden" />
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h3 className="text-xl font-black text-slate-900">{tx('Wartungshistorie', 'Maintenance history')}</h3>
-                  <p className="text-2xs text-slate-400 font-bold uppercase tracking-wider">
-                    {drones.find(d => d.id === selectedDroneId)?.model}
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-bold text-slate-900 truncate">{drone.model}</h3>
+                  <p className="text-xs text-slate-500 truncate">
+                    {drone.uasClass || 'Legacy'} · {drone.weight} g{drone.serialNumber && ` · SN ${drone.serialNumber}`}
                   </p>
                 </div>
-                <button 
-                  onClick={() => setShowMaintForm(!showMaintForm)}
-                  className="p-2 bg-brand-orange/10 text-brand-orange rounded-xl active:scale-90 transition-all font-bold text-xs flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> {tx('Neu', 'New')}
-                </button>
+                <div className="flex -mr-2 -mt-1">
+                  <IconKnopf icon={Settings2} aria-label={tx('Bearbeiten', 'Edit')} onClick={() => handleEditDrone(drone)} />
+                  <IconKnopf icon={Wrench} aria-label={tx('Wartung', 'Maintenance')} onClick={() => setSelectedDroneId(drone.id)} />
+                  <IconKnopf icon={Trash2} variante="gefahr" aria-label={tx('Löschen', 'Delete')} onClick={() => handleDelete(drone.id)} />
+                </div>
               </div>
 
-              {/* Bauteil-Verschleiß Übersicht */}
-              {selectedDroneId && droneStats[selectedDroneId] && (() => {
-                const s = droneStats[selectedDroneId];
-                const parts = [
-                  { label: 'Propeller', limit: 50, since: s.flightsSinceMaint?.['Propeller'] ?? s.flights },
-                  { label: 'Motor', limit: 100, since: s.flightsSinceMaint?.['Motor'] ?? s.flights },
-                  { label: 'Sensor', limit: 200, since: s.flightsSinceMaint?.['Sensor'] ?? s.flights },
-                ];
-                return (
-                  <div className="mb-6 p-4 bg-white border border-slate-100 rounded-2xl space-y-3">
-                    <p className="text-2xs font-black text-slate-400 uppercase tracking-wider">{tx('Bauteil-Verschleiß', 'Component wear')}</p>
-                    {parts.map(p => {
-                      const pct = Math.min(100, Math.round((p.since / p.limit) * 100));
-                      const color = pct >= 100 ? '#ef4444' : pct >= 75 ? '#f97316' : '#10b981';
-                      return (
-                        <div key={p.label}>
-                          <div className="flex justify-between mb-1">
-                            <span className="text-2xs font-bold text-slate-700">{p.label}</span>
-                            <span className="text-2xs font-bold" style={{ color }}>{p.since}/{p.limit} {tx('Flüge', 'Flights')}</span>
-                          </div>
-                          <div className="w-full bg-slate-100 rounded-full h-1.5">
-                            <div className="h-1.5 rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+              {/* Kennzahlen */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-3 text-xs text-slate-600">
+                <span className="flex items-center gap-1 font-bold text-brand-blue">
+                  <Clock className="w-3.5 h-3.5" /> {hours} h {mins} min
+                </span>
+                <span>{droneFlights.length} {tx('Flüge', 'Flights')}</span>
+                {drone.firmwareVersion && <span>FW {drone.firmwareVersion}</span>}
+              </div>
 
-              {selectedDroneId && getMaintenanceAlerts(selectedDroneId).length > 0 && (
-                <div className="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShieldAlert className="w-4 h-4 text-amber-500" />
-                    <span className="text-2xs font-black text-amber-700 uppercase tracking-wider">{tx('Empfohlene Wartung', 'Recommended maintenance')}</span>
-                  </div>
-                  <div className="space-y-1.5">
-                    {getMaintenanceAlerts(selectedDroneId).map((alert, idx) => (
-                      <div key={idx} className="flex items-center justify-between">
-                        <span className="text-2xs font-bold text-amber-800">{alert.type}</span>
-                        <span className="text-2xs font-medium text-amber-600/80">{alert.reason}</span>
-                      </div>
-                    ))}
-                  </div>
+              {/* Wartung / Garantie / Kosten */}
+              {(wStatus.level !== 'ok' || gStatus.status !== 'keine' || wartungsKosten > 0) && (
+                <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                  {wStatus.level !== 'ok' && (
+                    <span className={cn(
+                      'text-2xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1',
+                      wStatus.level === 'alert' ? 'bg-red-50 text-brand-red' : 'bg-amber-50 text-amber-800'
+                    )} title={wStatus.gruende.join(' ')}>
+                      <Wrench className="w-3 h-3" /> {tx('Wartung', 'Maintenance')} {wStatus.level === 'alert' ? tx('fällig', 'due') : tx('bald', 'soon')}
+                    </span>
+                  )}
+                  {gStatus.status === 'aktiv' && (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-brand-green">
+                      {tx('Garantie', 'Warranty')} {gStatus.tage} {tx('Tage', 'days')}
+                    </span>
+                  )}
+                  {gStatus.status === 'bald' && (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800">
+                      {tx('Garantie endet in', 'Warranty ends in')} {gStatus.tage} {tx('Tagen', 'days')}
+                    </span>
+                  )}
+                  {gStatus.status === 'abgelaufen' && (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                      {tx('Garantie abgelaufen', 'Warranty expired')}
+                    </span>
+                  )}
+                  {wartungsKosten > 0 && (
+                    <span className="text-2xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                      {wartungsKosten.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                    </span>
+                  )}
                 </div>
               )}
 
-              {showMaintForm && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mb-6 space-y-4 bg-slate-50 p-4 rounded-3xl border border-slate-200">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Typ', 'Type')}</label>
-                      <select 
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                        value={newMaint.type}
-                        onChange={e => setNewMaint({...newMaint, type: e.target.value as MaintenanceRecord['type']})}
-                      >
-                        <option value="Propeller">Propeller</option>
-                        <option value="Firmware">Firmware</option>
-                        <option value="Motor">{tx('Motor', 'Motor')}</option>
-                        <option value="Sensor">{tx('Sensoren', 'Sensors')}</option>
-                        <option value="General">{tx('Allgemein', 'General')}</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Beschreibung', 'Description')}</label>
-                      <input
-                        type="text"
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                        placeholder={tx('Z.B. Propeller-Set A getauscht', 'E.g. replaced propeller set A')}
-                        value={newMaint.description || ''}
-                        onChange={e => setNewMaint({...newMaint, description: e.target.value})}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Kosten (€, optional)', 'Cost (€, optional)')}</label>
-                      <input
-                        type="number"
-                        className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs"
-                        placeholder="z.B. 49.90"
-                        value={newMaint.cost ?? ''}
-                        onChange={e => setNewMaint({...newMaint, cost: e.target.value ? Number(e.target.value) : undefined})}
-                      />
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleAddMaint}
-                    className="w-full bg-slate-900 text-white font-bold py-2.5 rounded-xl text-xs active:scale-95 transition-all"
-                  >
-                    {t('wartung.eintragHinzufuegen')}
-                  </button>
-                </motion.div>
-              )}
-
-              <div className="flex items-center gap-2 mb-2 overflow-x-auto pb-1 scrollbar-hide shrink-0">
-                {['All', 'Propeller', 'Firmware', 'Motor', 'Sensor', 'General'].map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setMaintFilter(type as MaintenanceRecord['type'] | 'All')}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-2xs font-black uppercase tracking-tight whitespace-nowrap transition-all",
-                      maintFilter === type 
-                        ? "bg-brand-orange text-white" 
-                        : "bg-slate-50 text-slate-400 hover:bg-slate-100 border border-slate-200/50"
-                    )}
-                  >
-                    {type === 'All' ? 'Alle Typen' : type}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide shrink-0 border-b border-slate-50">
-                {[
-                  { id: 'All', label: 'Alle' },
-                  { id: '30Days', label: 'Letzte 30 Tage' },
-                  { id: '3Months', label: 'Letzte 3 Monate' },
-                  { id: '1Year', label: 'Letztes Jahr' }
-                ].map((range) => (
-                  <button
-                    key={range.id}
-                    onClick={() => setDateFilter(range.id as typeof dateFilter)}
-                    className={cn(
-                      "px-3 py-1 rounded-lg text-2xs font-bold uppercase tracking-wider whitespace-nowrap transition-all flex items-center gap-1.5",
-                      dateFilter === range.id 
-                        ? "bg-slate-900 text-white shadow-lg shadow-slate-900/10" 
-                        : "bg-white text-slate-400 border border-slate-100 hover:bg-slate-50"
-                    )}
-                  >
-                    <Calendar className="w-3 h-3 translate-y-[-0.5px]" />
-                    {range.label}
-                  </button>
-                ))}
-              </div>
-
-              <div className="space-y-3 overflow-y-auto flex-1 pr-2">
-                {filteredMaintenance.length === 0 ? (
-                  <div className="text-center py-10 opacity-30">
-                    <Wrench className="w-10 h-10 mx-auto mb-2" />
-                    <p className="text-xs font-bold">{tx('Keine Einträge für diesen Filter', 'No entries for this filter')}</p>
-                  </div>
-                ) : (
-                  filteredMaintenance.map(item => (
-                    <div key={item.id} className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between group">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-brand-orange/5 flex items-center justify-center border border-brand-orange/10">
-                          <Settings2 className="w-4 h-4 text-brand-orange" />
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-900 text-2xs">{item.description}</p>
-                          <div className="flex items-center gap-2">
-                            <span className="text-2xs font-black text-slate-400 uppercase border border-slate-100 px-1 rounded">{item.type}</span>
-                            <span className="text-2xs text-slate-300 font-mono">{item.date}</span>
-                          </div>
-                        </div>
-                      </div>
-                      <button 
-                        onClick={async () => {
-                          await dbService.deleteMaintenance(item.id);
-                          const updated = await dbService.getMaintenance(selectedDroneId);
-                          setMaintenance(updated);
-                        }}
-                        className="p-1 text-slate-100 hover:text-brand-red opacity-0 group-hover:opacity-100 transition-all"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Knopf
+                  variante="sekundaer"
+                  groesse="sm"
+                  icon={Sparkles}
+                  onClick={async () => {
+                    const statsForDrone = droneStats[drone.id];
+                    const record: MaintenanceRecord = {
+                      id: crypto.randomUUID(),
+                      droneId: drone.id,
+                      date: new Date().toISOString().split('T')[0],
+                      type: 'Motor',
+                      description: 'Motoren gereinigt (Benutzer-Schnellaktion)',
+                      hoursAtMaintenance: statsForDrone?.hours || 0,
+                      createdAt: Date.now()
+                    };
+                    await dbService.saveMaintenance(record);
+                    onUpdate();
+                  }}
+                >
+                  {tx('Motoren reinigen', 'Clean motors')}
+                </Knopf>
+                {stats.lastMaint['Motor'] && (
+                  <span className="text-xs text-slate-500">{tx('Zuletzt:', 'Last:')} {new Date(stats.lastMaint['Motor']).toLocaleDateString('de-DE')}</span>
                 )}
               </div>
 
-              <button 
-                onClick={() => setSelectedDroneId(null)}
-                className="w-full bg-slate-50 text-slate-600 font-bold py-3 rounded-2xl mt-6 text-xs active:scale-95 transition-all border border-slate-200"
-              >
-                {tx('Schließen', 'Close')}
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              {hinweise.length > 0 && (
+                <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-2xl space-y-2">
+                  <div className="flex items-center gap-2">
+                    <BadgeAlert className="w-4 h-4 text-amber-800" />
+                    <span className="text-xs font-bold text-amber-800">{tx('Sicherheits-Check fällig', 'Safety check due')}</span>
+                  </div>
+                  {hinweise.map((alert, idx) => (
+                    <div key={idx} className="bg-white p-3 rounded-xl">
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xs font-bold text-slate-900">{alert.reason}</span>
+                        <span className="text-2xs font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">{alert.type}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-0.5">{alert.detail}</p>
+                    </div>
+                  ))}
+                  <Knopf groesse="sm" voll onClick={() => setSelectedDroneId(drone.id)}>
+                    {tx('Wartung protokollieren', 'Log maintenance')}
+                  </Knopf>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
 
-      <div className="flex items-center justify-between mb-6 pt-4 border-t border-slate-200">
-        <div>
-          <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.akkus')}</h2>
-          <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Inventar & Zyklen', 'Inventory & cycles')}</p>
-        </div>
-        <button 
-          onClick={() => setShowAddBattery(!showAddBattery)}
-          className="bg-brand-blue text-white p-2.5 rounded-2xl shadow-lg shadow-brand-blue/20 transition-transform active:scale-95"
+      {/* Wartungshistorie einer Drohne */}
+      {selectedDroneId && (
+        <Dialog
+          titel={tx('Wartungshistorie', 'Maintenance history')}
+          untertitel={drones.find(d => d.id === selectedDroneId)?.model}
+          icon={Wrench}
+          ton="bernstein"
+          onClose={() => setSelectedDroneId(null)}
+          kopfAktionen={
+            <Knopf variante="sekundaer" groesse="sm" icon={showMaintForm ? X : Plus} onClick={() => setShowMaintForm(!showMaintForm)}>
+              {showMaintForm ? tx('Abbrechen', 'Cancel') : tx('Neu', 'New')}
+            </Knopf>
+          }
         >
-          {showAddBattery ? <XCircle className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
-        </button>
+          {/* Bauteil-Verschleiß Übersicht */}
+          {droneStats[selectedDroneId] && (() => {
+            const s = droneStats[selectedDroneId];
+            const parts = [
+              { label: 'Propeller', limit: 50, since: s.flightsSinceMaint?.['Propeller'] ?? s.flights },
+              { label: 'Motor', limit: 100, since: s.flightsSinceMaint?.['Motor'] ?? s.flights },
+              { label: 'Sensor', limit: 200, since: s.flightsSinceMaint?.['Sensor'] ?? s.flights },
+            ];
+            return (
+              <div className="p-4 bg-slate-50 rounded-2xl space-y-3">
+                <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Bauteil-Verschleiß', 'Component wear')}</p>
+                {parts.map(p => {
+                  const pct = Math.min(100, Math.round((p.since / p.limit) * 100));
+                  const farbe = pct >= 100
+                    ? { text: 'text-brand-red', balken: 'bg-brand-red' }
+                    : pct >= 75
+                      ? { text: 'text-brand-orange', balken: 'bg-brand-orange' }
+                      : { text: 'text-brand-green', balken: 'bg-brand-green' };
+                  return (
+                    <div key={p.label}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-xs font-bold text-slate-700">{p.label}</span>
+                        <span className={cn('text-xs font-bold', farbe.text)}>{p.since}/{p.limit} {tx('Flüge', 'Flights')}</span>
+                      </div>
+                      <div className="w-full bg-slate-200 rounded-full h-1.5">
+                        <div className={cn('h-1.5 rounded-full transition-all', farbe.balken)} style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+
+          {getMaintenanceAlerts(selectedDroneId).length > 0 && (
+            <div className="p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldAlert className="w-4 h-4 text-amber-800" />
+                <span className="text-xs font-bold text-amber-800">{tx('Empfohlene Wartung', 'Recommended maintenance')}</span>
+              </div>
+              <div className="space-y-1.5">
+                {getMaintenanceAlerts(selectedDroneId).map((alert, idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-amber-800">{alert.type}</span>
+                    <span className="text-xs text-slate-700 text-right">{alert.reason}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {showMaintForm && (
+            <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+              <div className="grid grid-cols-2 gap-3">
+                <Feld label={tx('Typ', 'Type')} htmlFor="wt-typ">
+                  <select
+                    id="wt-typ"
+                    className={eingabe}
+                    value={newMaint.type}
+                    onChange={e => setNewMaint({...newMaint, type: e.target.value as MaintenanceRecord['type']})}
+                  >
+                    <option value="Propeller">Propeller</option>
+                    <option value="Firmware">Firmware</option>
+                    <option value="Motor">{tx('Motor', 'Motor')}</option>
+                    <option value="Sensor">{tx('Sensoren', 'Sensors')}</option>
+                    <option value="General">{tx('Allgemein', 'General')}</option>
+                  </select>
+                </Feld>
+                <Feld label={tx('Kosten (€, optional)', 'Cost (€, optional)')} htmlFor="wt-kosten">
+                  <input
+                    id="wt-kosten"
+                    type="number"
+                    className={eingabe}
+                    placeholder={tx('z.B. 49.90', 'e.g. 49.90')}
+                    value={newMaint.cost ?? ''}
+                    onChange={e => setNewMaint({...newMaint, cost: e.target.value ? Number(e.target.value) : undefined})}
+                  />
+                </Feld>
+              </div>
+              <Feld label={tx('Beschreibung', 'Description')} htmlFor="wt-text">
+                <input
+                  id="wt-text"
+                  type="text"
+                  className={eingabe}
+                  placeholder={tx('Z.B. Propeller-Set A getauscht', 'E.g. replaced propeller set A')}
+                  value={newMaint.description || ''}
+                  onChange={e => setNewMaint({...newMaint, description: e.target.value})}
+                />
+              </Feld>
+              <Knopf voll onClick={handleAddMaint}>{t('wartung.eintragHinzufuegen')}</Knopf>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {(['All', 'Propeller', 'Firmware', 'Motor', 'Sensor', 'General'] as const).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => setMaintFilter(type)}
+                  className={cn(
+                    'h-8 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-colors',
+                    maintFilter === type ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  )}
+                >
+                  {type === 'All' ? tx('Alle Typen', 'All types') : type}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {([
+                { id: 'All', label: tx('Alle', 'All') },
+                { id: '30Days', label: tx('Letzte 30 Tage', 'Last 30 days') },
+                { id: '3Months', label: tx('Letzte 3 Monate', 'Last 3 months') },
+                { id: '1Year', label: tx('Letztes Jahr', 'Last year') },
+              ] as const).map((range) => (
+                <button
+                  key={range.id}
+                  onClick={() => setDateFilter(range.id)}
+                  className={cn(
+                    'h-8 px-3 rounded-full text-xs font-bold whitespace-nowrap transition-colors flex items-center gap-1.5',
+                    dateFilter === range.id ? 'bg-brand-blue text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  )}
+                >
+                  <Calendar className="w-3 h-3" />
+                  {range.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            {filteredMaintenance.length === 0 ? (
+              <div className="text-center py-8 text-slate-500">
+                <Wrench className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                <p className="text-xs font-bold">{tx('Keine Einträge für diesen Filter', 'No entries for this filter')}</p>
+              </div>
+            ) : (
+              filteredMaintenance.map(item => (
+                <div key={item.id} className="p-3 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 group">
+                  <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center shrink-0">
+                    <Settings2 className="w-4 h-4 text-amber-800" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-slate-900">{item.description}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-2xs font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">{item.type}</span>
+                      <span className="text-xs text-slate-500">{item.date}</span>
+                    </div>
+                  </div>
+                  <IconKnopf
+                    icon={Trash2}
+                    variante="gefahr"
+                    aria-label={tx('Eintrag löschen', 'Delete entry')}
+                    className="sm:opacity-0 sm:group-hover:opacity-100"
+                    onClick={async () => {
+                      await dbService.deleteMaintenance(item.id);
+                      const updated = await dbService.getMaintenance(selectedDroneId);
+                      setMaintenance(updated);
+                    }}
+                  />
+                </div>
+              ))
+            )}
+          </div>
+        </Dialog>
+      )}
+
+      <div className="pt-6 border-t border-slate-200">
+        <SeitenKopf
+          titel={t('view.akkus')}
+          untertitel={tx('Inventar & Zyklen', 'Inventory & cycles')}
+          aktionen={
+            <button
+              onClick={() => setShowAddBattery(!showAddBattery)}
+              aria-label={showAddBattery ? tx('Abbrechen', 'Cancel') : tx('Akku hinzufügen', 'Add battery')}
+              className="bg-brand-blue text-white p-2.5 rounded-2xl shadow-lg shadow-brand-blue/20 transition-transform active:scale-95"
+            >
+              {showAddBattery ? <XCircle className="w-6 h-6" /> : <Plus className="w-6 h-6" />}
+            </button>
+          }
+        />
       </div>
 
       <AnimatePresence>
         {showAddBattery && (
-          <motion.div 
+          <motion.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-6"
           >
             <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-              <div>
-                <label className="text-2xs font-bold text-slate-400 uppercase mb-1 block">{tx('Akku Nummer / Name', 'Battery number / name')}</label>
-                <input 
-                  type="text" 
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none"
+              <Feld label={tx('Akku Nummer / Name', 'Battery number / name')} htmlFor="ak-name">
+                <input
+                  id="ak-name"
+                  type="text"
+                  className={eingabe}
                   placeholder={tx('z.B. Akku #1', 'e.g. Battery #1')}
                   value={newBattery.number || ''}
                   onChange={e => setNewBattery({...newBattery, number: e.target.value})}
                 />
-              </div>
-              <button 
-                onClick={handleAddBattery}
-                className="w-full bg-brand-blue text-white font-bold py-3 rounded-xl shadow-lg shadow-brand-blue/20 active:scale-95 transition-all text-sm"
-              >
-                {tx('Akku Registrieren', 'Register battery')}
-              </button>
+              </Feld>
+              <Knopf voll onClick={handleAddBattery}>{tx('Akku registrieren', 'Register battery')}</Knopf>
             </div>
           </motion.div>
         )}
@@ -878,38 +802,30 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
             <div key={battery.id}
               onClick={() => setDetailBattery(battery)}
               className="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm relative group overflow-hidden cursor-pointer active:scale-[0.98] transition-transform">
-              {/* Proportional Health Bar */}
-              <div 
+              {/* Balken proportional zur Gesundheit */}
+              <div
                 className={cn(
                    "absolute bottom-0 left-0 h-1.5 transition-all duration-700",
                    health < 50 ? "bg-brand-red" : health < 80 ? "bg-amber-400" : "bg-brand-green"
-                )} 
+                )}
                 style={{ width: `${health}%` }}
               />
-              
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
+
+              <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="flex items-center gap-2 min-w-0">
                   <div className={cn(
-                    "w-8 h-8 rounded-xl flex items-center justify-center border",
-                    health < 50 ? "bg-red-50 border-red-100 text-brand-red" : 
-                    health < 80 ? "bg-amber-50 border-amber-100 text-amber-500" : 
-                    "bg-emerald-50 border-emerald-100 text-brand-green"
+                    "w-8 h-8 rounded-xl flex items-center justify-center shrink-0",
+                    health < 50 ? "bg-red-50 text-brand-red" :
+                    health < 80 ? "bg-amber-50 text-amber-800" :
+                    "bg-emerald-50 text-brand-green"
                   )}>
                     <Zap className="w-4 h-4 fill-current" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-xs">{battery.number}</h3>
-                    <p className="text-2xs font-black text-slate-400 uppercase tracking-wider">{cycles} {tx('Zyklen', 'Cycles')}</p>
+                  <div className="min-w-0">
+                    <h3 className="text-sm font-bold text-slate-900 truncate">{battery.number}</h3>
+                    <p className="text-xs text-slate-500">{cycles} {tx('Zyklen', 'Cycles')}</p>
                   </div>
                 </div>
-                <span className={cn(
-                  "text-2xs font-bold uppercase px-2 py-1 rounded-full",
-                  health < 50 ? "bg-red-50 text-brand-red" :
-                  health < 80 ? "bg-amber-50 text-amber-800" :
-                  "bg-emerald-50 text-brand-green"
-                )}>
-                  {health > 80 ? 'Exzellent' : health > 50 ? 'Gut' : 'Verschlissen'}
-                </span>
               </div>
 
               <div className="flex items-end justify-between">
@@ -919,15 +835,24 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
                       "text-2xl font-black transition-colors",
                       health < 30 ? "text-brand-red" : "text-slate-900"
                     )}>{health}%</p>
-                    <p className="text-2xs font-bold text-slate-400 uppercase">SOH</p>
+                    <p className="text-2xs font-bold text-slate-500 uppercase">SOH</p>
                   </div>
+                  <span className={cn(
+                    "inline-block mt-1 text-2xs font-bold px-2 py-0.5 rounded-full",
+                    health < 50 ? "bg-red-50 text-brand-red" :
+                    health < 80 ? "bg-amber-50 text-amber-800" :
+                    "bg-emerald-50 text-brand-green"
+                  )}>
+                    {health > 80 ? tx('Exzellent', 'Excellent') : health > 50 ? tx('Gut', 'Good') : tx('Verschlissen', 'Worn out')}
+                  </span>
                 </div>
-                <button
+                <IconKnopf
+                  icon={Trash2}
+                  variante="gefahr"
+                  aria-label={tx('Akku löschen', 'Delete battery')}
+                  className="-mr-2 -mb-1 sm:opacity-0 sm:group-hover:opacity-100"
                   onClick={(e) => { e.stopPropagation(); handleDeleteBattery(battery.id); }}
-                  className="p-1.5 text-slate-200 hover:text-brand-red active:scale-90 opacity-0 group-hover:opacity-100 transition-all mb-1"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
+                />
               </div>
             </div>
           );

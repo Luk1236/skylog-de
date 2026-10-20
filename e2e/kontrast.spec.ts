@@ -54,6 +54,7 @@ for (const theme of ['light', 'dark'] as const) {
 const MIT_DATEN: { name: string; oeffnen: (p: Page) => Promise<void> }[] = [
   { name: 'Logbuch', oeffnen: p => navigiere(p, 'Logbuch') },
   { name: 'Flotte', oeffnen: p => navigiere(p, 'Flotte') },
+  { name: 'Wartungshistorie', oeffnen: async p => { await navigiere(p, 'Flotte'); await p.getByRole('button', { name: 'Wartung', exact: true }).first().click(); } },
   { name: 'Inventar', oeffnen: p => oeffneMehr(p, 'Inventar') },
   { name: 'Staffelmatrix', oeffnen: p => oeffneMehr(p, 'Staffel- & Flottenmatrix') },
 ];
