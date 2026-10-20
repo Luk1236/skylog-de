@@ -34,6 +34,9 @@ interface Props {
   schliesstBeiKlickDaneben?: boolean;
   /** Ohne Innenabstand im Inhalt (z.B. für Karten, die bis zum Rand gehen). */
   ohneInnenabstand?: boolean;
+  /** false: kein Schließen-Knopf, Escape und Klick daneben wirken nicht
+   *  (z.B. die PIN-Sperre beim Entsperren). Standard: true. */
+  schliessbar?: boolean;
   children: ReactNode;
 }
 
@@ -42,21 +45,22 @@ interface Props {
  *  scrollbarer Inhalt, optional ein fester Fuß für die Aktionen. */
 export function Dialog({
   titel, untertitel, icon: Icon, ton = 'blau', breite = 'md', onClose, fuss, kopfAktionen,
-  schliesstBeiKlickDaneben = true, ohneInnenabstand = false, children,
+  schliesstBeiKlickDaneben = true, ohneInnenabstand = false, schliessbar = true, children,
 }: Props) {
   const { tx } = useSprache();
   const titelId = useId();
 
   useEffect(() => {
+    if (!schliessbar) return;
     const taste = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', taste);
     return () => window.removeEventListener('keydown', taste);
-  }, [onClose]);
+  }, [onClose, schliessbar]);
 
   return (
     <div
       className="fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4"
-      onClick={schliesstBeiKlickDaneben ? onClose : undefined}
+      onClick={schliessbar && schliesstBeiKlickDaneben ? onClose : undefined}
     >
       <div
         role="dialog"
@@ -76,13 +80,13 @@ export function Dialog({
             {untertitel && <p className="text-xs text-slate-500 mt-0.5">{untertitel}</p>}
           </div>
           {kopfAktionen}
-          <button
+          {schliessbar && <button
             onClick={onClose}
             aria-label={tx('Schließen', 'Close')}
             className="p-2 rounded-xl text-slate-500 hover:bg-slate-100 shrink-0"
           >
             <X className="w-5 h-5" />
-          </button>
+          </button>}
         </div>
         <div className={cn('overflow-y-auto flex-1', !ohneInnenabstand && 'px-5 py-5 space-y-4')}>
           {children}
