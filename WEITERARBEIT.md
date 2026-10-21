@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-21 (Runde 8: restliche Befunde aus Software-Check 2).
+Zuletzt aktualisiert: 2026-10-21 (Runde 9: große Dateien aufgeteilt, Typografie bereinigt).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,10 +15,25 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **586 Unit-Tests** (56 Dateien) ·
-**74 Playwright-Tests** inkl. Kontrast-Wächter (jetzt WCAG AA 4,5 : 1), Handy-Abläufen
-(`e2e/ablauf.spec.ts`) und Ebenen/Zurück (`e2e/ebenen.spec.ts`). Erststart ~173 kB gzip.
-Release v1.2.0 ist veröffentlicht (Runde 7).
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **618 Unit-Tests** (63 Dateien, davon
+Komponententests für Flug-Assistent und Logbuch) · **74 Playwright-Tests** inkl. Kontrast-Wächter
+(WCAG AA 4,5 : 1), Handy-Abläufen (`e2e/ablauf.spec.ts`) und Ebenen/Zurück (`e2e/ebenen.spec.ts`).
+Erststart ~175 kB gzip. Release v1.2.0 ist veröffentlicht (Runde 7); Runde 8 ist in master.
+
+Runde 9 (Branch `check2/d03-k01`), die zwei „teilweise“-Punkte aus Runde 1:
+- **K01/N19 große Dateien:** FlightAssistant 1.068 → 356 Zeilen (Schritte und Karten in
+  `src/views/flugAssistent/`), GarageView 865 → 283 (`src/views/flotte/`, Wartungslogik als reine
+  Funktion `wartungsHinweise`), LogbookView 731 → 303 (`src/views/logbuch/`, `flugAusFormular`),
+  App.tsx 828 → 728 (Standort/Wetter im Hook `src/lib/useStandort.ts`). Größte Datei ist jetzt
+  App.tsx. Komponententests sichern „Flug speichern“ in Assistent und Logbuch ab.
+- **Dabei behoben:** „Flug abschließen“ bei laufendem Timer verlor den laufenden Abschnitt; nach
+  dem Stoppen zählte die Gesamtflugzeit den letzten Abschnitt doppelt; Wartungshinweise der
+  Flotte aktualisieren sich nach neuen Einträgen.
+- **Regel-Check:** Bestandsdrohnen ab 250 g fliegen seit 1.1.2024 nur in A3 – die App stufte sie
+  bis 500 g noch in A1 ein (`src/services/offeneKategorie.ts`, mit Tests).
+- **D03 Typografie:** Großschrift 72 → 23 (nur Abschnittsüberschriften und Abzeichen),
+  `font-black` 74 → 46 (nur Titel/große Zahlen), Formular-Labels 12 px in normaler Schreibung.
+  `src/designRegeln.test.ts` wacht darüber (Regeln in DESIGN.md).
 
 Runde 8 (Branch `check2/restliche-befunde`), restliche Befunde N07–N23 aus dem zweiten Check:
 - **N10 eine Checkliste:** Der Flug-Assistent nutzt nur noch die anpassbare Vorflug-Liste als
@@ -103,7 +118,6 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
   jetzt. Ob die volle Tabelle kommt, ist eine Produktentscheidung.
 - **N16 Android-Sicherung:** bewusst entscheiden, ob `dataExtractionRules` die App-Daten von der
   Google-Sicherung ausnehmen sollen.
-- **N19 große Dateien** (FlightAssistant, GarageView, App, LogbookView) aufteilen.
 - **Nach dem Vercel-Deploy:** einmal die Browser-Konsole auf CSP-Meldungen prüfen.
 - **Vercel-Deployment** einrichten (GEMINI_API_KEY dort setzen), dann Repo-Variable
   `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK.
@@ -112,7 +126,7 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
 - **Datenschutzerklärung und Rechtstexte gegenlesen lassen** (`public/datenschutz.html`,
   Verbotszonen in `SafetyView.tsx`) – vor einer öffentlichen Verteilung.
 - **DJI-SRT-Import mit echter Datei gegenprüfen** (`djiSrt.ts`).
-- **Neues Release** (z. B. `v1.3.0`) nach dem Merge von Runde 8.
+- **Neues Release** (z. B. `v1.3.0`) nach dem Merge von Runde 9.
 
 ## Technik-Stack
 - **Frontend:** React 19 + Vite 8 + TypeScript 6 (strict) + Tailwind 4
