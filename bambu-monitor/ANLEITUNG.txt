@@ -1,0 +1,109 @@
+BAMBU-MONITOR FÜR DEN H2S – ALLES AUF EINEN BLICK
+==================================================
+
+Was in diesem Ordner liegt
+--------------------------
+  ANLEITUNG.txt           diese Datei (Überblick, Recherche, Kurzanleitung)
+  README.md               ausführliche Anleitung mit Fehlersuche
+  installieren.sh         richtet alles auf dem Raspberry Pi ein
+  bambu_monitor.py        das Programm
+  config.example.ini      Vorlage für deine Druckerdaten
+  bambu-monitor.service   Autostart-Dienst (wird von installieren.sh angepasst)
+  beispiel_ereignis.sh    Beispiel für ein eigenes Skript bei "Druck fertig" usw.
+  test_bambu_monitor.py   automatische Tests (nur für Entwickler)
+
+
+1. WAS DAS PROGRAMM MACHT
+-------------------------
+Der Raspberry Pi verbindet sich im Heimnetz direkt mit dem Drucker und meldet:
+  - Druck gestartet, Fortschritt in %, Schicht, Restzeit
+  - Druck fertig (mit Dauer), abgebrochen oder fehlgeschlagen
+  - Pausen (z. B. Filament leer), Fehlercodes und HMS-Meldungen
+  - Temperaturen von Düse, Bett und Kammer
+  - "Drucker nicht erreichbar", wenn er länger als 5 Minuten weg ist
+Optional: Push-Nachricht aufs Handy (App "ntfy") und ein eigenes Skript bei
+jedem Ereignis. Dort kommt später das automatische Abräumen hin.
+
+Noch nicht an einem echten H2S getestet, nur an einem nachgebauten Drucker.
+
+
+2. EINRICHTEN – KURZFASSUNG
+---------------------------
+a) Am Drucker notieren (Touchscreen):
+     IP-Adresse     Einstellungen > Netzwerk
+     Seriennummer   Einstellungen > Gerät
+     Zugangscode    Einstellungen > Netzwerk > LAN-Modus (8 Zeichen)
+   Tipp: Dem Drucker im Router eine feste IP geben.
+
+b) Diesen Ordner auf den Pi kopieren, z. B. per USB-Stick auf den Desktop.
+
+c) Auf dem Pi ein Terminal im Ordner öffnen (Rechtsklick auf den Ordner >
+   "Im Terminal öffnen") und eingeben:
+       sh installieren.sh
+   Das Skript installiert alles, öffnet die Druckerdaten zum Ausfüllen und
+   richtet auf Wunsch den Autostart ein.
+
+d) Ohne Autostart testen:
+       python3 bambu_monitor.py
+   Beenden mit Strg+C.
+
+WICHTIG: Kommt "Verbindung abgelehnt", obwohl der Zugangscode stimmt, am
+Drucker LAN-Modus und Entwicklermodus einschalten (Einstellungen > Netzwerk).
+Neuere Bambu-Firmware lässt fremde Programme sonst nicht zu. Nachteil: Bambu
+Handy geht dann nur noch im eigenen WLAN.
+
+Push aufs Handy: App "ntfy" installieren, ein langes zufälliges Thema
+abonnieren (z. B. drucker-k7f3q9x2m) und in config.ini bei ntfy_thema eintragen.
+
+
+3. RECHERCHE: AUTOMATISCH ABRÄUMEN / PLATTE WECHSELN BEIM H2S
+-------------------------------------------------------------
+Stand: Oktober 2026
+
+Einen echten Plattenwechsler (Magazin mit mehreren Platten) gibt es für den
+H2S nicht, weder von Bambu Lab noch von Fremdherstellern. Alle Wechsler
+(HICTOP, Swap-Systems, Swapmod, PrintFlow3D) sind nur für A1 / A1 mini.
+
+Was es gibt: Systeme, die den fertigen Druck von der Platte holen. Die
+gleiche Platte druckt danach weiter.
+
+  FarmLoop (3D Farmers) – AUSDRÜCKLICH FÜR H2S/H2D/H2C
+    Stage 1: kostenlos zum Selberdrucken, biegt die Platte, Schieber schiebt
+             den Druck raus. Max. Druckhöhe ca. 275 mm. Große, flache Teile
+             lösen sich evtl. nicht.
+             https://makerworld.com/en/models/2829187
+    Stage 2: Bausatz mit Motoren, hebt die Platte bis 75 mm an, öffnet die
+             Tür. Nur mit der FarmLoop Pro App.
+             https://3d-farmers.com/products/farmloop-stage-2-h-series
+
+  SimplyPrint AutoPrint – Software für Warteschlange, unterstützt FarmLoop
+    und H2S/H2D.  https://simplyprint.io/integrations/farmloop
+
+  3DQue AutoFarm3D – Türöffner (199 USD) + Software, Druckkopf schiebt das
+    Teil vom Bett. H2S-Unterstützung widersprüchlich angegeben, vor dem Kauf
+    nachfragen.
+    https://shop.3dque.com/products/autofarm3d-door-opener-for-bambu-lab-p1p-x1c-x1e-pre-sale
+
+  Printago – Farm-Software mit End-G-Code zum Abräumen, H2S nicht
+    ausdrücklich genannt.  https://printago.io/
+
+  Amazon "Ejector H2D/H2C" – No-Name, H2S nicht genannt, ungeprüft.
+    https://www.amazon.com/dp/B0H264F4X9
+
+  Eigener G-Code (DIY) – Druckkopf schiebt die Teile nach dem Abkühlen
+    runter. Kein getestetes H2S-Skript gefunden. Risiko: Düse oder Mechanik
+    kann beschädigt werden. Nur langsam und mit kleinen, leicht lösenden
+    Teilen (glatte PEI-Platte).
+
+  Roboterarm – nur Einzelprojekte, für zu Hause sehr aufwendig.
+
+Empfehlung: Mit FarmLoop Stage 1 anfangen (kostet nur Filament). Wenn das
+nicht reicht, Stage 2. Dieser Monitor ist der erste Baustein für die eigene
+Automatik: Er erkennt "fertig", und das Skript in config.ini > befehl kann
+dann den nächsten Schritt auslösen.
+
+
+4. NÄCHSTER SCHRITT
+-------------------
+Nach "fertig": abkühlen lassen -> Druck abräumen -> nächsten Druck starten.
+Dafür muss der Pi den Drucker auch steuern (Entwicklermodus nötig).

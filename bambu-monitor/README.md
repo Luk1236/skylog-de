@@ -28,7 +28,9 @@ Gib dem Drucker im Router am besten eine **feste IP**, sonst findet der Pi ihn n
 
 ## 2. Raspberry Pi einrichten
 
-Raspberry Pi OS (Bookworm oder neuer). Python ist schon dabei, du brauchst nur noch die MQTT-Bibliothek:
+**Am einfachsten:** Kopiere den Ordner auf den Pi, z. B. auf den Desktop. Öffne darin ein Terminal und führe `sh installieren.sh` aus. Das Skript installiert alles, lässt dich die Druckerdaten eintragen und richtet auf Wunsch den Autostart ein. Die Schritte 2 bis 4 unten sind dann schon erledigt.
+
+Von Hand geht es so: Raspberry Pi OS (Bookworm oder neuer). Python ist schon dabei, du brauchst nur noch die MQTT-Bibliothek:
 
 ```bash
 sudo apt update
