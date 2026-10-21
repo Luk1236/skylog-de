@@ -147,15 +147,15 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                 {/* Specs */}
                 <div className="grid grid-cols-3 gap-2 pt-3 text-xs border-t border-slate-100">
                   <div>
-                    <span className="text-slate-500 block text-2xs uppercase font-bold tracking-wider">{tx('Gewicht', 'Weight')}</span>
+                    <span className="text-xs font-bold text-slate-500 block">{tx('Gewicht', 'Weight')}</span>
                     <strong className="text-slate-900">{d.weight ? `${d.weight}g` : 'k.A.'}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-2xs uppercase font-bold tracking-wider">{tx('UAS-Klasse', 'UAS class')}</span>
+                    <span className="text-xs font-bold text-slate-500 block">{tx('UAS-Klasse', 'UAS class')}</span>
                     <strong className="text-slate-900">{d.uasClass || 'Legacy'}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-2xs uppercase font-bold tracking-wider">{tx('Seriennummer', 'Serial number')}</span>
+                    <span className="text-xs font-bold text-slate-500 block">{tx('Seriennummer', 'Serial number')}</span>
                     <strong className="text-slate-900">{d.serialNumber ? 'Ja' : 'Nein'}</strong>
                   </div>
                 </div>

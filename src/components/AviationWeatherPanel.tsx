@@ -62,7 +62,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Radio className="w-4 h-4 text-brand-blue" />
-          <span className="text-2xs font-black text-slate-900 uppercase tracking-wider">{tx('Luftfahrtwetter', 'Aviation weather')}</span>
+          <h3 className="text-sm font-bold text-slate-900">{tx('Luftfahrtwetter', 'Aviation weather')}</h3>
         </div>
         <button onClick={laden} aria-label={tx('Luftfahrtwetter neu laden', 'Reload aviation weather')} disabled={laeuft}
           className="p-1 text-slate-500 hover:text-brand-blue disabled:opacity-40">
@@ -93,7 +93,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
 
           <div className={`rounded-xl p-3 mb-3 border ${lageKlasse}`}>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-black">
+              <span className="text-xs font-bold">
                 {station.fltCat ?? '—'}
               </span>
               <span className="text-2xs text-slate-600 leading-snug">{sprache === 'en' ? bewertung.textEn : bewertung.text}</span>
@@ -120,7 +120,7 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
           {taf?.rawTAF && (
             <div className="mt-2">
               <button onClick={() => setTafOffen(o => !o)}
-                className="flex items-center gap-1 text-2xs font-bold text-slate-400 uppercase tracking-wider">
+                className="flex items-center gap-1 text-xs font-bold text-slate-500">
                 <ChevronDown className={cn('w-3 h-3 transition-transform', tafOffen && 'rotate-180')} />
                 {tx('Vorhersage (TAF)', 'Forecast (TAF)')}
               </button>
@@ -144,8 +144,8 @@ export function AviationWeatherPanel({ lat, lon }: Props) {
 function Wert({ label, wert }: { label: string; wert: string }) {
   return (
     <div className="bg-slate-50 rounded-xl p-2 text-center">
-      <p className="text-xs font-black text-slate-900 leading-tight">{wert}</p>
-      <p className="text-2xs text-slate-400 uppercase tracking-wider mt-0.5">{label}</p>
+      <p className="text-xs font-bold text-slate-900 leading-tight">{wert}</p>
+      <p className="text-2xs text-slate-500 mt-0.5">{label}</p>
     </div>
   );
 }

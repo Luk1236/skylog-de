@@ -439,7 +439,7 @@ function Kachel({ label, wert }: { label: string; wert: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-3 text-center">
       <p className="text-sm font-black text-slate-900">{wert}</p>
-      <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider mt-0.5">{label}</p>
+      <p className="text-xs font-bold text-slate-500 mt-0.5">{label}</p>
     </div>
   );
 }

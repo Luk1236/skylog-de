@@ -93,7 +93,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose
         <div className="rounded-3xl bg-white border border-slate-200 shadow-sm divide-y divide-slate-200">
           {check.zeilen.map((z, i) => (
             <div key={i} className="flex items-start justify-between gap-4 px-4 py-3.5">
-              <span className="text-2xs font-bold uppercase tracking-wider text-slate-500 shrink-0 pt-1">{z.label}</span>
+              <span className="text-xs font-bold text-slate-500 shrink-0 pt-0.5">{z.label}</span>
               <span className={cn(
                 'text-base font-bold text-right break-words',
                 z.problem ? 'text-brand-red' : 'text-slate-900'
@@ -106,7 +106,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose
 
         {drohnen.length > 1 && (
           <label className="mt-3 flex items-center gap-2 rounded-2xl bg-white border border-slate-200 shadow-sm px-4 py-3">
-            <span className="text-2xs font-bold uppercase tracking-wider text-slate-500">{tx('Drohne', 'Drone')}</span>
+            <span className="text-xs font-bold text-slate-500">{tx('Drohne', 'Drone')}</span>
             <div className="relative flex-1">
               <select
                 value={drohnenId}

@@ -17,7 +17,7 @@ function Kennzahl({ icon: Icon, wert, label }: { icon: LucideIcon, wert: string,
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
       <span className="text-lg font-black text-slate-900 leading-none">{wert}</span>
-      <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+      <span className="text-xs font-bold text-slate-500">{label}</span>
     </div>
   );
 }
@@ -50,11 +50,11 @@ export function StatisticsDialog({ flights, drones, onClose }: Props) {
 
           <div className="bg-brand-blue text-white rounded-2xl p-4 shadow-sm flex items-center justify-between">
             <div>
-              <p className="text-2xs uppercase tracking-wider text-white/75">{tx('Dieses Jahr', 'This year')}</p>
+              <p className="text-xs font-medium text-white/80">{tx('Dieses Jahr', 'This year')}</p>
               <p className="text-xl font-black">{formatDauer(s.diesesJahrMinuten)}</p>
             </div>
             <div className="text-right">
-              <p className="text-2xs uppercase tracking-wider text-white/75">{tx('Flüge', 'Flights')} {new Date().getFullYear()}</p>
+              <p className="text-xs font-medium text-white/80">{tx('Flüge', 'Flights')} {new Date().getFullYear()}</p>
               <p className="text-xl font-black">{s.diesesJahrFluege}</p>
             </div>
           </div>

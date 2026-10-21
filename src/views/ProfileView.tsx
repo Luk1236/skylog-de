@@ -164,7 +164,7 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid }: { profi
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-50 rounded-2xl">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">LBA e-ID</p>
+                    <p className="text-xs font-bold text-slate-500 mb-0.5">LBA e-ID</p>
                     {onOpenEid && (
                       <button onClick={onOpenEid} className="text-xs font-bold text-brand-blue hover:underline">{tx('Verwalten', 'Manage')}</button>
                     )}
@@ -172,13 +172,13 @@ export function ProfileView({ profile, documents, onUpdate, onOpenEid }: { profi
                   <p className="text-sm font-bold text-slate-800 font-mono truncate">{profile?.eid || tx('Nicht hinterlegt', 'Not set')}</p>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-2xl">
-                  <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">{tx('Versicherung', 'Insurance')}</p>
+                  <p className="text-xs font-bold text-slate-500 mb-0.5">{tx('Versicherung', 'Insurance')}</p>
                   <p className="text-sm font-bold text-slate-800 truncate">{profile?.insuranceNumber || tx('Nicht hinterlegt', 'Not set')}</p>
                 </div>
               </div>
               {profile?.eid && (
                 <div className="flex flex-col items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-200">
-                  <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('LBA e-ID als QR-Code', 'LBA e-ID QR code')}</p>
+                  <p className="text-xs font-bold text-slate-500">{tx('LBA e-ID als QR-Code', 'LBA e-ID QR code')}</p>
                   <EidQrCode eid={profile.eid} />
                   <p className="text-xs text-slate-500 text-center">{tx('Zum Scannen bei einer Kontrolle', 'For scanning during an inspection')}</p>
                 </div>

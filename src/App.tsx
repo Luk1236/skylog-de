@@ -9,7 +9,6 @@ import {
 
 import { Dialog, Knopf } from './components/ui';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile } from './services/db';
-import { fetchWeather, type WeatherData } from './services/weather';
 
 import { getLastBackupAt } from './services/backup';
 import { getSicherungsIntervall } from './services/sicherungsErinnerung';
@@ -18,14 +17,13 @@ import { getReminders } from './services/reminders';
 import { sichtbareHinweise } from './services/ausgeblendeteHinweise';
 import { startOrt } from './services/startOrt';
 import { schliesseOberste } from './services/ebenen';
-import { distanzMeter } from './services/geo';
 import { dauerhaftAnfordern } from './services/speicherSchutz';
 import { istInstallierteWebApp } from './lib/appInfo';
-import { ladeStandortFreigabe, speichereStandortFreigabe, standortSchonFreigegeben, type StandortFreigabe } from './services/standortFreigabe';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
 import { uebersetze, ladeSprache, setzeSprache, andereSprache, type Sprache } from './services/i18n';
 import { SprachProvider } from './lib/sprache';
+import { useStandort } from './lib/useStandort';
 import type { View } from './lib/ansichten';
 import { DialogHost } from './components/DialogHost';
 import { HinweisLeiste } from './components/HinweisLeiste';
@@ -58,35 +56,8 @@ export default function App() {
   const [documents, setDocuments] = useState<AppDocument[]>([]);
   const [batteries, setBatteries] = useState<Battery[]>([]);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [location, setLocation] = useState<[number, number]>([52.52, 13.40]);
-  const [isLocating, setIsLocating] = useState(false);
-  const [gpsFehler, setGpsFehler] = useState<'verweigert' | 'timeout' | null>(null);
   const [showManualLocation, setShowManualLocation] = useState(false);
-  // Merkt sich, ob der Standort von Hand gesetzt wurde. Dann nervt die
-  // wiederkehrende GPS-Abfrage nicht mehr mit dem Fehler-Banner und
-  // überschreibt den gewählten Ort nicht. Ref statt State, weil die
-  // Tracking-Schleife (useEffect mit []) den aktuellen Wert lesen muss.
-  const manuellerStandort = useRef(false);
-  // Echtes GPS hat Vorrang vor dem Startort aus den eigenen Flügen.
-  const gpsFix = useRef(false);
   const startOrtGeprueft = useRef(false);
-  // Ist der Standort echt (GPS oder von Hand)? Nur dann zeigt die
-  // Sicherheitsansicht Notfall-Koordinaten - nicht den Startort aus alten
-  // Flügen oder den Standardort Berlin.
-  const [standortBekannt, setStandortBekannt] = useState(false);
-  // Standort erst nach Erklärung abfragen (services/standortFreigabe.ts).
-  const [standortFreigabe, setStandortFreigabe] = useState<StandortFreigabe>(ladeStandortFreigabe);
-  const standortWaehlen = (wert: 'erlaubt' | 'abgelehnt') => {
-    speichereStandortFreigabe(wert);
-    setStandortFreigabe(wert);
-  };
-  // Wann und wo zuletzt Wetter geholt wurde
-  const wetterStand = useRef<{ zeit: number; lat: number; lon: number } | null>(null);
-  const holeWetter = (lat: number, lon: number) => {
-    wetterStand.current = { zeit: Date.now(), lat, lon };
-    fetchWeather(lat, lon).then(setWeather);
-  };
-  const [weather, setWeather] = useState<WeatherData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showBehoerdenCheck, setShowBehoerdenCheck] = useState(false);
@@ -161,57 +132,12 @@ export default function App() {
     };
   }, []);
 
-  // Hat der Browser den Standort schon freigegeben (Nutzer von früher), entfällt
-  // der Hinweis auf der Karte.
-  useEffect(() => {
-    void standortSchonFreigegeben().then(ja => {
-      if (!ja) return;
-      speichereStandortFreigabe('erlaubt');
-      setStandortFreigabe('erlaubt');
-    });
-  }, []);
-
   // Standort nur verfolgen, wo er gebraucht wird: auf der Karte und in der
-  // Sicherheitsansicht (Notfall-Koordinaten) - nur im Vordergrund und erst, wenn
-  // der Nutzer nach der Erklärung zugestimmt hat. Vorher fragte die App gleich
-  // beim Start, alle 10 s, in jeder Ansicht und auch im Hintergrund (Akku).
-  const standortVerfolgen = imVordergrund && standortFreigabe === 'erlaubt'
-    && (activeView === 'map' || activeView === 'safety');
-  useEffect(() => {
-    if (!standortVerfolgen || !('geolocation' in navigator)) return;
-    setIsLocating(true);
-    const id = navigator.geolocation.watchPosition(
-      (pos) => {
-        // Echtes GPS ist verfügbar — es hat Vorrang, der Handbetrieb endet.
-        manuellerStandort.current = false;
-        const ersterFix = !gpsFix.current;
-        gpsFix.current = true;
-        setStandortBekannt(true);
-        setGpsFehler(null);
-        setIsLocating(false);
-        const neu: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-        // Kleine Schwankungen ignorieren, sonst springt die Karte ständig.
-        setLocation(alt => (!ersterFix && distanzMeter(alt[0], alt[1], neu[0], neu[1]) < 15 ? alt : neu));
-        // Wetter nur neu holen, wenn noch keins da ist, es älter als 10 min ist
-        // oder man sich mehr als 2 km bewegt hat.
-        const w = wetterStand.current;
-        if (!w || Date.now() - w.zeit > 10 * 60_000 || distanzMeter(w.lat, w.lon, neu[0], neu[1]) > 2000) {
-          wetterStand.current = { zeit: Date.now(), lat: neu[0], lon: neu[1] };
-          fetchWeather(neu[0], neu[1]).then(setWeather);
-        }
-      },
-      (err) => {
-        setIsLocating(false);
-        // Nach manuell gesetztem Standort nicht weiter mit dem Banner nerven.
-        if (manuellerStandort.current) return;
-        if (err.code === 1) setGpsFehler('verweigert');
-        else if (err.code === 3) setGpsFehler('timeout');
-      },
-      { enableHighAccuracy: true, timeout: 15_000, maximumAge: 10_000 },
-    );
-    return () => navigator.geolocation.clearWatch(id);
-  }, [standortVerfolgen]);
-
+  // Sicherheitsansicht (Notfall-Koordinaten), im Vordergrund und nach Zustimmung.
+  const {
+    location, weather, isLocating, gpsFehler, standortBekannt, standortFreigabe,
+    standortWaehlen, orten, setzeVonHand, setzeStartOrt,
+  } = useStandort(imVordergrund && (activeView === 'map' || activeView === 'safety'));
   // Escape (Laptop) wirkt wie Zurück: schließt nur die oberste Ebene
   // (services/ebenen.ts). Die App-Sperre meldet sich dort gar nicht an,
   // Escape umgeht den PIN-Schutz also nicht.
@@ -261,31 +187,9 @@ export default function App() {
     // Ohne GPS nicht in Berlin starten, sondern dort, wo geflogen wird.
     if (!startOrtGeprueft.current) {
       startOrtGeprueft.current = true;
-      const ort = !gpsFix.current && !manuellerStandort.current ? startOrt(favs, f) : null;
-      if (ort) {
-        setLocation(ort);
-        holeWetter(ort[0], ort[1]);
-      }
+      setzeStartOrt(startOrt(favs, f));
     }
   }
-
-  const handleLocate = () => {
-    setIsLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const newLoc: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-        gpsFix.current = true;
-        setStandortBekannt(true);
-        // Wer selbst auf Orten tippt, will den Standort - ab jetzt mitverfolgen.
-        standortWaehlen('erlaubt');
-        setLocation(newLoc);
-        holeWetter(newLoc[0], newLoc[1]);
-        setIsLocating(false);
-      },
-      () => setIsLocating(false),
-      { enableHighAccuracy: true, timeout: 8000 }
-    );
-  };
 
   // Reminders in Root-Scope: wird für NavBar-Badges benötigt. Ausgeblendete
   // („in 7 Tagen erinnern") zählen nicht mit.
@@ -471,7 +375,7 @@ export default function App() {
       <main className="flex-1 relative overflow-hidden">
           {activeView === 'map' && (
             <div key="map" className="absolute inset-0 ansicht-blenden">
-              <DroneMap location={location} onLocate={handleLocate} isLocating={isLocating} weather={weather} flights={flights} locationFavorites={locationFavorites} onPlaner={() => setShowPlaner(true)} />
+              <DroneMap location={location} onLocate={orten} isLocating={isLocating} weather={weather} flights={flights} locationFavorites={locationFavorites} onPlaner={() => setShowPlaner(true)} />
               {/* Kartenelemente bewusst nur z-20/z-30: genug, um ueber der Karte
                   (.leaflet-container z-index 1) zu liegen, aber unter allen Dialogen
                   (ab z-[60]). */}
@@ -523,7 +427,7 @@ export default function App() {
                       : <Plane className="w-4 h-4 text-brand-blue" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Letzter Flug', 'Last flight')}</p>
+                    <p className="text-xs font-bold text-slate-500">{tx('Letzter Flug', 'Last flight')}</p>
                     <p className="text-sm font-bold text-slate-900 truncate">{letzterFlug.locationName}</p>
                     <p className="text-xs text-slate-500 truncate">{new Date(letzterFlug.date).toLocaleDateString(sprache === 'en' ? 'en-GB' : 'de-DE')} · {letzterFlug.duration} min · {letzteDrohne?.model || '—'}</p>
                   </div>
@@ -679,11 +583,7 @@ export default function App() {
         <ManualLocationDialog
           aktuell={location}
           onPick={(lat, lon) => {
-            manuellerStandort.current = true;
-            setStandortBekannt(true);
-            setLocation([lat, lon]);
-            setGpsFehler(null);
-            holeWetter(lat, lon);
+            setzeVonHand(lat, lon);
             setShowManualLocation(false);
           }}
           onClose={() => setShowManualLocation(false)}

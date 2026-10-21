@@ -152,9 +152,9 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
                   {tx('Laden', 'Load')}{q.groesseMB ? ` (${q.groesseMB} MB)` : ''}
                 </Knopf>
               ) : q.maschinenlesbar ? (
-                <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Datei von Hand', 'File by hand')}</span>
+                <span className="text-xs font-bold text-slate-500">{tx('Datei von Hand', 'File by hand')}</span>
               ) : (
-                <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('nur Karte', 'map only')}</span>
+                <span className="text-xs font-bold text-slate-500">{tx('nur Karte', 'map only')}</span>
               )}
               <a href={q.url} target="_blank" rel="noopener noreferrer" aria-label={`${q.land} öffnen`}
                 className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 hover:text-brand-blue shrink-0">

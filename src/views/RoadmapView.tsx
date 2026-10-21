@@ -38,7 +38,7 @@ export function RoadmapView() {
     <div className="max-w-md md:max-w-2xl lg:max-w-3xl mx-auto pb-8">
       <div className="mb-8">
         <h2 className="text-2xl font-black tracking-tight text-slate-900">{t('view.roadmap')}</h2>
-        <p className="text-2xs font-bold uppercase tracking-wider text-slate-500 mt-0.5">{tx('Unsere Vision für SkyLog DE', 'Our vision for SkyLog DE')}</p>
+        <p className="text-xs font-medium text-slate-500 mt-0.5">{tx('Unsere Vision für SkyLog DE', 'Our vision for SkyLog DE')}</p>
       </div>
 
       <div className="space-y-6">
@@ -51,7 +51,7 @@ export function RoadmapView() {
                   <step.icon className="w-5 h-5 text-brand-blue" />
                 </div>
                 <span className={cn(
-                  "text-2xs font-black uppercase tracking-wider",
+                  "text-2xs font-bold uppercase tracking-wider",
                   step.status === 'Live' ? "text-brand-green" : "text-slate-400"
                 )}>{step.status}</span>
               </div>

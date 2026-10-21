@@ -101,7 +101,7 @@ export function SeitenleistenMenue({ gruppen, activeView, onWaehle, theme, sprac
       <button type="button" onClick={onSprache} className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-sm font-bold text-slate-600 hover:bg-slate-50">
         <Languages className="w-4 h-4 shrink-0 text-slate-500" />
         <span className="flex-1">{t('mehr.sprache')}</span>
-        <span className="text-xs font-black text-brand-blue">{sprache.toUpperCase()}</span>
+        <span className="text-xs font-bold text-brand-blue">{sprache.toUpperCase()}</span>
       </button>
       <button type="button" onClick={onTheme} className="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-left text-sm font-bold text-slate-600 hover:bg-slate-50">
         {theme === 'dark' ? <Sun className="w-4 h-4 shrink-0 text-slate-500" /> : <Moon className="w-4 h-4 shrink-0 text-slate-500" />}
@@ -121,7 +121,7 @@ function SchnellEinstellungen({ theme, sprache, onTheme, onSprache }: Einstellun
         <button type="button" onClick={onSprache} className="w-full flex items-center gap-3 px-4 h-12 text-left hover:bg-slate-50 transition-colors">
           <Languages className="w-5 h-5 shrink-0 text-slate-500" />
           <span className="text-sm font-bold flex-1 text-slate-800">{t('mehr.sprache')}</span>
-          <span className="text-xs font-black text-brand-blue tracking-wider">{sprache.toUpperCase()}</span>
+          <span className="text-xs font-bold text-brand-blue tracking-wider">{sprache.toUpperCase()}</span>
         </button>
         <button type="button" onClick={onTheme} className="w-full flex items-center gap-3 px-4 h-12 text-left hover:bg-slate-50 transition-colors">
           {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0 text-slate-500" /> : <Moon className="w-5 h-5 shrink-0 text-slate-500" />}
@@ -153,7 +153,7 @@ export function NavButton({ active, onClick, icon: Icon, label, badge, className
       <div className={cn('p-1.5 rounded-xl transition-all duration-200 relative', active ? 'bg-brand-blue/10' : 'bg-transparent')}>
         <Icon className={cn('w-5 h-5', active ? 'stroke-[2.5px]' : 'stroke-[1.75px]')} />
         {badge != null && badge > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-brand-red text-white text-2xs font-black rounded-full flex items-center justify-center px-1 leading-none border border-white">
+          <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-brand-red text-white text-2xs font-bold rounded-full flex items-center justify-center px-1 leading-none border border-white">
             {badge > 9 ? '9+' : badge}
           </span>
         )}

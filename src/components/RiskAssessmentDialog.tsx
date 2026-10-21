@@ -85,7 +85,7 @@ export function RiskAssessmentDialog({ drohnen, onClose }: Props) {
 
       {/* Ergebnis */}
       <div className="rounded-2xl p-4 text-white" style={{ background: farbe }}>
-        <p className="text-2xs font-bold uppercase tracking-wider opacity-80">{tx('Ermittelte Kategorie', 'Determined category')}</p>
+        <p className="text-xs font-bold opacity-80">{tx('Ermittelte Kategorie', 'Determined category')}</p>
         <p className="text-2xl font-black">{KAT_TEXT[ergebnis.kategorie]}</p>
         {!ergebnis.imOpen && <p className="text-xs mt-1 opacity-90">{tx('Außerhalb der Open-Kategorie — Genehmigung/STS nötig.', 'Outside the Open category — authorisation/STS required.')}</p>}
       </div>

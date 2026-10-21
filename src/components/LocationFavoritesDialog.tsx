@@ -100,7 +100,7 @@ export function LocationFavoritesDialog({
       {isAdding && (
         <form onSubmit={handleAddSubmit} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-2xs font-bold uppercase tracking-wider text-brand-blue">{tx('Neuen Standort speichern', 'Save new location')}</h3>
+            <h3 className="text-sm font-bold text-slate-900">{tx('Neuen Standort speichern', 'Save new location')}</h3>
             <Knopf variante="geist" groesse="sm" onClick={() => setIsAdding(false)}>
               {tx('Abbrechen', 'Cancel')}
             </Knopf>

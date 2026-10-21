@@ -37,16 +37,22 @@ Symbol-Knöpfe ohne Text brauchen mindestens 3 : 1 – also nicht `text-slate-30
 |---|---|
 | Seitentitel | `text-2xl font-black tracking-tight text-slate-900` (Komponente `SeitenKopf`) |
 | Dialogtitel | `text-base font-black text-slate-900` (macht `Dialog`) |
-| Abschnitt / Eyebrow | `text-2xs font-bold uppercase tracking-wider text-slate-500` |
+| Seiten-Untertitel | `text-xs font-medium text-slate-500` (macht `SeitenKopf`) |
+| Abschnitt / Eyebrow | `text-2xs font-bold uppercase tracking-wider text-slate-500` (Komponente `Abschnitt`) |
 | Kartentitel | `text-sm font-bold text-slate-900` |
+| Formular-Label | `text-xs font-bold text-slate-600` (`beschriftung`, macht `Feld`) |
+| Kennzahl-Label | `text-xs font-bold text-slate-500` über dem Wert |
 | Fließtext | `text-sm text-slate-700` |
 | Meta / Hinweis | `text-xs text-slate-500` |
 | Kleinst (Badges, Achsen) | `text-2xs` (11 px) – nie kleiner |
 
-Gewichte: `font-black` nur für Titel und große Zahlen, sonst `font-bold`/`font-medium`.
+Gewichte: `font-black` nur für Titel und große Zahlen, nie für `text-xs`/`text-2xs`;
+sonst `font-bold`/`font-medium`.
 
-Versalien (`uppercase`) nur für Eyebrows und kleine Abzeichen-Beschriftungen, nie für Karten-
-oder Abschnittstitel und nie für Knöpfe. Die untere Navigation steht in normaler Schreibung.
+Versalien (`uppercase`) nur für Abschnittsüberschriften (Eyebrows) und kleine Abzeichen,
+immer als `text-2xs … uppercase tracking-wider` – nie für Labels, Untertitel, Karten-
+titel oder Knöpfe. Die untere Navigation steht in normaler Schreibung. Der Test
+`src/designRegeln.test.ts` prüft beides.
 
 ## Formen und Abstände
 

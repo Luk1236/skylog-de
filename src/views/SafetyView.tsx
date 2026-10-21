@@ -126,7 +126,7 @@ export function SafetyView({ profile, drones, standort, ortet, onStandortFreigeb
         {koordinaten && (
           <div className="flex items-center gap-2 mb-4 p-3 rounded-2xl bg-black/15">
             <div className="flex-1 min-w-0">
-              <p className="text-2xs font-bold uppercase tracking-wider opacity-80">{tx('Dein Standort zum Durchgeben', 'Your location to pass on')}</p>
+              <p className="text-xs font-bold opacity-80">{tx('Dein Standort zum Durchgeben', 'Your location to pass on')}</p>
               <p className="text-base font-black tabular-nums select-all">{koordinaten}</p>
             </div>
             <button
@@ -142,7 +142,7 @@ export function SafetyView({ profile, drones, standort, ortet, onStandortFreigeb
         <ol className="space-y-3">
           {notfallSchritte.map((schritt, idx) => (
             <li key={schritt.titel} className="flex gap-3">
-              <div className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center shrink-0 text-2xs font-black">
+              <div className="w-6 h-6 rounded-full bg-black/15 flex items-center justify-center shrink-0 text-2xs font-bold">
                 {idx + 1}
               </div>
               <div>

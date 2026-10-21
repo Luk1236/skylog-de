@@ -84,7 +84,7 @@ export function PreFlightSafetyDialog({ weather, drone, battery, profile, onClos
       <div className="bg-white border border-slate-200 shadow-sm rounded-3xl p-5 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
+            <span className="text-xs font-bold text-slate-500 block mb-1">{tx('Flugsicherheits-Index', 'Flight safety index')}</span>
             <h3 className="text-lg font-black text-slate-900 leading-tight">
               {safety.status === 'SAFE' && tx('Gute Bedingungen', 'Good conditions')}
               {safety.status === 'WARNING' && tx('Erhöhte Aufmerksamkeit', 'Extra caution')}

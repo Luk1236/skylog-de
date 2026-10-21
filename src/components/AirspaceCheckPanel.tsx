@@ -61,7 +61,7 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <ShieldAlert className="w-4 h-4 text-brand-blue" />
-          <span className="text-2xs font-black text-slate-900 uppercase tracking-wider">{tx('Luftraum am Standort', 'Airspace at location')}</span>
+          <h3 className="text-sm font-bold text-slate-900">{tx('Luftraum am Standort', 'Airspace at location')}</h3>
         </div>
         <button onClick={laden} aria-label={tx('Zonen neu laden', 'Reload zones')} disabled={laeuft}
           className="p-1 text-slate-500 hover:text-brand-blue disabled:opacity-40">
@@ -133,8 +133,8 @@ export function AirspaceCheckPanel({ lat, lon, planHoeheM }: Props) {
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <span className="text-xs font-bold text-slate-900 leading-tight">{z.name}</span>
                     <span className={cn(
-                      'text-2xs font-black uppercase tracking-wider px-1.5 py-0.5 rounded shrink-0',
-                      z.stufe === 'kritisch' ? 'bg-brand-red/10 text-brand-red' : 'bg-amber-50 text-amber-600'
+                      'text-2xs font-bold px-1.5 py-0.5 rounded shrink-0',
+                      z.stufe === 'kritisch' ? 'bg-brand-red/10 text-brand-red' : 'bg-amber-50 text-amber-800'
                     )}>
                       {zonenLabel(z, sprache)}
                     </span>

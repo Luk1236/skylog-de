@@ -125,7 +125,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
       {publicPart && (
         <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
           <div className="flex items-center justify-between gap-3">
-            <span className="text-2xs uppercase tracking-wider text-slate-500 font-bold">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
+            <span className="text-xs font-bold text-slate-500">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
             <Knopf variante="sekundaer" groesse="sm" icon={copied ? Check : Copy} onClick={handleCopyPublicEID}>
               <span>{copied ? 'Kopiert!' : 'Kopieren'}</span>
             </Knopf>

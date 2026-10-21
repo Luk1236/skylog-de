@@ -99,7 +99,7 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
           <button type="button" onClick={onSprache} className={zeile}>
             <Languages className="w-5 h-5 shrink-0 text-slate-500" />
             <span className="flex-1 text-sm font-bold text-slate-700">{t('mehr.sprache')}</span>
-            <span className="text-sm font-black text-brand-blue">{sprache === 'en' ? 'English' : 'Deutsch'}</span>
+            <span className="text-sm font-bold text-brand-blue">{sprache === 'en' ? 'English' : 'Deutsch'}</span>
           </button>
           <button type="button" onClick={onTheme} className={zeile}>
             {theme === 'dark' ? <Sun className="w-5 h-5 shrink-0 text-slate-500" /> : <Moon className="w-5 h-5 shrink-0 text-slate-500" />}

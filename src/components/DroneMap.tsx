@@ -323,7 +323,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
               <p className="text-xs text-slate-500">{tx('Wetter, Wind und Kp-Index als Sicherheitswert 0–100 %', 'Weather, wind and Kp index as a 0–100 % safety score')}</p>
             </div>
           </div>
-          <span className="bg-brand-green text-white px-3 py-1.5 rounded-xl text-xs font-black shrink-0">
+          <span className="bg-brand-green text-white px-3 py-1.5 rounded-xl text-xs font-bold shrink-0">
             {tx('Prüfen', 'Check')}
           </span>
         </button>

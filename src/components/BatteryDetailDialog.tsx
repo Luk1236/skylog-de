@@ -85,23 +85,23 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
         <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
           <Gauge className={cn('w-4 h-4', stufe.text)} />
           <span className="text-lg font-black text-slate-900 leading-none">{soh}%</span>
-          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">SOH</span>
+          <span className="text-xs font-bold text-slate-500">SOH</span>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
           <Zap className="w-4 h-4 text-brand-blue" />
           <span className="text-lg font-black text-slate-900 leading-none">{battery.cycles ?? 0}</span>
-          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Zyklen', 'Cycles')}</span>
+          <span className="text-xs font-bold text-slate-500">{tx('Zyklen', 'Cycles')}</span>
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col gap-1">
           <TrendingDown className="w-4 h-4 text-slate-400" />
           <span className="text-lg font-black text-slate-900 leading-none">{rest}</span>
-          <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{tx('Rest-Zyklen', 'Cycles left')}</span>
+          <span className="text-xs font-bold text-slate-500">{tx('Rest-Zyklen', 'Cycles left')}</span>
         </div>
       </div>
 
       {/* Zyklen-Fortschritt gegen die Hersteller-Grenze */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4">
-        <div className="flex justify-between text-2xs font-bold text-slate-500 uppercase tracking-wider mb-1">
+        <div className="flex justify-between text-xs font-bold text-slate-500 mb-1">
           <span>{tx('Zyklen genutzt', 'Cycles used')}</span><span>{battery.cycles ?? 0} / {max}</span>
         </div>
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden">

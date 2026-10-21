@@ -47,7 +47,7 @@ function Stat({ icon: Icon, label, wert }: { icon: LucideIcon, label: string, we
     <div className="bg-white rounded-2xl border border-slate-200 p-3 flex flex-col items-center gap-1">
       <Icon className="w-4 h-4 text-brand-blue" />
       <span className="text-sm font-black text-slate-900">{wert}</span>
-      <span className="text-2xs font-bold text-slate-500 uppercase tracking-wider">{label}</span>
+      <span className="text-xs font-bold text-slate-500">{label}</span>
     </div>
   );
 }

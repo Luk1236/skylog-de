@@ -184,19 +184,19 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-              <p className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Initial GRC</p>
+              <p className="text-xs font-bold text-slate-500">Initial GRC</p>
               <p className="text-xl font-black text-slate-900 mt-1">{result.initialGrc}</p>
             </div>
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-center">
-              <p className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Final GRC</p>
+              <p className="text-xs font-bold text-slate-500">Final GRC</p>
               <p className="text-xl font-black text-brand-green mt-1">{result.finalGrc}</p>
             </div>
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-center">
-              <p className="text-2xs text-slate-500 uppercase font-bold tracking-wider">Air Risk Class</p>
+              <p className="text-xs font-bold text-slate-500">Air Risk Class</p>
               <p className="text-xl font-black text-brand-blue mt-1">{result.finalArc}</p>
             </div>
             <div className="p-3 bg-brand-blue border border-brand-blue rounded-2xl text-center shadow-sm">
-              <p className="text-2xs text-white/80 uppercase font-bold tracking-wider">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
+              <p className="text-xs font-bold text-white/80">{tx('Ergebnis SAIL', 'Resulting SAIL')}</p>
               <p className="text-xl font-black text-white mt-1">{result.sail}</p>
             </div>
           </div>
