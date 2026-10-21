@@ -1,24 +1,20 @@
 import { AlertTriangle, Info, MapPin, Rocket, ShieldCheck } from 'lucide-react';
 import { useSprache } from '../../lib/sprache';
 import type { Drone, UserProfile } from '../../services/db';
+import { offeneKategorie, type AbstandsRegel } from '../../services/offeneKategorie';
 
 /** Kurzer Regel-Check der offenen Kategorie für die gewählte Drohne. */
 export function RegelCheck({ drohne, profil }: { drohne: Drone; profil: UserProfile | null }) {
   const { tx } = useSprache();
-  const uasClass = drohne.uasClass || 'Legacy';
-  const weight = drohne.weight;
   const license = profil?.licenseType;
+  const { kategorie, regel, bestandAb250 } = offeneKategorie(drohne, license);
 
-  let category = 'A3';
-  if (uasClass === 'C0' || uasClass === 'C1' || weight < 500) category = 'A1';
-  else if (uasClass === 'C2' && license === 'A2') category = 'A2';
-
-  const abstand = (() => {
-    if (uasClass === 'C0' || weight < 250) return 'Kein Mindestabstand zu Personen';
-    if (uasClass === 'C1' || (uasClass === 'Legacy' && weight < 500)) return 'Kein Überflug von Personen';
-    if (uasClass === 'C2' && license === 'A2') return '30m (5m im Langsamflugmodus)';
-    return '150m zu Wohn/Gewerbe/Menschen';
-  })();
+  const abstand: Record<AbstandsRegel, string> = {
+    ueberflugErlaubt: tx('Überflug unbeteiligter Personen erlaubt – nie über Menschenansammlungen', 'May fly over uninvolved people – never over crowds'),
+    ueberflugVermeiden: tx('Kein geplanter Überflug unbeteiligter Personen, nie über Menschenansammlungen', 'No planned overflight of uninvolved people, never over crowds'),
+    abstand30: tx('30 m Abstand zu unbeteiligten Personen (5 m im Langsamflugmodus)', '30 m from uninvolved people (5 m in low-speed mode)'),
+    abstand150: tx('150 m Abstand zu Wohn-, Gewerbe-, Industrie- und Erholungsgebieten, keine Unbeteiligten im Flugbereich', '150 m from residential, commercial, industrial and recreational areas, no uninvolved people in the flight area'),
+  };
 
   return (
     <div className="p-5 bg-white border border-slate-200 rounded-3xl shadow-sm">
@@ -28,7 +24,7 @@ export function RegelCheck({ drohne, profil }: { drohne: Drone; profil: UserProf
           <p className="text-sm font-bold text-slate-900">{tx('LBA Regulierungs-Check', 'LBA regulation check')}</p>
         </div>
         <span className="px-2 py-0.5 bg-brand-blue text-white rounded-full text-2xs font-bold">
-          {tx('Kategorie', 'Category')} {category}
+          {tx('Kategorie', 'Category')} {kategorie}
         </span>
       </div>
 
@@ -39,9 +35,18 @@ export function RegelCheck({ drohne, profil }: { drohne: Drone; profil: UserProf
           </div>
           <div>
             <p className="text-xs font-bold text-slate-500">{tx('Vorgeschriebener Abstand', 'Required distance')}</p>
-            <p className="text-sm font-bold text-slate-900">{abstand}</p>
+            <p className="text-sm font-bold text-slate-900">{abstand[regel]}</p>
           </div>
         </div>
+
+        {bestandAb250 && (
+          <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-2xl">
+            <Info className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+            <p className="text-2xs font-medium text-amber-700 leading-relaxed">
+              {tx('Bestandsdrohnen ab 250 g dürfen seit dem 1.1.2024 nur noch in A3 fliegen – die frühere Übergangsregel (bis 500 g in A1) ist ausgelaufen.', 'Since 1 Jan 2024, legacy drones of 250 g or more may only fly in A3 – the former transition rule (up to 500 g in A1) has expired.')}
+            </p>
+          </div>
+        )}
 
         {license === 'A1/A3' && drohne.uasClass === 'C2' && (
           <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-100 rounded-2xl">
