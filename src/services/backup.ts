@@ -14,6 +14,7 @@ import {
 } from './db';
 import { verschluessele, entschluessele, istVerschluesselt } from './backupCrypto';
 import { speichereDatei } from '../lib/dateiAusgabe';
+import { lokalesDatum } from '../lib/utils';
 
 // Serialised backup file format. Documents store their binary as base64,
 // because Blobs cannot be represented directly in JSON.
@@ -201,7 +202,7 @@ export async function erstelleBackupText(passwort?: string): Promise<{ text: str
     spareParts,
   };
 
-  const datum = new Date().toISOString().split('T')[0];
+  const datum = lokalesDatum();
   const klar = JSON.stringify(data, null, 2);
   if (!passwort) return { text: klar, dateiname: `skylog_backup_${datum}.json` };
   const verschluesselt = await verschluessele(klar, passwort);

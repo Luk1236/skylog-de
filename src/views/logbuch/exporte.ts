@@ -1,12 +1,13 @@
 import type { Drone, Flight, UserProfile } from '../../services/db';
 import { fluegeImZeitraum, betriebsnachweis, pdfTabellenzeilen, baueCsv, baueKml } from '../../services/reportExport';
+import { lokalesDatum } from '../../lib/utils';
 
 // Datei-Exporte des Logbuchs. Voll-Backup (JSON) liegt bewusst nur in den
 // Einstellungen: dort filtert backup.ts die NOTAM-Zugangsdaten heraus. Ein
 // zweiter, ungefilterter Weg hier hätte die Geheimnisse doch in die Datei
 // geschrieben. Hier bleiben nur flug-spezifische Exporte (PDF, CSV, KML).
 
-const heute = () => new Date().toISOString().split('T')[0];
+const heute = () => lokalesDatum();
 
 function herunterladen(inhalt: string, typ: string, name: string) {
   const link = document.createElement('a');

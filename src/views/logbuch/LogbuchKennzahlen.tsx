@@ -1,7 +1,6 @@
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis } from 'recharts';
 import { BarChart3, Calendar } from 'lucide-react';
 import { useSprache } from '../../lib/sprache';
-import { cn } from '../../lib/utils';
+import { cn, lokalesDatum } from '../../lib/utils';
 import type { Drone, Flight } from '../../services/db';
 
 /** Kennzahlen, letzte 7 Tage, Zwecke und Jahresübersicht - immer über alle Flüge. */
@@ -17,7 +16,7 @@ export function LogbuchKennzahlen({ fluege, drones, zweckLabel }: {
   const anzahl = fluege.length;
   const schnitt = anzahl > 0 ? Math.round(minutenGesamt / anzahl) : 0;
 
-  const dieserMonat = new Date().toISOString().slice(0, 7);
+  const dieserMonat = lokalesDatum().slice(0, 7);
   const fluegeDiesenMonat = fluege.filter(f => f.date.startsWith(dieserMonat)).length;
 
   const topDrohne = drones
@@ -35,12 +34,14 @@ export function LogbuchKennzahlen({ fluege, drones, zweckLabel }: {
   const tage = Array.from({ length: 7 }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() - i);
-    return d.toISOString().split('T')[0];
+    return lokalesDatum(d);
   }).reverse();
   const diagramm = tage.map(datum => ({
     date: datum.split('-').slice(1).reverse().join('.'),
     flights: fluege.filter(f => f.date === datum).length,
   }));
+  const maxTag = Math.max(...diagramm.map(t => t.flights), 1);
+  const flugText = (n: number) => `${n} ${n === 1 ? tx('Flug', 'flight') : tx('Flüge', 'flights')}`;
 
   const jahr = new Date().getFullYear();
   // Monatskürzel in der eingestellten Sprache (de: Mär, Okt … / en: Mar, Oct …)
@@ -76,33 +77,22 @@ export function LogbuchKennzahlen({ fluege, drones, zweckLabel }: {
             <BarChart3 className="w-4 h-4 text-brand-blue" />
             <h3 className="text-sm font-bold text-slate-900">{tx('Letzte 7 Tage', 'Last 7 days')}</h3>
           </div>
-          <div className="h-28 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={diagramm}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-slate-200)" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: 'var(--color-slate-500)', fontWeight: 600 }} />
-                <Tooltip
-                  cursor={{ fill: 'transparent' }}
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      const n = Number(payload[0].value);
-                      return (
-                        <div className="bg-slate-900 text-white text-xs font-bold px-2 py-1 rounded-lg shadow-xl">
-                          {n} {n === 1 ? tx('Flug', 'flight') : tx('Flüge', 'flights')}
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
+          {/* Sieben Balken in CSS statt recharts: Das Logbuch lud sonst rund 100 kB
+              Diagramm-Code (Software-Check R3-09). Zahlen stehen sichtbar über
+              den Balken - auf dem Handy gibt es kein Hover. */}
+          <ol className="h-28 grid grid-cols-7 gap-1" aria-label={tx('Flüge an den letzten 7 Tagen', 'Flights on the last 7 days')}>
+            {diagramm.map(tag => (
+              <li key={tag.date} className="flex flex-col items-center justify-end gap-1 min-w-0" aria-label={`${tag.date}: ${flugText(tag.flights)}`}>
+                <span aria-hidden="true" className={cn('text-2xs font-bold', tag.flights > 0 ? 'text-brand-blue' : 'invisible')}>{tag.flights}</span>
+                <div
+                  aria-hidden="true"
+                  className={cn('w-4 rounded-t', tag.flights > 0 ? 'bg-brand-blue' : 'bg-slate-100')}
+                  style={{ height: `${Math.max(4, Math.round((tag.flights / maxTag) * 64))}px` }}
                 />
-                <Bar dataKey="flights" radius={[4, 4, 0, 0]} barSize={16}>
-                  {diagramm.map((eintrag, index) => (
-                    <Cell key={`cell-${index}`} fill={eintrag.flights > 0 ? 'var(--color-brand-blue)' : 'var(--color-slate-100)'} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                <span aria-hidden="true" className="text-2xs font-bold text-slate-500 whitespace-nowrap">{tag.date}</span>
+              </li>
+            ))}
+          </ol>
         </div>
       </div>
 

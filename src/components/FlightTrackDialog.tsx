@@ -5,6 +5,7 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { Upload, Route, Mountain, Gauge, BatteryMedium, AlertTriangle, type LucideIcon } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
+import { OSM_KACHELN, OSM_NAMENSNENNUNG } from '../lib/kacheln';
 import { dbService, type Flight, type TrackPoint } from '../services/db';
 import { parseTrackCsv, berechneTrackStats, analysiereTrack, type WarnStufe } from '../services/flightTrack';
 import { Dialog, knopfKlassen } from './ui';
@@ -150,7 +151,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
 
           <div className="h-56 rounded-2xl overflow-hidden border border-slate-200">
             <MapContainer center={linie[0]} zoom={15} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <TileLayer url={OSM_KACHELN} attribution={OSM_NAMENSNENNUNG} />
               <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3 }} />
               <Marker position={linie[0]} icon={startIcon} />
               <Marker position={linie[linie.length - 1]} icon={endIcon} />

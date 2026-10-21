@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Plus, Settings2, ShieldAlert, Trash2, Wrench, X } from 'lucide-react';
 import { useSprache } from '../../lib/sprache';
-import { cn } from '../../lib/utils';
+import { cn, lokalesDatum } from '../../lib/utils';
 import { dbService, type Drone, type MaintenanceRecord } from '../../services/db';
 import { zeigeRueckgaengig } from '../../services/rueckgaengig';
 import { Dialog, Feld, IconKnopf, Knopf, eingabe } from '../../components/ui';
@@ -52,7 +52,7 @@ export function WartungsDialog({ drohne, stats, hinweise, onClose, onGeaendert }
     await dbService.saveMaintenance({
       id: crypto.randomUUID(),
       droneId: drohne.id,
-      date: new Date().toISOString().split('T')[0],
+      date: lokalesDatum(),
       type: neu.type ?? 'General',
       description: neu.description,
       hoursAtMaintenance: stats?.hours || 0,

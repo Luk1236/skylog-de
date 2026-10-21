@@ -10,6 +10,7 @@ import {
   dbService,
   type Battery, type Drone, type Flight, type LocationFavorite, type MaintenanceRecord, type SparePart,
 } from './db';
+import { lokalesDatum } from '../lib/utils';
 
 export const DEMO_PRAEFIX = 'demo-';
 const TAG = 24 * 60 * 60 * 1000;
@@ -30,7 +31,7 @@ const ORTE: { name: string; koord: [number, number] }[] = [
   { name: 'Odenwald, Felsberg', koord: [49.7270, 8.7240] },
 ];
 
-const isoTag = (t: number) => new Date(t).toISOString().slice(0, 10);
+const isoTag = (t: number) => lokalesDatum(t);
 const uhrzeit = (h: number, m: number) => `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 
 /** Baut die Beispieldaten relativ zu `now` (die Flüge liegen in den letzten Monaten). */

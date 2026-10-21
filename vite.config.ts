@@ -59,12 +59,12 @@ export default defineConfig(() => {
               options: { cacheName: 'weather-cache', expiration: { maxAgeSeconds: 3600 } },
             },
             {
-              // Muss BEIDE Hosts und alle Leaflet-Subdomains treffen: Die Karte
-              // laedt von openstreetmap.fr (HOT-Stil), der Flugplaner von
-              // openstreetmap.org, und Leaflet verteilt auf a/b/c. Die fruehere
-              // Regel ([ab]...org) passte auf keinen der beiden Faelle
-              // vollstaendig — der Kachel-Cache griff dadurch nie.
-              urlPattern: /^https:\/\/[a-c]\.tile\.openstreetmap\.(org|fr)\/.*/i,
+              // Muss BEIDE Hosts treffen (src/lib/kacheln.ts): Die Karte laedt
+              // von a/b/c.tile.openstreetmap.fr (HOT-Stil), Flugplaner und
+              // Flugspur von tile.openstreetmap.org (ohne Subdomain, wie es
+              // die OSMF verlangt). Die fruehere Regel ([ab]...org) passte auf
+              // keinen der Faelle vollstaendig — der Kachel-Cache griff nie.
+              urlPattern: /^https:\/\/([a-c]\.)?tile\.openstreetmap\.(org|fr)\/.*/i,
               handler: 'CacheFirst',
               options: { cacheName: 'map-tiles', expiration: { maxEntries: 3000, maxAgeSeconds: 2592000 } },
             },

@@ -7,6 +7,10 @@ const config: CapacitorConfig = {
   appId: 'com.skylog.app',
   appName: 'SkyLog DE',
   webDir: 'dist',
+  // Eigene, feste Kennung für Kartenkacheln und Ortssuche: Die Regeln der
+  // OpenStreetMap Foundation verlangen sie von Apps. Gleicher Text wie
+  // APP_KENNUNG in src/lib/appInfo.ts (dort für die nativen Abrufe).
+  appendUserAgent: 'SkyLogDE (+https://github.com/Luk1236/skylog-de)',
   server: {
     androidScheme: 'https',
   },

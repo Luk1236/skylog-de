@@ -64,12 +64,18 @@ export async function zonen(landRoh: string): Promise<ProxyAntwort> {
 
 /** Offline-Kartendateien (GitHub-Release-Assets, ohne CORS-Header). Der
  *  Range-Header wird durchgereicht und der 206-Status bleibt erhalten -
- *  sonst laedt PMTiles jedes Mal die ganze Datei. */
+ *  sonst laedt PMTiles jedes Mal die ganze Datei. Die App laedt ganze
+ *  Regionen in 4-MB-Stuecken (mapDownload.ts): Vercel-Funktionen duerfen
+ *  hoechstens 4,5 MB zurueckgeben. */
 export async function karte(datei: string, range?: string): Promise<ProxyAntwort> {
   if (!/^[a-z0-9-]+\.pmtiles$/i.test(datei)) return fehler(400, 'Ungueltiger Dateiname');
   const ziel = `https://github.com/Luk1236/skylog-de/releases/download/karten-v1/${datei}`;
   try {
-    const antwort = await fetch(ziel, { headers: range ? { Range: range } : {}, redirect: 'follow' });
+    const antwort = await fetch(ziel, {
+      headers: range ? { Range: range } : {},
+      redirect: 'follow',
+      signal: AbortSignal.timeout(60000),
+    });
     const headers: Record<string, string> = {};
     for (const name of ['content-type', 'content-length', 'content-range', 'accept-ranges', 'etag']) {
       const wert = antwort.headers.get(name);

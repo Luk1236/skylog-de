@@ -1,7 +1,7 @@
 import { useSprache } from '../lib/sprache';
 import { useState } from 'react';
 import { AlertTriangle, Copy, Check, ExternalLink, ClipboardCheck } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, lokalesDatum } from '../lib/utils';
 import type { UserProfile, Drone } from '../services/db';
 import {
   baueVorfallBericht,
@@ -18,7 +18,7 @@ interface Props {
   onClose: () => void;
 }
 
-const heute = () => new Date().toISOString().split('T')[0];
+const heute = () => lokalesDatum();
 const jetztUhr = () => new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
 

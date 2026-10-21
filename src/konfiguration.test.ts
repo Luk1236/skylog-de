@@ -49,10 +49,32 @@ describe('Datenschutzerklärung', () => {
   });
 
   it('nennt jeden Kachel-Server, den die Karten laden', () => {
-    const quellen = ['DroneMap', 'FlightPlannerDialog', 'FlightTrackDialog'].map(n => lies(`./components/${n}.tsx`)).join('\n');
-    const hosts = new Set([...quellen.matchAll(/https:\/\/(?:\{s\}\.)?(tile\.openstreetmap\.[a-z]+)/g)].map(m => m[1]));
-    expect(hosts.size).toBeGreaterThan(0);
+    const hosts = new Set([...lies('./lib/kacheln.ts').matchAll(/https:\/\/(?:\{s\}\.)?(tile\.openstreetmap\.[a-z]+)/g)].map(m => m[1]));
+    expect(hosts.size).toBe(2);
     for (const host of hosts) expect(text).toContain(host);
+  });
+});
+
+describe('Kartenkacheln (OSM-Regeln)', () => {
+  it('alle Karten nehmen Adresse und Namensnennung aus src/lib/kacheln.ts', () => {
+    for (const n of ['DroneMap', 'FlightPlannerDialog', 'FlightTrackDialog']) {
+      const quelle = lies(`./components/${n}.tsx`);
+      expect(quelle).not.toMatch(/tile\.openstreetmap/);
+      expect(quelle).toMatch(/<TileLayer[^>]*attribution=\{(HOT|OSM)_NAMENSNENNUNG\}/);
+    }
+  });
+
+  it('die Android-App meldet sich mit derselben Kennung wie die nativen Abrufe', async () => {
+    const { APP_KENNUNG } = await import('./lib/appInfo');
+    expect(lies('../capacitor.config.ts')).toContain(`appendUserAgent: '${APP_KENNUNG}'`);
+  });
+
+  it('der Kachel-Cache im Service Worker trifft beide Kachel-Server', () => {
+    const muster = lies('../vite.config.ts').match(/urlPattern: \/(\^https:[^\n]*tile[^\n]*)\/i,/)?.[1];
+    expect(muster).toBeTruthy();
+    const regel = new RegExp(muster!, 'i');
+    expect(regel.test('https://b.tile.openstreetmap.fr/hot/12/2140/1400.png')).toBe(true);
+    expect(regel.test('https://tile.openstreetmap.org/12/2140/1400.png')).toBe(true);
   });
 });
 

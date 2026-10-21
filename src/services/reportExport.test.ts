@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fluegeImZeitraum, betriebsnachweis, pdfTabellenzeilen, baueCsv, baueKml } from './reportExport';
+import { fluegeImZeitraum, betriebsnachweis, pdfTabellenzeilen, baueCsv, baueKml, csvZelle } from './reportExport';
 import type { Flight, Drone, TrackPoint } from './db';
 
 const drohne: Drone = { id: 'd1', model: 'Mini 4 Pro', weight: 249, uasClass: 'C0', eId: 'x', createdAt: 0 };
@@ -55,14 +55,56 @@ describe('pdfTabellenzeilen', () => {
   });
 });
 
+/** Kleiner RFC-4180-Leser (Semikolon, CRLF) - prüft, was Excel aus der Datei macht. */
+function leseCsv(text: string): string[][] {
+  const zeilen: string[][] = [];
+  let zeile: string[] = [];
+  let feld = '';
+  let inAnfuehrung = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inAnfuehrung) {
+      if (c === '"' && text[i + 1] === '"') { feld += '"'; i++; }
+      else if (c === '"') inAnfuehrung = false;
+      else feld += c;
+    } else if (c === '"') inAnfuehrung = true;
+    else if (c === ';') { zeile.push(feld); feld = ''; }
+    else if (c === '\r' && text[i + 1] === '\n') { zeile.push(feld); zeilen.push(zeile); zeile = []; feld = ''; i++; }
+    else feld += c;
+  }
+  zeile.push(feld);
+  zeilen.push(zeile);
+  return zeilen;
+}
+
 describe('baueCsv', () => {
   const csv = baueCsv([flug({ notes: 'ruhig, windig', pilotName: 'Lukas' })], [drohne]);
-  it('beginnt mit BOM und der Kopfzeile', () => {
+  it('beginnt mit BOM und der Kopfzeile, Semikolon als Trenner', () => {
     expect(csv.charCodeAt(0)).toBe(0xFEFF);
-    expect(csv.split('\n')[0]).toContain('Datum,Drohne,Pilot');
+    expect(csv.split('\r\n')[0]).toContain('Datum;Drohne;Pilot');
   });
-  it('ersetzt Kommas in Notizen durch Semikolon (kein Spaltenbruch)', () => {
-    expect(csv).toContain('ruhig; windig');
+
+  it('hält Ortsnamen mit Komma, mehrzeilige Notizen und Anführungszeichen in ihrer Spalte', () => {
+    const text = baueCsv([flug({
+      locationName: 'Herrngarten, Darmstadt', notes: 'Erster Flug\nzweite Zeile; mit "Zitat"', incidents: 'Akku warm',
+      weather: { temp: 12.5, windSpeed: 18, condition: 'klar' } as Flight['weather'],
+    })], [drohne]).slice(1);
+    const [kopf, zeile, ...rest] = leseCsv(text);
+    expect(rest).toEqual([]);
+    expect(zeile).toHaveLength(kopf.length);
+    const spalte = (name: string) => zeile[kopf.indexOf(name)];
+    expect(spalte('Ort')).toBe('Herrngarten, Darmstadt');
+    expect(spalte('Notizen')).toBe('Erster Flug\nzweite Zeile; mit "Zitat"');
+    expect(spalte('Temperatur (°C)')).toBe('12,5');
+    expect(spalte('Wind (km/h)')).toBe('18');
+    expect(spalte('Vorkommnisse')).toBe('Akku warm');
+  });
+
+  it('entschärft Formeln, lässt aber Zahlen in Ruhe', () => {
+    expect(csvZelle('=HYPERLINK("http://x")')).toBe('"\'=HYPERLINK(""http://x"")"');
+    expect(csvZelle('@SUM(A1)')).toBe("'@SUM(A1)");
+    expect(csvZelle(-3)).toBe('-3');
+    expect(csvZelle(undefined)).toBe('');
   });
 });
 

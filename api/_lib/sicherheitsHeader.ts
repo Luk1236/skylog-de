@@ -16,7 +16,7 @@ const ABRUFE = [
   'https://api.faa.gov', // NOTAM
   'https://uas-betrieb.de', // DIPUL-Zonen (Abfrage am Punkt)
   'https://*.tile.openstreetmap.fr', // Kachel-Cache im Service Worker
-  'https://*.tile.openstreetmap.org',
+  'https://tile.openstreetmap.org', // Flugplaner/Flugspur (OSMF: ohne a/b/c)
 ];
 
 export const CONTENT_SECURITY_POLICY = [

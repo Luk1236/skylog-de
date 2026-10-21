@@ -4,7 +4,7 @@ import { ClipboardCheck, History, Plane, Timer, XCircle } from 'lucide-react';
 import { dbService, type Flight, type Drone, type Battery, type UserProfile, type Pilot } from '../services/db';
 import { fetchWeather, fetchForecast, type ForecastHour } from '../services/weather';
 import { fetchNotams, getGermanFir, type Notam } from '../services/notam';
-import { cn } from '../lib/utils';
+import { cn, lokalesDatum } from '../lib/utils';
 import { apiUrl } from '../lib/apiBase';
 import { Capacitor } from '@capacitor/core';
 import { ortsnameFuer } from '../services/geocode';
@@ -203,7 +203,7 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
       pilotId: selectedPilotId,
       pilotName: currentPilot?.name || 'Unbekannt',
       isGuest: selectedPilotId !== 'main',
-      date: new Date().toISOString().split('T')[0],
+      date: lokalesDatum(),
       startTime: firstStartTime,
       endTime: lastEndTime,
       duration: totalMinutes,

@@ -56,9 +56,25 @@ export function pdfTabellenzeilen(fluege: Flight[], drones: Drone[]): string[][]
   });
 }
 
-/** Vollständiger CSV-Export (mit BOM, damit Excel die Umlaute richtig liest). */
+/** Trennzeichen des CSV-Exports. Deutsches Excel erwartet Semikolons (das Komma
+ *  ist dort Dezimalzeichen) - mit Kommas landete alles in einer Spalte. */
+export const CSV_TRENNER = ';';
+
+/** Eine Zelle nach RFC 4180: in Anführungszeichen, sobald Trenner, Anführungs-
+ *  zeichen oder Zeilenumbrüche vorkommen. Text, der mit = + - @ beginnt, bekommt
+ *  ein Hochkomma davor, sonst läse Excel ihn als Formel. Zahlen mit Dezimalkomma. */
+export function csvZelle(wert: string | number | null | undefined): string {
+  if (wert == null) return '';
+  if (typeof wert === 'number') return Number.isFinite(wert) ? String(wert).replace('.', ',') : '';
+  const text = /^[=+\-@\t\r]/.test(wert) ? `'${wert}` : wert;
+  return /[";\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+/** Vollständiger CSV-Export (mit BOM, damit Excel die Umlaute richtig liest).
+ *  Ortsnamen enthalten Kommas („Herrngarten, Darmstadt“), Notizen Zeilenumbrüche -
+ *  beides bleibt dank csvZelle in seiner Spalte. */
 export function baueCsv(flights: Flight[], drones: Drone[], profilName?: string): string {
-  const headers = ['Datum', 'Drohne', 'Pilot', 'Start', 'Ende', 'Dauer (Min)', 'Ort', 'Zweck', 'Wetter', 'Notizen', 'Vorkommnisse'];
+  const headers = ['Datum', 'Drohne', 'Pilot', 'Start', 'Ende', 'Dauer (Min)', 'Ort', 'Zweck', 'Temperatur (°C)', 'Wind (km/h)', 'Notizen', 'Vorkommnisse'];
   const rows = flights.map(f => {
     const drone = drones.find(d => d.id === f.droneId);
     return [
@@ -70,12 +86,14 @@ export function baueCsv(flights: Flight[], drones: Drone[], profilName?: string)
       f.duration,
       f.locationName,
       f.purpose || 'Hobby',
-      f.weather ? `${f.weather.temp}°C, ${f.weather.windSpeed}km/h` : '',
-      (f.notes || '').replace(/,/g, ';'),
-      f.incidents?.replace(/,/g, ';') || '',
-    ].join(',');
+      f.weather?.temp,
+      f.weather?.windSpeed,
+      f.notes,
+      f.incidents,
+    ].map(csvZelle).join(CSV_TRENNER);
   });
-  return '﻿' + [headers.join(','), ...rows].join('\n');
+  // Zeilenende CRLF wie in RFC 4180; Umbrüche innerhalb einer Zelle stehen in Anführungszeichen.
+  return '﻿' + [headers.map(csvZelle).join(CSV_TRENNER), ...rows].join('\r\n');
 }
 
 /** KML der Flugorte für Google Earth. Nur Flüge mit Koordinaten. */

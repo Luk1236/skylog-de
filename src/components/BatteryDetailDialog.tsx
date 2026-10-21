@@ -7,7 +7,7 @@ import {
   effektiveGesundheit, restZyklen, lebensdauerBewertung, gesundheitsProjektion,
 } from '../services/batteryHealth';
 import { Dialog, Knopf, Feld, eingabe, type DialogTon } from './ui';
-import { cn } from '../lib/utils';
+import { cn, lokalesDatum } from '../lib/utils';
 
 interface Props {
   battery: Battery;
@@ -50,7 +50,7 @@ export function BatteryDetailDialog({ battery: initial, onClose, onUpdate }: Pro
     const c = Number(zyklen);
     if (!Number.isFinite(c) || c < 0) return;
     const h = health.trim() ? Math.min(100, Math.max(0, Number(health))) : undefined;
-    const reading: BatteryReading = { date: new Date().toISOString().slice(0, 10), cycles: c, health: h };
+    const reading: BatteryReading = { date: lokalesDatum(), cycles: c, health: h };
     // Am selben Tag ersetzen statt doppeln.
     const rest = (battery.history ?? []).filter(r => r.date !== reading.date);
     const aktualisiert: Battery = {

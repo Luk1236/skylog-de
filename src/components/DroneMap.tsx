@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import L from 'leaflet';
 
 import { cn } from '../lib/utils';
+import { HOT_KACHELN, HOT_NAMENSNENNUNG } from '../lib/kacheln';
 import { useSprache } from '../lib/sprache';
 import { dbService, type Flight, type LocationFavorite, type GespeicherteKarte } from '../services/db';
 import { wetterText, type WeatherData } from '../services/weather';
@@ -144,10 +145,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
             </Suspense>
           )
           : (
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png"
-              />
+              <TileLayer attribution={HOT_NAMENSNENNUNG} url={HOT_KACHELN} />
             )}
         
         {/* DIPUL Geo-Zonen (DFS/dipul).

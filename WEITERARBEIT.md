@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-21 (Runde 11: dringende Befunde aus Software-Check 3).
+Zuletzt aktualisiert: 2026-10-21 (Runde 12: mittlere Befunde aus Software-Check 3).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,12 +15,12 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **643 Unit-Tests** (68 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **758 Unit-Tests** (69 Dateien, davon
 Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis,
 Checklisten-Editor und Dialog-Fokus) · **76 Playwright-Tests** inkl. Kontrast-Wächter (WCAG AA 4,5 : 1),
 Handy-Abläufen, Ebenen/Zurück und Tastatur-Fokus. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
-51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~175 kB gzip. Release v1.2.0 ist veröffentlicht;
-Runde 8 bis 10 sind in master.
+51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~177 kB gzip, Logbuch beim ersten Öffnen +36 kB.
+Release v1.2.0 ist veröffentlicht; Runde 8 bis 11 sind in master.
 
 Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde 11 (Branch
 `check4/dringende-befunde`) behebt die drei dringenden:
@@ -42,8 +42,27 @@ Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde
   `src/konfiguration.test.ts`. **Braucht dich:** Name, Anschrift und E-Mail des Verantwortlichen
   sowie der Hosting-Anbieter des SkyLog-Servers (im Text gelb markiert); danach juristisch
   gegenlesen lassen (u. a. Grundlage für das Vereinigte Königreich/OSM Foundation).
-- Offen aus Check 3 (mittel/niedrig): R3-04 Datum in UTC, R3-05 CSV-Export, R3-06 OSM-Regeln,
-  R3-07 SORA-iGRC, R3-08 Offline-Karten auf Vercel, R3-09 Diagramm im Logbuch, R3-10 bis R3-13.
+
+Runde 12 (Branch `check4/mittlere-befunde`), die mittleren Befunde R3-04 bis R3-09:
+- **R3-04 Datum:** `lokalesDatum()` in `src/lib/utils.ts` (Ortszeit statt UTC) an allen 11 Stellen,
+  auch Wartung, Exporte und Wochen-Diagramm; Test mit 00:30 Uhr Sommerzeit. Ersetzt den alten
+  Branch `check2/lokales-datum`.
+- **R3-05 CSV:** Semikolon als Trenner (deutsches Excel), Zellen nach RFC 4180 in Anführungszeichen,
+  Formeln entschärft, Temperatur und Wind als eigene Zahlenspalten mit Dezimalkomma (`csvZelle`).
+- **R3-06 OSM:** Kachel-Adressen und Namensnennung in `src/lib/kacheln.ts`; Flugplaner und Flugspur
+  laden von `tile.openstreetmap.org` (ohne a/b/c) mit Namensnennung, die Hauptkarte nennt HOT und
+  OSM France. Android meldet sich als „SkyLogDE“ (`appendUserAgent`, native Nominatim-Abfragen mit
+  `appKennungKopf()`); CSP und Kachel-Cache angepasst.
+- **R3-07 SORA:** volle iGRC-Tabelle nach SORA 2.5 mit Minderungen je Robustheit vom Branch
+  `check2/sora-igrc` übernommen (Konflikt mit den Texten aus Runde 9/10 gelöst).
+- **R3-08 Offline-Karten im Browser:** Download in 4-MiB-Teilstücken per Range (Vercel-Funktionen
+  dürfen höchstens 4,5 MB liefern); gegen GitHub geprüft (206). Der Karten-Proxy hat jetzt eine
+  Zeitgrenze.
+- **R3-09 Logbuch:** Wochen-Diagramm in CSS statt recharts – beim ersten Öffnen 36 statt 138 kB gzip.
+- Die alten Branches `check2/lokales-datum`, `check2/sora-igrc` und `check2/n19-aufteilen` sind damit
+  überholt. Auf `check2/n14-testabdeckung` liegen nur noch echte IndexedDB-Tests (fake-indexeddb).
+- Offen aus Check 3: R3-02 (Name/Anschrift/Hosting), R3-10 Datenschutzerklärung auf Englisch,
+  R3-11 Karte im Dunkelmodus, R3-12 Marker-Tippfläche, R3-13 TypeScript 7/pmtiles 4.
 
 Runde 10 (Branch `check3/schwaechen`), die Schwächen der Bereichsbewertung im Dashboard:
 - **Barrierefreiheit:** axe-Audit über 22 Ansichten/Dialoge – die letzten drei Verstöße behoben

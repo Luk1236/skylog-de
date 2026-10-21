@@ -28,19 +28,64 @@ export function berechneFortschritt(geladen: number, gesamt: number): Fortschrit
 
 type FetchArt = typeof fetch;
 
+/** Größe der Teilstücke im Browser. Dort läuft der Download über die Funktion
+ *  /api/karte, und Vercel-Funktionen dürfen höchstens 4,5 MB zurückgeben - eine
+ *  Kartenregion hat rund 150 MB. In Teilstücken (Range) passt jedes darunter. */
+export const TEIL_BYTES = 4 * 1024 * 1024;
+
+/** Gesamtgröße aus „Content-Range: bytes 0-4194303/157286400“, sonst null. */
+export function gesamtAusContentRange(kopf: string | null): number | null {
+  const treffer = kopf?.match(/\/(\d+)\s*$/);
+  return treffer ? Number(treffer[1]) : null;
+}
+
+async function ladeInTeilen(
+  url: string,
+  onFortschritt: ((f: Fortschritt) => void) | undefined,
+  hole: FetchArt,
+  teilBytes: number,
+): Promise<Blob> {
+  const teile: Blob[] = [];
+  let geladen = 0;
+  let gesamt: number | null = null;
+  for (;;) {
+    const bis = gesamt == null ? geladen + teilBytes - 1 : Math.min(geladen + teilBytes, gesamt) - 1;
+    const antwort = await hole(url, { headers: { Range: `bytes=${geladen}-${bis}` } });
+    if (antwort.status === 200 && geladen === 0) {
+      // Server ohne Range (z.B. lokaler Express-Server): die Datei kommt am Stück.
+      const ganz = await antwort.blob();
+      onFortschritt?.(berechneFortschritt(ganz.size, ganz.size));
+      return ganz;
+    }
+    if (antwort.status !== 206) {
+      throw new Error(`Karte nicht erreichbar (HTTP ${antwort.status}).`);
+    }
+    gesamt ??= gesamtAusContentRange(antwort.headers.get('content-range'));
+    const teil = await antwort.blob();
+    teile.push(teil);
+    geladen += teil.size;
+    onFortschritt?.(berechneFortschritt(geladen, gesamt ?? 0));
+    const fertig = gesamt != null ? geladen >= gesamt : teil.size < teilBytes;
+    if (fertig || teil.size === 0) break;
+  }
+  return new Blob(teile);
+}
+
 /** Lädt die Region und legt sie in der Datenbank ab.
  *
- *  onFortschritt wird nur aufgerufen, wenn der Körper als Strom lesbar ist.
- *  Nativ (CapacitorHttp) ist das oft nicht der Fall — dann kommt die Datei in
- *  einem Stück und der Fortschritt bleibt unbestimmt. Das ist Absicht: lieber
- *  ein unbestimmter Balken als ein erfundener. */
+ *  Im Browser in Teilstücken (siehe TEIL_BYTES), mit echtem Fortschritt.
+ *  Nativ (CapacitorHttp, direkt von GitHub) in einem Stück: onFortschritt
+ *  kommt dann nur, wenn der Körper als Strom lesbar ist - sonst bleibt der
+ *  Balken unbestimmt. Lieber ein unbestimmter Balken als ein erfundener. */
 export async function ladeRegion(
   region: KartenRegion,
   nativ: boolean,
   onFortschritt?: (f: Fortschritt) => void,
-  hole: FetchArt = fetch
+  hole: FetchArt = fetch,
+  teilBytes = TEIL_BYTES,
 ): Promise<GespeicherteKarte> {
   const url = quellUrl(region, nativ);
+  if (!nativ) return speichere(region, await ladeInTeilen(url, onFortschritt, hole, teilBytes));
   const antwort = await hole(url);
   if (!antwort.ok) {
     throw new Error(`Karte nicht erreichbar (HTTP ${antwort.status}).`);
@@ -67,7 +112,10 @@ export async function ladeRegion(
     blob = await antwort.blob();
     onFortschritt?.(berechneFortschritt(blob.size, blob.size));
   }
+  return speichere(region, blob);
+}
 
+async function speichere(region: KartenRegion, blob: Blob): Promise<GespeicherteKarte> {
   const karte: GespeicherteKarte = {
     code: region.code,
     name: region.name,

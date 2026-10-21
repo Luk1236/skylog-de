@@ -7,7 +7,7 @@ import { blendeAus, sichtbareHinweise } from '../services/ausgeblendeteHinweise'
 import { getLastBackupAt } from '../services/backup';
 import { getSicherungsIntervall } from '../services/sicherungsErinnerung';
 import { getReminders } from '../services/reminders';
-import { cn } from '../lib/utils';
+import { cn, lokalesDatum } from '../lib/utils';
 import { useSprache } from '../lib/sprache';
 import {
   FlightImportDialog, FlightMediaDialog, FlightTrackDialog, StatisticsDialog,
@@ -31,7 +31,7 @@ export function LogbookView({ flights, drones, batteries, profile, onUpdate, cur
   formularStart?: boolean,
 }) {
   const { t, tx, sprache } = useSprache();
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = lokalesDatum();
   const validFlights = flights
     .filter(f => f.date <= todayStr)
     .sort((a, b) => b.createdAt - a.createdAt);

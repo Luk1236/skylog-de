@@ -6,6 +6,7 @@ import {
 } from '../services/db';
 import { zeigeRueckgaengig } from '../services/rueckgaengig';
 import { useSprache } from '../lib/sprache';
+import { lokalesDatum } from '../lib/utils';
 import { BatteryDetailDialog } from '../components/lazyDialogs';
 import { Feld, Knopf, eingabe, SeitenKopf } from '../components/ui';
 import { drohnenStatistik, wartungsHinweise, type DrohnenStatistik } from './flotte/wartungsHinweise';
@@ -105,7 +106,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
     await dbService.saveMaintenance({
       id: crypto.randomUUID(),
       droneId: drone.id,
-      date: new Date().toISOString().split('T')[0],
+      date: lokalesDatum(),
       type: 'Motor',
       description: 'Motoren gereinigt (Benutzer-Schnellaktion)',
       hoursAtMaintenance: droneStats[drone.id]?.hours || 0,

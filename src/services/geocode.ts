@@ -5,6 +5,8 @@
 // GPS. Dann soll der Pilot den Kartenmittelpunkt trotzdem setzen können — per
 // Ortsname oder per Koordinatenpaar aus einer anderen Quelle.
 
+import { appKennungKopf } from '../lib/appInfo';
+
 export interface OrtsTreffer {
   name: string;
   lat: number;
@@ -66,7 +68,7 @@ export async function sucheOrte(
     `?format=jsonv2&limit=5&accept-language=de&q=${encodeURIComponent(q)}`;
 
   try {
-    const antwort = await fetch(url, { signal, headers: { Accept: 'application/json' } });
+    const antwort = await fetch(url, { signal, headers: { Accept: 'application/json', ...appKennungKopf() } });
     if (!antwort.ok) return [];
     const daten = (await antwort.json()) as Array<{
       display_name?: string; lat?: string; lon?: string;
@@ -92,7 +94,7 @@ export async function ortsnameFuer(lat: number, lon: number, signal?: AbortSigna
     'https://nominatim.openstreetmap.org/reverse' +
     `?format=jsonv2&zoom=14&accept-language=de&lat=${lat}&lon=${lon}`;
   try {
-    const antwort = await fetch(url, { signal, headers: { Accept: 'application/json' } });
+    const antwort = await fetch(url, { signal, headers: { Accept: 'application/json', ...appKennungKopf() } });
     if (!antwort.ok) return null;
     return kurzerOrtsname(await antwort.json());
   } catch {
