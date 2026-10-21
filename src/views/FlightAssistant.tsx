@@ -1,5 +1,5 @@
 import { useSprache } from '../lib/sprache';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useId, useRef } from 'react';
 import { ClipboardCheck, History, Plane, Timer, XCircle } from 'lucide-react';
 import { dbService, type Flight, type Drone, type Battery, type UserProfile, type Pilot } from '../services/db';
 import { fetchWeather, fetchForecast, type ForecastHour } from '../services/weather';
@@ -10,6 +10,7 @@ import { Capacitor } from '@capacitor/core';
 import { ortsnameFuer } from '../services/geocode';
 import { bestaetige } from '../services/dialog';
 import { useEbene } from '../lib/useEbene';
+import { fokusFalle, useDialogFokus } from '../lib/useDialogFokus';
 import { useCheckliste } from './flugAssistent/checkliste';
 import { SchrittVorbereitung } from './flugAssistent/SchrittVorbereitung';
 import { SchrittCheckliste } from './flugAssistent/SchrittCheckliste';
@@ -247,6 +248,11 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
     onClose();
   };
   useEbene(true, () => { void schliessen(); });
+  // Vollbild-Ebene: Fokus hinein und drin halten, damit Tab nicht in die
+  // verdeckte Navigation springt.
+  const ebene = useRef<HTMLDivElement>(null);
+  const titelId = useId();
+  useDialogFokus(ebene);
 
   const steps = [
     { id: 'setup', label: tx('Vorbereitung', 'Setup'), icon: Plane },
@@ -258,13 +264,13 @@ export function FlightAssistant({ drones, batteries, profile, letzterFlug, onClo
   const currentStepIndex = steps.findIndex(s => s.id === step);
 
   return (
-    <div className="fixed inset-0 z-[60] bg-slate-50 flex flex-col h-screen overflow-hidden">
+    <div ref={ebene} role="dialog" aria-modal="true" aria-labelledby={titelId} tabIndex={-1} onKeyDown={fokusFalle} className="fixed inset-0 z-[60] bg-slate-50 flex flex-col h-screen overflow-hidden focus:outline-none">
       {/* Assistant Header */}
       <div className="bg-white border-b border-slate-200 px-6 py-4 shrink-0">
         <div className="flex items-center justify-between mb-4">
           <button onClick={() => void schliessen()} aria-label={tx('Assistent schließen', 'Close assistant')} className="w-10 h-10 -ml-2 flex items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100"><XCircle className="w-6 h-6" /></button>
           <div className="text-center min-w-0">
-            <h2 className="font-black text-slate-900 text-base">{tx('Flug-Assistent', 'Flight assistant')}</h2>
+            <h2 id={titelId} className="font-black text-slate-900 text-base">{tx('Flug-Assistent', 'Flight assistant')}</h2>
             <p className="text-xs font-bold text-brand-blue truncate">{locationName}</p>
           </div>
           <div className="w-10"></div>

@@ -33,6 +33,29 @@ describe('index.html', () => {
   });
 });
 
+describe('Datenschutzerklärung', () => {
+  const text = lies('../public/datenschutz.html');
+
+  it('enthält die Pflichtangaben nach Art. 13 DSGVO', () => {
+    for (const abschnitt of ['Verantwortlicher', 'Rechtsgrundlagen', 'Übermittlung in Drittländer', 'Speicherdauer', 'Ihre Rechte']) {
+      expect(text).toMatch(new RegExp(`<h2>\\d+\\. ${abschnitt}`));
+    }
+    expect(text).toContain('Art. 77');
+    expect(text).toContain('Art. 6 Abs. 1 lit. a');
+  });
+
+  it('behauptet nicht mehr, es gingen keine personenbezogenen Daten nach außen', () => {
+    expect(text).not.toMatch(/keine personenbezogenen Daten auf externe Server/);
+  });
+
+  it('nennt jeden Kachel-Server, den die Karten laden', () => {
+    const quellen = ['DroneMap', 'FlightPlannerDialog', 'FlightTrackDialog'].map(n => lies(`./components/${n}.tsx`)).join('\n');
+    const hosts = new Set([...quellen.matchAll(/https:\/\/(?:\{s\}\.)?(tile\.openstreetmap\.[a-z]+)/g)].map(m => m[1]));
+    expect(hosts.size).toBeGreaterThan(0);
+    for (const host of hosts) expect(text).toContain(host);
+  });
+});
+
 describe('vercel.json', () => {
   const vercel = JSON.parse(lies('../vercel.json')) as {
     headers: { source: string; headers: { key: string; value: string }[] }[];

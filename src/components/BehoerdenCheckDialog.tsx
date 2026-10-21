@@ -1,11 +1,12 @@
 import { useSprache } from '../lib/sprache';
-import { useState, useMemo, useEffect, useId } from 'react';
+import { useState, useMemo, useEffect, useId, useRef } from 'react';
 import { X, ShieldCheck, AlertTriangle, ChevronDown, FileDigit, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
 import { cn } from '../lib/utils';
 import type { UserProfile, Drone, AppDocument } from '../services/db';
 import { baueBehoerdenCheck } from '../services/authorityCheck';
 import { useEbene } from '../lib/useEbene';
+import { fokusFalle, useDialogFokus } from '../lib/useDialogFokus';
 
 interface Props {
   profile: UserProfile | null;
@@ -22,6 +23,8 @@ export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose
   const { tx } = useSprache();
   useEbene(true, onClose);
   const titelId = useId();
+  const ebene = useRef<HTMLDivElement>(null);
+  useDialogFokus(ebene);
   const [drohnenId, setDrohnenId] = useState<string>(drohnen[0]?.id ?? '');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
@@ -46,7 +49,7 @@ export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose
   }, [check.qrInhalt]);
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby={titelId} className="fixed inset-0 bg-slate-50 z-[60] flex flex-col text-slate-900 overflow-y-auto">
+    <div ref={ebene} role="dialog" aria-modal="true" aria-labelledby={titelId} tabIndex={-1} onKeyDown={fokusFalle} className="fixed inset-0 bg-slate-50 z-[60] flex flex-col text-slate-900 overflow-y-auto focus:outline-none">
       <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0 bg-white border-b border-slate-200">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />

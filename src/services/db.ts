@@ -486,7 +486,8 @@ export const dbService = {
   //
   // Beides laeuft in EINER Transaktion: bricht etwas ab, wird auch das Leeren
   // zurueckgerollt - es gibt keinen Zustand mit geleerter, aber nicht wieder
-  // befuellter Datenbank.
+  // befuellter Datenbank. Dafuer muss ein sofort geworfener Fehler die
+  // Transaktion ausdruecklich abbrechen (siehe catch unten).
   async importAllData(payload: {
     drones: Drone[];
     flights: Flight[];
@@ -507,28 +508,41 @@ export const dbService = {
       FLIGHTPLANS_STORE, LOCATION_FAVORITES_STORE, CUSTOMERS_STORE, SPARE_PARTS_STORE,
     ];
     const tx = db.transaction(stores, 'readwrite');
-    if (modus === 'replace') {
-      // Speicher, die eine aeltere Sicherung (Format 1) gar nicht enthaelt, bleiben
-      // stehen - sonst loeschte das Einspielen eines alten Backups z.B. alle Flugplaene.
-      const nichtInDatei = new Set<string>([
-        payload.flightPlans ? '' : FLIGHTPLANS_STORE,
-        payload.locationFavorites ? '' : LOCATION_FAVORITES_STORE,
-        payload.customers ? '' : CUSTOMERS_STORE,
-        payload.spareParts ? '' : SPARE_PARTS_STORE,
-      ]);
-      for (const store of stores) if (!nichtInDatei.has(store)) tx.objectStore(store).clear();
+    // Fehler einzelner Anfragen meldet tx.done; ihre eigenen Promises sollen
+    // (z.B. nach abort()) nicht als unbehandelte Ablehnung auflaufen.
+    const schreibe = (store: string, wert: unknown) => { tx.objectStore(store).put(wert).catch(() => {}); };
+    try {
+      if (modus === 'replace') {
+        // Speicher, die eine aeltere Sicherung (Format 1) gar nicht enthaelt, bleiben
+        // stehen - sonst loeschte das Einspielen eines alten Backups z.B. alle Flugplaene.
+        const nichtInDatei = new Set<string>([
+          payload.flightPlans ? '' : FLIGHTPLANS_STORE,
+          payload.locationFavorites ? '' : LOCATION_FAVORITES_STORE,
+          payload.customers ? '' : CUSTOMERS_STORE,
+          payload.spareParts ? '' : SPARE_PARTS_STORE,
+        ]);
+        for (const store of stores) if (!nichtInDatei.has(store)) tx.objectStore(store).clear().catch(() => {});
+      }
+      for (const x of payload.flightPlans ?? []) schreibe(FLIGHTPLANS_STORE, x);
+      for (const x of payload.locationFavorites ?? []) schreibe(LOCATION_FAVORITES_STORE, x);
+      for (const x of payload.customers ?? []) schreibe(CUSTOMERS_STORE, x);
+      for (const x of payload.spareParts ?? []) schreibe(SPARE_PARTS_STORE, x);
+      for (const d of payload.drones) schreibe(DRONES_STORE, d);
+      for (const f of payload.flights) schreibe(FLIGHTS_STORE, f);
+      for (const b of payload.batteries) schreibe(BATTERIES_STORE, b);
+      for (const m of payload.maintenance) schreibe(MAINTENANCE_STORE, m);
+      for (const p of payload.pilots) schreibe(PILOTS_STORE, p);
+      for (const doc of payload.documents) schreibe(DOCUMENTS_STORE, doc);
+      if (payload.profile) schreibe(PROFILE_STORE, payload.profile);
+    } catch (fehler) {
+      // put() wirft bei unbrauchbaren Datensaetzen (fehlender Schluessel, nicht
+      // speicherbarer Wert) sofort - das bricht die Transaktion aber NICHT von
+      // selbst ab. Ohne abort() blieben das Leeren und alle bis dahin
+      // geschriebenen Eintraege bestehen.
+      tx.abort();
+      await tx.done.catch(() => {});
+      throw fehler;
     }
-    for (const x of payload.flightPlans ?? []) tx.objectStore(FLIGHTPLANS_STORE).put(x);
-    for (const x of payload.locationFavorites ?? []) tx.objectStore(LOCATION_FAVORITES_STORE).put(x);
-    for (const x of payload.customers ?? []) tx.objectStore(CUSTOMERS_STORE).put(x);
-    for (const x of payload.spareParts ?? []) tx.objectStore(SPARE_PARTS_STORE).put(x);
-    for (const d of payload.drones) tx.objectStore(DRONES_STORE).put(d);
-    for (const f of payload.flights) tx.objectStore(FLIGHTS_STORE).put(f);
-    for (const b of payload.batteries) tx.objectStore(BATTERIES_STORE).put(b);
-    for (const m of payload.maintenance) tx.objectStore(MAINTENANCE_STORE).put(m);
-    for (const p of payload.pilots) tx.objectStore(PILOTS_STORE).put(p);
-    for (const doc of payload.documents) tx.objectStore(DOCUMENTS_STORE).put(doc);
-    if (payload.profile) tx.objectStore(PROFILE_STORE).put(payload.profile);
     await tx.done;
   },
 

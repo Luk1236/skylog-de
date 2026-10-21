@@ -6,7 +6,7 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { dbService, type UserProfile } from '../services/db';
 import { melde, bestaetige } from '../services/dialog';
-import { exportBackup, importBackup, PasswortNoetigFehler } from '../services/backup';
+import { BeschaedigteSicherungFehler, exportBackup, importBackup, PasswortNoetigFehler } from '../services/backup';
 import type { Theme } from '../services/theme';
 import type { Sprache } from '../services/i18n';
 import { APP_VERSION, plattform } from '../lib/appInfo';
@@ -83,6 +83,10 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
         return;
       }
       console.error(err);
+      if (err instanceof BeschaedigteSicherungFehler) {
+        melde(tx(err.message, err.textEn), tx('Sicherung nicht eingespielt', 'Backup not restored'));
+        return;
+      }
       melde((err instanceof Error && err.message) || tx('Import fehlgeschlagen.', 'Import failed.'));
     }
   };

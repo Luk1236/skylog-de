@@ -1,8 +1,9 @@
-import { useId, type ReactNode } from 'react';
+import { useId, useRef, type ReactNode } from 'react';
 import { X, type LucideIcon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useSprache } from '../../lib/sprache';
 import { useEbene } from '../../lib/useEbene';
+import { fokusFalle, useDialogFokus } from '../../lib/useDialogFokus';
 
 export type DialogTon = 'blau' | 'gruen' | 'bernstein' | 'rot';
 
@@ -50,10 +51,13 @@ export function Dialog({
 }: Props) {
   const { t } = useSprache();
   const titelId = useId();
+  const ebene = useRef<HTMLDivElement>(null);
 
   // Escape und die Android-Zurück-Taste schließen nur den obersten Dialog
   // (Ebenen-Stapel, s. services/ebenen.ts).
   useEbene(schliessbar, onClose);
+  // Fokus beim Öffnen hinein, Tab bleibt drin, beim Schließen zurück.
+  useDialogFokus(ebene);
 
   return (
     <div
@@ -61,10 +65,13 @@ export function Dialog({
       onClick={schliessbar && schliesstBeiKlickDaneben ? onClose : undefined}
     >
       <div
+        ref={ebene}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titelId}
-        className={cn('bg-white w-full rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col', BREITE[breite])}
+        tabIndex={-1}
+        onKeyDown={fokusFalle}
+        className={cn('bg-white w-full rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col focus:outline-none', BREITE[breite])}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 px-5 pt-5 pb-4 border-b border-slate-100 shrink-0">

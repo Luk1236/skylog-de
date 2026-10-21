@@ -43,6 +43,60 @@ export class PasswortNoetigFehler extends Error {
   }
 }
 
+/** Teile der Sicherung, die sich so nicht speichern lassen. */
+export interface Schaden { de: string; en: string; anzahl: number }
+
+/** Die Sicherung enthält Einträge ohne gültige ID (oder keine Liste, wo eine
+ *  stehen muss). Wird geworfen, BEVOR etwas an der Datenbank passiert. */
+export class BeschaedigteSicherungFehler extends Error {
+  readonly textEn: string;
+  constructor(readonly schaeden: Schaden[]) {
+    const anzahl = schaeden.reduce((s, x) => s + x.anzahl, 0);
+    super(`Die Sicherung ist beschädigt: ${anzahl} ${anzahl === 1 ? 'Eintrag' : 'Einträge'} lassen sich nicht lesen `
+      + `(${schaeden.map(x => x.de).join(', ')}). Es wurde nichts verändert.`);
+    this.textEn = `The backup is damaged: ${anzahl} ${anzahl === 1 ? 'entry' : 'entries'} cannot be read `
+      + `(${schaeden.map(x => x.en).join(', ')}). Nothing was changed.`;
+    this.name = 'BeschaedigteSicherungFehler';
+  }
+}
+
+const LISTEN: { feld: keyof BackupData; de: string; en: string; pflicht: boolean }[] = [
+  { feld: 'drones', de: 'Drohnen', en: 'drones', pflicht: true },
+  { feld: 'flights', de: 'Flüge', en: 'flights', pflicht: false },
+  { feld: 'batteries', de: 'Akkus', en: 'batteries', pflicht: false },
+  { feld: 'maintenance', de: 'Wartungen', en: 'maintenance', pflicht: false },
+  { feld: 'pilots', de: 'Piloten', en: 'pilots', pflicht: false },
+  { feld: 'documents', de: 'Dokumente', en: 'documents', pflicht: false },
+  { feld: 'flightPlans', de: 'Flugpläne', en: 'flight plans', pflicht: false },
+  { feld: 'locationFavorites', de: 'Lieblingsorte', en: 'favourite places', pflicht: false },
+  { feld: 'customers', de: 'Kunden', en: 'customers', pflicht: false },
+  { feld: 'spareParts', de: 'Ersatzteile', en: 'spare parts', pflicht: false },
+];
+
+const hatId = (x: unknown): boolean => {
+  if (typeof x !== 'object' || x === null) return false;
+  const id = (x as { id?: unknown }).id;
+  return (typeof id === 'string' && id !== '') || (typeof id === 'number' && Number.isFinite(id));
+};
+
+/** Sucht Einträge, an denen das Einspielen scheitern würde. IndexedDB wirft
+ *  sonst mitten im Schreiben - die Prüfung vorab sagt genau, was kaputt ist. */
+export function findeSchaeden(data: BackupData): Schaden[] {
+  const schaeden: Schaden[] = [];
+  for (const { feld, de, en, pflicht } of LISTEN) {
+    const wert = data[feld] as unknown;
+    if (wert == null && !pflicht) continue;
+    if (!Array.isArray(wert)) {
+      schaeden.push({ de: `${de}: keine Liste`, en: `${en}: not a list`, anzahl: 1 });
+      continue;
+    }
+    const kaputt = wert.filter(x => !hatId(x)).length;
+    if (kaputt) schaeden.push({ de, en, anzahl: kaputt });
+  }
+  if (data.profile != null && !hatId(data.profile)) schaeden.push({ de: 'Profil', en: 'profile', anzahl: 1 });
+  return schaeden;
+}
+
 export interface ImportResult {
   drones: number;
   flights: number;
@@ -199,6 +253,10 @@ export async function importBackup(
       `diese App kann ${BACKUP_VERSION}). Bitte die App aktualisieren.`
     );
   }
+
+  // Erst prüfen, dann schreiben: Beim Ersetzen wird die Datenbank geleert.
+  const schaeden = findeSchaeden(data);
+  if (schaeden.length) throw new BeschaedigteSicherungFehler(schaeden);
 
   const documents: AppDocument[] = (data.documents ?? []).map((d) => ({
     id: d.id,

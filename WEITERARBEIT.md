@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-21 (Runde 10: Schwächen der Bereichsbewertung).
+Zuletzt aktualisiert: 2026-10-21 (Runde 11: dringende Befunde aus Software-Check 3).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,11 +15,35 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **630 Unit-Tests** (66 Dateien, davon
-Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis und
-Checklisten-Editor) · **74 Playwright-Tests** inkl. Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen
-und Ebenen/Zurück. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt 51 %. axe: 0 Verstöße in
-22 Ansichten. Erststart ~175 kB gzip. Release v1.2.0 ist veröffentlicht; Runde 8 und 9 sind in master.
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **643 Unit-Tests** (68 Dateien, davon
+Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis,
+Checklisten-Editor und Dialog-Fokus) · **76 Playwright-Tests** inkl. Kontrast-Wächter (WCAG AA 4,5 : 1),
+Handy-Abläufen, Ebenen/Zurück und Tastatur-Fokus. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
+51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~175 kB gzip. Release v1.2.0 ist veröffentlicht;
+Runde 8 bis 10 sind in master.
+
+Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde 11 (Branch
+`check4/dringende-befunde`) behebt die drei dringenden:
+- **R3-01 Datenverlust beim Einspielen:** `importAllData` bricht die Transaktion jetzt ausdrücklich
+  ab, wenn `put()` sofort wirft – vorher blieb beim Ersetzen die geleerte Datenbank stehen.
+  Zusätzlich prüft `importBackup` die Sicherung vorab (jeder Eintrag braucht eine ID, jede Liste
+  muss eine Liste sein) und meldet „Es wurde nichts verändert“ auf Deutsch und Englisch.
+  Test mit nachgebauter Transaktion (`db.import.test.ts`, schlägt ohne den Fix fehl). Die echten
+  IndexedDB-Tests mit fake-indexeddb liegen weiter auf `check2/n14-testabdeckung` (neue
+  Dev-Abhängigkeit – nur mit deinem OK übernehmen).
+- **R3-03 Fokus in Dialogen:** `src/lib/useDialogFokus.ts` (Fokus beim Öffnen in die Ebene, Tab
+  bleibt drin, beim Schließen zurück auf den Auslöser). Gilt für den gemeinsamen `Dialog` (26
+  Dialoge), die Rückfragen (jetzt mit zugänglichem Namen, Fokus auf „Abbrechen“), Behörden-Check,
+  Flug-Assistent (jetzt `role="dialog"`) und die Foto-Großansicht (jetzt mit Schließen-Knopf).
+  Tests: `src/components/dialogFokus.test.tsx`, `e2e/fokus.spec.ts`.
+- **R3-02 Datenschutzerklärung:** Rechtsgrundlagen, Drittländer, Speicherdauer, Rechte samt
+  Beschwerderecht, OpenStreetMap France als Kachel-Quelle der Hauptkarte; die falsche Aussage
+  „keine personenbezogenen Daten auf externe Server“ ist richtiggestellt. Wächter in
+  `src/konfiguration.test.ts`. **Braucht dich:** Name, Anschrift und E-Mail des Verantwortlichen
+  sowie der Hosting-Anbieter des SkyLog-Servers (im Text gelb markiert); danach juristisch
+  gegenlesen lassen (u. a. Grundlage für das Vereinigte Königreich/OSM Foundation).
+- Offen aus Check 3 (mittel/niedrig): R3-04 Datum in UTC, R3-05 CSV-Export, R3-06 OSM-Regeln,
+  R3-07 SORA-iGRC, R3-08 Offline-Karten auf Vercel, R3-09 Diagramm im Logbuch, R3-10 bis R3-13.
 
 Runde 10 (Branch `check3/schwaechen`), die Schwächen der Bereichsbewertung im Dashboard:
 - **Barrierefreiheit:** axe-Audit über 22 Ansichten/Dialoge – die letzten drei Verstöße behoben

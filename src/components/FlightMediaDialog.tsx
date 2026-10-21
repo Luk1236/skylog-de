@@ -1,6 +1,6 @@
 import { useSprache } from '../lib/sprache';
-import { useState, type ChangeEvent } from 'react';
-import { ImagePlus, Trash2, AlertTriangle, Image as ImageIcon } from 'lucide-react';
+import { useRef, useState, type ChangeEvent } from 'react';
+import { ImagePlus, Trash2, AlertTriangle, Image as ImageIcon, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { dbService, type Flight, type FlightMedia } from '../services/db';
 import {
@@ -10,6 +10,7 @@ import {
 import { bestaetige } from '../services/dialog';
 import { Dialog, knopfKlassen } from './ui';
 import { useEbene } from '../lib/useEbene';
+import { fokusFalle, useDialogFokus } from '../lib/useDialogFokus';
 
 interface Props {
   flight: Flight;
@@ -137,11 +138,38 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
       </Dialog>
 
       {/* Großansicht: bewusst eigene Vollbild-Lightbox (schwarz) über dem Dialog. */}
-      {gross && (
-        <div className="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center p-4" onClick={() => setGross(null)}>
-          <img src={gross.dataUrl} alt={gross.name} className="max-w-full max-h-full object-contain rounded-xl" />
-        </div>
-      )}
+      {gross && <Grossansicht bild={gross} onClose={() => setGross(null)} />}
     </>
+  );
+}
+
+/** Foto im Vollbild: eigene Ebene mit Fokus; schließt per Tipp, Escape/Zurück
+ *  (useEbene im Dialog oben) oder den Knopf. */
+function Grossansicht({ bild, onClose }: { bild: FlightMedia; onClose: () => void }) {
+  const { tx } = useSprache();
+  const ebene = useRef<HTMLDivElement>(null);
+  useDialogFokus(ebene, 'button');
+  return (
+    <div
+      ref={ebene}
+      role="dialog"
+      aria-modal="true"
+      aria-label={bild.name}
+      tabIndex={-1}
+      onKeyDown={fokusFalle}
+      className="fixed inset-0 bg-black/90 z-[90] flex items-center justify-center p-4 focus:outline-none"
+      onClick={onClose}
+    >
+      <img src={bild.dataUrl} alt={bild.name} className="max-w-full max-h-full object-contain rounded-xl" />
+      <button
+        type="button"
+        onClick={e => { e.stopPropagation(); onClose(); }}
+        aria-label={tx('Großansicht schließen', 'Close full view')}
+        className="absolute right-4 p-2 rounded-xl bg-white/15 text-white hover:bg-white/25"
+        style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+      >
+        <X className="w-6 h-6" />
+      </button>
+    </div>
   );
 }

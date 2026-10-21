@@ -1,7 +1,10 @@
-import { describe, it, expect } from 'vitest';
-import { importBackup, BACKUP_VERSION, ohneZugangsdaten, leseBackupText, PasswortNoetigFehler } from './backup';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  importBackup, BACKUP_VERSION, ohneZugangsdaten, leseBackupText, PasswortNoetigFehler,
+  BeschaedigteSicherungFehler, findeSchaeden, type BackupData,
+} from './backup';
 import { verschluessele, FalschesPasswortFehler } from './backupCrypto';
-import type { UserProfile } from './db';
+import { dbService, type UserProfile } from './db';
 
 // importBackup prüft die Datei, bevor es die Datenbank anfasst. Diese
 // Schutzwälle lassen sich deshalb ohne IndexedDB testen — sie werfen, bevor
@@ -32,6 +35,38 @@ describe('importBackup — Schutzwälle', () => {
       drones: [],
     });
     await expect(importBackup(datei(zuNeu))).rejects.toThrow(/neueren SkyLog-Version/);
+  });
+
+  it('weist Einträge ohne ID ab, bevor die Datenbank angefasst wird', async () => {
+    const einspielen = vi.spyOn(dbService, 'importAllData');
+    const kaputt = JSON.stringify({
+      app: 'SkyLog DE', version: BACKUP_VERSION, drones: [{ id: 'd1' }],
+      flights: [{ id: 'f1' }, { date: '2026-10-21' }, { id: '' }], customers: 'keine Liste',
+    });
+    const fehler = await importBackup(datei(kaputt), 'replace').catch((e: unknown) => e);
+    expect(fehler).toBeInstanceOf(BeschaedigteSicherungFehler);
+    expect((fehler as Error).message).toMatch(/3 Einträge .*Flüge, Kunden: keine Liste.*nichts verändert/);
+    expect((fehler as BeschaedigteSicherungFehler).textEn).toMatch(/3 entries .*flights, customers: not a list.*Nothing was changed/);
+    expect(einspielen).not.toHaveBeenCalled();
+    einspielen.mockRestore();
+  });
+});
+
+describe('findeSchaeden', () => {
+  const heil = { app: 'SkyLog DE', version: 1, drones: [{ id: 'd1' }], flights: [{ id: 'f1' }], batteries: [], maintenance: [], pilots: [], profile: null, documents: [] } as unknown as BackupData;
+
+  it('findet nichts in einer heilen Sicherung, auch ohne die Listen ab Format 2', () => {
+    expect(findeSchaeden(heil)).toEqual([]);
+  });
+
+  it('nimmt Zahlen als ID an, aber keine leeren oder fehlenden', () => {
+    expect(findeSchaeden({ ...heil, flights: [{ id: 7 }, { id: '' }, null] } as unknown as BackupData))
+      .toEqual([{ de: 'Flüge', en: 'flights', anzahl: 2 }]);
+  });
+
+  it('prüft das Profil', () => {
+    expect(findeSchaeden({ ...heil, profile: { name: 'ohne id' } } as unknown as BackupData))
+      .toEqual([{ de: 'Profil', en: 'profile', anzahl: 1 }]);
   });
 });
 
