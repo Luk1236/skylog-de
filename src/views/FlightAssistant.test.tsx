@@ -19,6 +19,10 @@ vi.mock('../components/AviationWeatherPanel', () => ({ AviationWeatherPanel: () 
 const dialog = vi.hoisted(() => ({ antwort: false }));
 vi.mock('../services/dialog', () => ({ bestaetige: vi.fn(async () => dialog.antwort) }));
 
+// Ganze Ansichten in jsdom durchzuklicken dauert unter Last (voller, paralleler
+// Lauf) länger als die Standard-5-s - ohne Logikfehler. Großzügige Grenze.
+vi.setConfig({ testTimeout: 20_000 });
+
 const drohne = { id: 'd1', name: 'Mini', model: 'DJI Mini 4 Pro', weight: 249, uasClass: 'C0' } as Drone;
 const T0 = 1_800_000_000_000;
 

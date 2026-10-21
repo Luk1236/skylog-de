@@ -16,6 +16,10 @@ vi.mock('../services/dialog', () => ({ melde: dialog.melde, bestaetige: vi.fn(as
 // Diagramme brauchen echte Maße - im Test nur Platzhalter.
 vi.mock('./logbuch/LogbuchKennzahlen', () => ({ LogbuchKennzahlen: () => null }));
 
+// Ganze Ansichten in jsdom durchzuklicken dauert unter Last (voller, paralleler
+// Lauf) länger als die Standard-5-s - ohne Logikfehler. Großzügige Grenze.
+vi.setConfig({ testTimeout: 20_000 });
+
 const drohne = { id: 'd1', name: 'Mini', model: 'DJI Mini 4 Pro', weight: 249, uasClass: 'C0' } as Drone;
 
 function oeffne(flights: Flight[] = []) {
