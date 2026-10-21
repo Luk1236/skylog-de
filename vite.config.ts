@@ -48,7 +48,7 @@ export default defineConfig(() => {
         // Registrierung nicht render-blockierend einbinden (Lighthouse:
         // registerSW.js hielt den ersten Bildaufbau auf).
         injectRegister: 'script-defer',
-        includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'datenschutz.html'],
+        includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'datenschutz.html', 'privacy.html'],
         manifest: false, // we use our own public/manifest.json
         workbox: {
           globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],

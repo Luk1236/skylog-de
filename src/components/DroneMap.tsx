@@ -5,7 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import L from 'leaflet';
 
 import { cn } from '../lib/utils';
-import { HOT_KACHELN, HOT_NAMENSNENNUNG } from '../lib/kacheln';
+import { GRUNDKARTE_KLASSE, HOT_KACHELN, HOT_NAMENSNENNUNG } from '../lib/kacheln';
 import { useSprache } from '../lib/sprache';
 import { dbService, type Flight, type LocationFavorite, type GespeicherteKarte } from '../services/db';
 import { wetterText, type WeatherData } from '../services/weather';
@@ -24,29 +24,28 @@ const OfflineBasemap = lazy(() => import('./OfflineBasemap').then(m => ({ defaul
 // Die Startkarte: Grundkarte (online oder offline), DIPUL-Geozonen, importierte
 // EU-Zonen, eigene Flüge und Lieblingsorte. Aus App.tsx herausgelöst.
 
-// Custom Svg Icon for the user location
-const droneIcon = L.divIcon({
-  html: `<div class="bg-brand-blue w-6 h-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
-          <div class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
-         </div>`,
+/** Marker mit großer, unsichtbarer Tippfläche um ein kleines Symbol: WCAG 2.2
+ *  verlangt mindestens 24 × 24 px (Software-Check R3-12), am Handy sind 44 px
+ *  angenehm. Bei vielen Flügen am selben Ort bleibt die Fläche kleiner, damit
+ *  sich die Marker nicht gegenseitig verdecken. */
+const markerMitFlaeche = (symbol: string, flaeche: number) => L.divIcon({
+  html: `<div style="width:${flaeche}px;height:${flaeche}px;display:flex;align-items:center;justify-content:center">${symbol}</div>`,
   className: 'custom-div-icon',
-  iconSize: [24, 24],
-  iconAnchor: [12, 12]
+  iconSize: [flaeche, flaeche],
+  iconAnchor: [flaeche / 2, flaeche / 2],
 });
 
-const flightHistoryIcon = L.divIcon({
-  html: `<div style="background:#10b981;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`,
-  className: 'custom-div-icon',
-  iconSize: [12, 12],
-  iconAnchor: [6, 6]
-});
+// Eigener Standort
+const droneIcon = markerMitFlaeche(
+  `<div class="bg-brand-blue w-6 h-6 rounded-full border-2 border-white shadow-lg flex items-center justify-center">
+     <div class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></div>
+   </div>`, 44);
 
-const favoriteLocationIcon = L.divIcon({
-  html: `<div style="background:#f59e0b;width:18px;height:18px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;">★</div>`,
-  className: 'custom-div-icon',
-  iconSize: [18, 18],
-  iconAnchor: [9, 9]
-});
+const flightHistoryIcon = markerMitFlaeche(
+  `<div style="background:#10b981;width:12px;height:12px;border-radius:50%;border:2px solid white;box-shadow:0 1px 4px rgba(0,0,0,.3)"></div>`, 28);
+
+const favoriteLocationIcon = markerMitFlaeche(
+  `<div style="background:#f59e0b;width:18px;height:18px;border-radius:50%;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:bold;">★</div>`, 44);
 
 export function DroneMap({ location, onLocate, isLocating, weather, flights, locationFavorites = [], onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], locationFavorites?: LocationFavorite[], onPlaner: () => void }) {
   const { t, tx, sprache } = useSprache();
@@ -145,7 +144,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
             </Suspense>
           )
           : (
-              <TileLayer attribution={HOT_NAMENSNENNUNG} url={HOT_KACHELN} />
+              <TileLayer attribution={HOT_NAMENSNENNUNG} url={HOT_KACHELN} className={GRUNDKARTE_KLASSE} />
             )}
         
         {/* DIPUL Geo-Zonen (DFS/dipul).

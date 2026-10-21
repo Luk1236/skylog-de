@@ -4,6 +4,7 @@ import { leafletLayer } from 'protomaps-leaflet';
 import { PMTiles, FileSource } from 'pmtiles';
 import type { Layer } from 'leaflet';
 import type { GespeicherteKarte } from '../services/db';
+import { GRUNDKARTE_KLASSE } from '../lib/kacheln';
 
 /** Baut aus der gespeicherten Datei die PMTiles-Quelle für die Karte.
  *  FileSource erwartet ein File — ein Blob wird dafür umhüllt. */
@@ -36,7 +37,8 @@ export function OfflineBasemap({ quelle }: { quelle: string | GespeicherteKarte 
     // Flugverbotszonen-Ebene (WMS, Leaflet-Standard zIndex 1). Ohne die 0 malt
     // die Grundkarte die Zonen zu — sie werden geladen, sind aber unsichtbar.
     // Am 2026-07-24 im Browser reproduziert und nachgeprüft.
-    const ebene = leafletLayer({ url, flavor: 'light', lang: 'de', zIndex: 0 }) as unknown as Layer;
+    // className: Im Dunkelmodus dunkelt src/index.css die Grundkarte ab (wie online).
+    const ebene = leafletLayer({ url, flavor: 'light', lang: 'de', zIndex: 0, className: GRUNDKARTE_KLASSE }) as unknown as Layer;
     ebene.addTo(map);
     return () => { map.removeLayer(ebene); };
   }, [map, url]);

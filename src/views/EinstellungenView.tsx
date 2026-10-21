@@ -159,7 +159,7 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
           <div className="flex justify-between gap-3"><dt className="text-slate-500">{tx('Speicher', 'Storage')}</dt><dd className="font-bold text-slate-900 text-right">{tx('Lokal (IndexedDB)', 'Local (IndexedDB)')}</dd></div>
           <div className="flex justify-between gap-3"><dt className="text-slate-500">{tx('Lizenz', 'Licence')}</dt><dd className="font-bold text-slate-900 text-right">{tx('Privat / nicht kommerziell', 'Private / non-commercial')}</dd></div>
         </dl>
-        <a href="/datenschutz.html" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-brand-blue hover:underline">
+        <a href={sprache === 'en' ? '/privacy.html' : '/datenschutz.html'} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-sm font-bold text-brand-blue hover:underline">
           <ExternalLink className="w-4 h-4" /> {tx('Datenschutzerklärung', 'Privacy policy')}
         </a>
       </Karte>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy policy – SkyLog DE</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; color: #1e293b; line-height: 1.7; }
+    h1 { color: #00387B; border-bottom: 2px solid #e2e8f0; padding-bottom: .5rem; }
+    h2 { color: #00387B; margin-top: 2rem; }
+    a { color: #00387B; }
+    .ausfuellen { background: #fef3c7; padding: 0 .25em; border-radius: 3px; }
+    .sprache { float: right; font-size: .9rem; }
+    footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; font-size: .85rem; color: #64748b; }
+  </style>
+</head>
+<body>
+  <a class="sprache" href="datenschutz.html" hreflang="de" lang="de">Deutsche Fassung</a>
+  <h1>Privacy policy</h1>
+  <p><strong>SkyLog DE – drone logbook</strong><br/>Last updated: October 2026</p>
+  <p>This is a translation of the German privacy policy. If the two differ, the German version applies.</p>
+
+  <h2>1. Controller</h2>
+  <p>Controller for data processing within the meaning of the General Data Protection Regulation (GDPR):<br/>
+    <span class="ausfuellen">[Fill in before publishing: full name, postal address, email address]</span></p>
+  <p>SkyLog DE is run as a one-person project. For any privacy question you can reach us at the address above.</p>
+
+  <h2>2. Principle: your data stays on your device</h2>
+  <p>SkyLog DE stores your profile, your logbook and all other entries <strong>only locally on your device</strong> (IndexedDB in the browser or in the app). This data is not transferred to us or to third parties; there is no central database.</p>
+  <p>Data stored locally includes:</p>
+  <ul>
+    <li>Pilot profile (name, LBA e-ID, licence details)</li>
+    <li>Drone and battery details</li>
+    <li>Flight records (place, date, duration, weather, notes)</li>
+    <li>Uploaded documents and photos</li>
+    <li>Flight plans, favourite places, customers and spare parts</li>
+  </ul>
+  <p>For some features the app calls online services (section 3). For technical reasons they receive your <strong>IP address</strong> and the details needed for the request, such as coordinates or a map section – this is personal data. Profile and logbook data are not transferred.</p>
+  <p>You create backups yourself and decide where the file goes (e.g. downloads folder, Google Drive, Nextcloud). If you wish, it is encrypted with a password (AES-256) that is not stored.</p>
+
+  <h2>3. External services</h2>
+  <p>The following services are only called when you use the corresponding feature. Only the details listed and your IP address are transferred:</p>
+  <ul>
+    <li><strong>Open-Meteo</strong> (OpenMeteo GmbH, Switzerland) – weather and forecast for the coordinates; server logs are deleted after 90 days. <a href="https://open-meteo.com/en/terms" target="_blank" rel="noopener">Privacy</a></li>
+    <li><strong>aviationweather.gov</strong> (NOAA, USA) – aviation weather (METAR/TAF) for nearby airports, based on a map section.</li>
+    <li><strong>NOAA Space Weather Prediction Center</strong> (services.swpc.noaa.gov, USA) – Kp index (space weather), without any location.</li>
+    <li><strong>FAA NOTAM API</strong> (api.faa.gov, USA) – NOTAMs, only if you have entered your own API key. <a href="https://www.faa.gov/privacy" target="_blank" rel="noopener">Privacy</a></li>
+    <li><strong>Nominatim</strong> by the OpenStreetMap Foundation (nominatim.openstreetmap.org, United Kingdom) – place search (the text you enter) and, in the flight assistant, a place name for your current coordinates (reverse search). <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">Privacy</a></li>
+    <li><strong>OpenStreetMap France</strong> (tile.openstreetmap.fr, association in France) – map tiles of the main map. <a href="https://www.openstreetmap.fr/" target="_blank" rel="noopener">Website</a></li>
+    <li><strong>OpenStreetMap Foundation</strong> (tile.openstreetmap.org, United Kingdom) – map tiles in the flight planner and the flight track view. <a href="https://osmfoundation.org/wiki/Privacy_Policy" target="_blank" rel="noopener">Privacy</a></li>
+    <li><strong>DIPUL</strong> (uas-betrieb.de, DFS / German Federal Ministry of Transport) – geo-zones on the map; the visible map section is requested.</li>
+    <li><strong>Official zone sources of other countries</strong> (e.g. data.geo.admin.ch, drones.geoportail.lu) – only if you load the zones of a country.</li>
+    <li><strong>GitHub</strong> (github.com, USA) – download of offline map files, only at your request.</li>
+    <li><strong>SkyLog server</strong> (hosting: <span class="ausfuellen">[enter provider and location]</span>) – forwards the AI safety check to Google and fetches aviation weather, zones and map files for the web version. The server does not store the content of requests; the hosting provider logs the usual access data (IP address, time, requested address).</li>
+    <li><strong>Google Gemini</strong> (Google LLC, USA; optional, AI safety check) – only when you start the AI analysis: the coordinates and the displayed place name are sent to Google via the SkyLog server to assess possible obstacles at the site. <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacy</a></li>
+  </ul>
+  <p>The QR code of your e-ID is generated locally on the device. Reminders in the Android app are local notifications without a server.</p>
+
+  <h2>4. Legal bases</h2>
+  <ul>
+    <li><strong>Calls to the online services and the SkyLog server:</strong> Art. 6(1)(f) GDPR. Our legitimate interest is to provide the features you use (map, weather, place search, zones, aviation weather).</li>
+    <li><strong>Location (GPS):</strong> your consent under Art. 6(1)(a) GDPR, which you give with “Allow” in the notice “Share your location?” and the permission in the operating system.</li>
+    <li><strong>AI safety check:</strong> your consent under Art. 6(1)(a) GDPR, which you give by starting the analysis.</li>
+    <li><strong>Storage on your device:</strong> Section 25(2) no. 2 TDDDG (German Telecommunications Digital Services Data Protection Act) – it is strictly necessary for the app to provide the features you request.</li>
+  </ul>
+
+  <h2>5. Transfers to third countries</h2>
+  <p>Some services are located outside the EU (see section 3). There is an adequacy decision of the European Commission for Switzerland (Open-Meteo). Google and GitHub are certified under the EU-U.S. Data Privacy Framework, for which an adequacy decision of the European Commission of 10 July 2023 exists. No such decision covers the U.S. authorities NOAA and FAA; they only receive your IP address and the requested map section or airport, and only when you use the feature (Art. 49(1)(b) GDPR).</p>
+
+  <h2>6. GPS / location data</h2>
+  <p>The app requests location data (GPS) to centre the map, load weather for your location and show your coordinates in the emergency guide. The request only starts after you have agreed in the app (notice “Share your location?” on the map); alternatively you can set the place by hand. The location is only tracked while the map or the safety view is open and the app is in the foreground. It is only stored locally in the flight record and used for the requests above (weather, aviation weather, place name, optionally the AI safety check). You can withdraw the permission at any time in the settings of your device or browser.</p>
+  <p>On Android, the operating system may include the app data in your Google account backup if you have turned on this system backup. You control this in the Android settings; the app itself does not send any data to Google.</p>
+
+  <h2>7. Retention</h2>
+  <p>The data on your device stays stored until you delete it or remove the app. The SkyLog server does not store any content. How long the external services and the hosting provider keep access data is set out in their privacy policies.</p>
+
+  <h2>8. Your rights</h2>
+  <p>You have the right of access (Art. 15 GDPR), rectification (Art. 16), erasure (Art. 17), restriction of processing (Art. 18) and data portability (Art. 20). You can object to processing under Art. 6(1)(f) GDPR (Art. 21) and withdraw consent at any time with effect for the future (Art. 7(3)). You can also lodge a complaint with a data protection supervisory authority (Art. 77), for example the authority where you live.</p>
+  <p>As all content is stored locally on your device, you can view, export and delete it yourself at any time – using the app's backup feature or the browser or app settings (clear site data or app data).</p>
+
+  <h2>9. Changes to this policy</h2>
+  <p>This privacy policy may be updated when the app gains new features. The current version is always linked in the app.</p>
+
+  <footer>SkyLog DE · Privacy policy · Last updated October 2026</footer>
+</body>
+</html>

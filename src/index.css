@@ -209,6 +209,14 @@
   border-top: 1px solid rgba(51, 65, 85, 0.7);
 }
 
+/* Dunkelmodus: die helle Grundkarte (Rasterkacheln) dunkel umfärben, damit sie
+   abends nicht blendet. Invertieren + Farbton zurückdrehen hält Wasser blau und
+   Grün grün. Nur die Grundkarte (Klasse aus src/lib/kacheln.ts) - Geozonen,
+   Flugspuren und Marker behalten ihre Farben. */
+:root[data-theme="dark"] .karte-grundlage {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
+
 /* Seitenwechsel: kurze Einblendung (ersetzt die motion-Animation in App.tsx,
    damit die Bibliothek nicht mehr im Erststart geladen wird). Die Regel
    „Bewegung reduzieren" oben schaltet sie mit ab. */

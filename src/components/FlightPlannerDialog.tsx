@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Polyline, Polygon, Marker, Rectangle, useMapEv
 import { Route, Trash2, ChevronUp, ChevronDown, Save, FolderOpen, AlertTriangle, MapPin, Download, Grid3x3 } from 'lucide-react';
 import L from 'leaflet';
 import { cn } from '../lib/utils';
-import { OSM_KACHELN, OSM_NAMENSNENNUNG } from '../lib/kacheln';
+import { GRUNDKARTE_KLASSE, OSM_KACHELN, OSM_NAMENSNENNUNG } from '../lib/kacheln';
 import { dbService, type FlightPlan, type Wegpunkt, type WegpunktAktion, type LocationFavorite } from '../services/db';
 import {
   bewertePlan, formatStrecke, formatZeit,
@@ -251,7 +251,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
           {/* isolate: Leaflets eigene z-Werte bleiben innerhalb des Kartenrahmens */}
           <div className="h-56 rounded-2xl overflow-hidden border border-slate-200 isolate">
             <MapContainer center={[startLat, startLon]} zoom={14} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-              <TileLayer url={OSM_KACHELN} attribution={OSM_NAMENSNENNUNG} />
+              <TileLayer url={OSM_KACHELN} attribution={OSM_NAMENSNENNUNG} className={GRUNDKARTE_KLASSE} />
               <KlickFaenger onKlick={kartenTipp} />
               {linie.length > 1 && <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3, dashArray: '6 4' }} />}
               {wegpunkte.map((w, i) => (

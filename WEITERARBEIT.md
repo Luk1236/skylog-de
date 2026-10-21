@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-21 (Runde 12: mittlere Befunde aus Software-Check 3).
+Zuletzt aktualisiert: 2026-10-21 (Runde 13: niedrige Befunde aus Software-Check 3).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,12 +15,12 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **758 Unit-Tests** (69 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **761 Unit-Tests** (69 Dateien, davon
 Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis,
 Checklisten-Editor und Dialog-Fokus) · **76 Playwright-Tests** inkl. Kontrast-Wächter (WCAG AA 4,5 : 1),
 Handy-Abläufen, Ebenen/Zurück und Tastatur-Fokus. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
 51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~177 kB gzip, Logbuch beim ersten Öffnen +36 kB.
-Release v1.2.0 ist veröffentlicht; Runde 8 bis 11 sind in master.
+Release v1.2.0 ist veröffentlicht; Runde 8 bis 12 sind in master.
 
 Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde 11 (Branch
 `check4/dringende-befunde`) behebt die drei dringenden:
@@ -61,8 +61,24 @@ Runde 12 (Branch `check4/mittlere-befunde`), die mittleren Befunde R3-04 bis R3-
 - **R3-09 Logbuch:** Wochen-Diagramm in CSS statt recharts – beim ersten Öffnen 36 statt 138 kB gzip.
 - Die alten Branches `check2/lokales-datum`, `check2/sora-igrc` und `check2/n19-aufteilen` sind damit
   überholt. Auf `check2/n14-testabdeckung` liegen nur noch echte IndexedDB-Tests (fake-indexeddb).
-- Offen aus Check 3: R3-02 (Name/Anschrift/Hosting), R3-10 Datenschutzerklärung auf Englisch,
-  R3-11 Karte im Dunkelmodus, R3-12 Marker-Tippfläche, R3-13 TypeScript 7/pmtiles 4.
+
+Runde 13 (Branch `check4/niedrige-befunde`), die niedrigen Befunde R3-10 bis R3-13:
+- **R3-10:** Datenschutzerklärung auf Englisch (`public/privacy.html`, Link je nach App-Sprache,
+  offline im Service Worker); die deutsche Fassung duzt jetzt wie die App. Beide verlinken sich
+  gegenseitig; ein Wächter prüft Abschnitte, Du-Form und Kachel-Server in beiden Sprachen.
+- **R3-11:** Im Dunkelmodus wird nur die Grundkarte abgedunkelt (`.karte-grundlage` in
+  `src/index.css`, Klasse aus `src/lib/kacheln.ts`, auch für die Offline-Karte) – Geozonen,
+  Flugspuren und Marker behalten ihre Farben.
+- **R3-12:** Karten-Marker mit unsichtbarer Tippfläche (eigener Standort und Lieblingsorte 44 px,
+  Flüge 28 px), das Symbol bleibt klein. axe-Regel target-size (WCAG 2.2) ohne Befund.
+- **R3-13 – geprüft, bewusst zurückgestellt:** TypeScript 7.0.2 prüft den Code fehlerfrei (Probelauf
+  per `npx`, nicht installiert), aber typescript-eslint 8 unterstützt nur TypeScript < 6.1, und
+  TS 7 bringt die alte Compiler-API nicht mehr mit – Umstieg, sobald typescript-eslint so weit ist.
+  pmtiles 4 geht erst, wenn protomaps-leaflet es unterstützt (5.1 verlangt pmtiles ^3). Vite 8.3.5
+  und lucide-react 1.61 sind erst seit dem 21.10. veröffentlicht – frühestens Anfang November
+  nachziehen (zwei Wochen Abstand zu neuen Versionen).
+- Offen aus Check 3: nur R3-02 (Name, Anschrift, E-Mail und Hosting-Anbieter in beiden Fassungen
+  der Datenschutzerklärung eintragen; danach juristisch gegenlesen lassen).
 
 Runde 10 (Branch `check3/schwaechen`), die Schwächen der Bereichsbewertung im Dashboard:
 - **Barrierefreiheit:** axe-Audit über 22 Ansichten/Dialoge – die letzten drei Verstöße behoben

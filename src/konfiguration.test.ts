@@ -35,23 +35,42 @@ describe('index.html', () => {
 
 describe('Datenschutzerklärung', () => {
   const text = lies('../public/datenschutz.html');
+  const englisch = lies('../public/privacy.html');
 
   it('enthält die Pflichtangaben nach Art. 13 DSGVO', () => {
-    for (const abschnitt of ['Verantwortlicher', 'Rechtsgrundlagen', 'Übermittlung in Drittländer', 'Speicherdauer', 'Ihre Rechte']) {
+    for (const abschnitt of ['Verantwortlicher', 'Rechtsgrundlagen', 'Übermittlung in Drittländer', 'Speicherdauer', 'Deine Rechte']) {
       expect(text).toMatch(new RegExp(`<h2>\\d+\\. ${abschnitt}`));
     }
     expect(text).toContain('Art. 77');
     expect(text).toContain('Art. 6 Abs. 1 lit. a');
   });
 
+  it('duzt wie die App (Software-Check R3-10)', () => {
+    expect(text).not.toMatch(/\b(Sie|Ihr|Ihre|Ihren|Ihrem|Ihres|Ihnen)\b/);
+  });
+
+  it('gibt es auch auf Englisch, mit denselben Abschnitten', () => {
+    expect(englisch).toContain('<html lang="en">');
+    for (const abschnitt of ['Controller', 'Legal bases', 'Transfers to third countries', 'Retention', 'Your rights']) {
+      expect(englisch).toMatch(new RegExp(`<h2>\\d+\\. ${abschnitt}`));
+    }
+    const abschnitte = (html: string) => (html.match(/<h2>/g) ?? []).length;
+    expect(abschnitte(englisch)).toBe(abschnitte(text));
+    expect(englisch).toContain('href="datenschutz.html"');
+    expect(text).toContain('href="privacy.html"');
+  });
+
   it('behauptet nicht mehr, es gingen keine personenbezogenen Daten nach außen', () => {
     expect(text).not.toMatch(/keine personenbezogenen Daten auf externe Server/);
   });
 
-  it('nennt jeden Kachel-Server, den die Karten laden', () => {
+  it('nennt in beiden Sprachen jeden Kachel-Server, den die Karten laden', () => {
     const hosts = new Set([...lies('./lib/kacheln.ts').matchAll(/https:\/\/(?:\{s\}\.)?(tile\.openstreetmap\.[a-z]+)/g)].map(m => m[1]));
     expect(hosts.size).toBe(2);
-    for (const host of hosts) expect(text).toContain(host);
+    for (const host of hosts) {
+      expect(text).toContain(host);
+      expect(englisch).toContain(host);
+    }
   });
 });
 
@@ -61,7 +80,14 @@ describe('Kartenkacheln (OSM-Regeln)', () => {
       const quelle = lies(`./components/${n}.tsx`);
       expect(quelle).not.toMatch(/tile\.openstreetmap/);
       expect(quelle).toMatch(/<TileLayer[^>]*attribution=\{(HOT|OSM)_NAMENSNENNUNG\}/);
+      expect(quelle).toMatch(/<TileLayer[^>]*className=\{GRUNDKARTE_KLASSE\}/);
     }
+  });
+
+  it('dunkelt im Dunkelmodus nur die Grundkarte ab (Software-Check R3-11)', async () => {
+    const { GRUNDKARTE_KLASSE } = await import('./lib/kacheln');
+    expect(lies('./index.css')).toMatch(new RegExp(`:root\\[data-theme="dark"\\] \\.${GRUNDKARTE_KLASSE} \\{\\s*filter:`));
+    expect(lies('./components/OfflineBasemap.tsx')).toContain('className: GRUNDKARTE_KLASSE');
   });
 
   it('die Android-App meldet sich mit derselben Kennung wie die nativen Abrufe', async () => {

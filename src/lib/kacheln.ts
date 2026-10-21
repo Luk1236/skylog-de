@@ -13,3 +13,7 @@ export const HOT_NAMENSNENNUNG = `${OSM_RECHTE}, tiles style by <a href="https:/
  *  Regeln verlangen genau diese Adresse (ohne a/b/c) und die Namensnennung. */
 export const OSM_KACHELN = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 export const OSM_NAMENSNENNUNG = OSM_RECHTE;
+
+/** Klasse für die Grundkarten-Ebene: Im Dunkelmodus dunkelt src/index.css nur
+ *  diese Ebene ab - die Geozonen darüber behalten ihre Warnfarben. */
+export const GRUNDKARTE_KLASSE = 'karte-grundlage';
