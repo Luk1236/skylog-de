@@ -119,7 +119,7 @@ export function CustomerManagerDialog({
               {tx('Abbrechen', 'Cancel')}
             </Knopf>
             <Knopf type="submit">
-              {tx('Kunde Speichern', 'Save customer')}
+              {tx('Kunde speichern', 'Save customer')}
             </Knopf>
           </div>
         </form>

@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-21 (Runde 9: große Dateien aufgeteilt, Typografie bereinigt).
+Zuletzt aktualisiert: 2026-10-21 (Runde 10: Schwächen der Bereichsbewertung).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,10 +15,25 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **618 Unit-Tests** (63 Dateien, davon
-Komponententests für Flug-Assistent und Logbuch) · **74 Playwright-Tests** inkl. Kontrast-Wächter
-(WCAG AA 4,5 : 1), Handy-Abläufen (`e2e/ablauf.spec.ts`) und Ebenen/Zurück (`e2e/ebenen.spec.ts`).
-Erststart ~175 kB gzip. Release v1.2.0 ist veröffentlicht (Runde 7); Runde 8 ist in master.
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **630 Unit-Tests** (66 Dateien, davon
+Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis und
+Checklisten-Editor) · **74 Playwright-Tests** inkl. Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen
+und Ebenen/Zurück. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt 51 %. axe: 0 Verstöße in
+22 Ansichten. Erststart ~175 kB gzip. Release v1.2.0 ist veröffentlicht; Runde 8 und 9 sind in master.
+
+Runde 10 (Branch `check3/schwaechen`), die Schwächen der Bereichsbewertung im Dashboard:
+- **Barrierefreiheit:** axe-Audit über 22 Ansichten/Dialoge – die letzten drei Verstöße behoben
+  (Auswahlfeld im Flugplaner ohne Namen, Behörden-Check als Dialog mit Überschrift, Wetterleiste
+  im Assistenten per Tastatur scrollbar). Lighthouse: Barrierefreiheit 100, SEO 100.
+- **Tablets:** Drohnen-, Inventar- und Wissenslisten zweispaltig, Akkus dreispaltig ab 768 px.
+- **Texte:** Großschreibfehler („Eintrag Hinzufügen“, „Kunde Speichern“, „Parameter Ändern“ …),
+  Bindestriche („Firmware-Version“, „Akku-Nummer“, „LBA-Wissen“), englische Satzschreibung.
+  Ein Englisch-Durchlauf über alle 22 Ansichten findet nur noch Beispieldaten.
+- **Technik:** weitere Komponententests (Drohne anlegen, Wartung eintragen/löschen, Notfall-
+  Koordinaten, Standort-Hinweis, Checklisten-Editor).
+- **Leistung:** nicht weiter verändert – Lighthouse lief am 21.10. bei 100 % CPU-Last durch andere
+  Programme (Antigravity, Explorer, OneDrive) und war nicht vergleichbar. Nächster Schritt:
+  auf ruhigem Rechner oder mit PageSpeed Insights nach dem Vercel-Deploy messen.
 
 Runde 9 (Branch `check2/d03-k01`), die zwei „teilweise“-Punkte aus Runde 1:
 - **K01/N19 große Dateien:** FlightAssistant 1.068 → 356 Zeilen (Schritte und Karten in

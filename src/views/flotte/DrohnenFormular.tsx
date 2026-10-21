@@ -49,7 +49,7 @@ export function DrohnenFormular({ drohne, setDrohne, bearbeiten, onSpeichern }: 
           <Feld label={tx('Seriennummer', 'Serial number')} htmlFor="dr-sn">
             <input id="dr-sn" type="text" className={eingabe} placeholder="SN123..." value={drohne.serialNumber || ''} onChange={e => setDrohne({ ...drohne, serialNumber: e.target.value })} />
           </Feld>
-          <Feld label={tx('Firmware Version', 'Firmware version')} htmlFor="dr-fw">
+          <Feld label={tx('Firmware-Version', 'Firmware version')} htmlFor="dr-fw">
             <input id="dr-fw" type="text" className={eingabe} placeholder="v01.00..." value={drohne.firmwareVersion || ''} onChange={e => setDrohne({ ...drohne, firmwareVersion: e.target.value })} />
           </Feld>
         </div>

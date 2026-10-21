@@ -208,6 +208,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
             <div className="relative">
               <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-blue pointer-events-none" />
               <select
+                aria-label={tx('Startpunkt aus Favoriten wählen', 'Choose take-off point from favourites')}
                 className={cn(eingabe, 'pl-9 font-bold cursor-pointer')}
                 onChange={e => {
                   const fav = locationFavorites.find(f => f.id === e.target.value);
@@ -376,11 +377,11 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
                     </label>
                     <label className={kleinesFeld}>
                       <span className="text-2xs font-bold text-slate-500">km/h</span>
-                      <input type="number" inputMode="numeric" placeholder={tx('Tempo', 'Speed')} aria-label={`Tempo Wegpunkt ${i + 1}`}
+                      <input type="number" inputMode="numeric" placeholder={tx('Tempo', 'Speed')} aria-label={tx(`Tempo Wegpunkt ${i + 1}`, `Speed waypoint ${i + 1}`)}
                         value={w.speed ?? ''} onChange={e => aktualisiereWegpunkt(i, { speed: e.target.value ? Number(e.target.value) : undefined })}
                         className="w-full min-w-0 bg-transparent text-xs font-mono text-slate-900 focus:outline-none" />
                     </label>
-                    <select aria-label={`Aktion Wegpunkt ${i + 1}`}
+                    <select aria-label={tx(`Aktion Wegpunkt ${i + 1}`, `Action waypoint ${i + 1}`)}
                       value={w.aktion ?? ''} onChange={e => aktualisiereWegpunkt(i, { aktion: (e.target.value || undefined) as WegpunktAktion | undefined })}
                       className={cn(eingabe, 'px-2 py-1.5 text-xs font-bold text-slate-700')}>
                       <option value="">—</option>

@@ -21,7 +21,7 @@ export function RegelCheck({ drohne, profil }: { drohne: Drone; profil: UserProf
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-brand-blue" />
-          <p className="text-sm font-bold text-slate-900">{tx('LBA Regulierungs-Check', 'LBA regulation check')}</p>
+          <p className="text-sm font-bold text-slate-900">{tx('LBA-Regel-Check', 'LBA rule check')}</p>
         </div>
         <span className="px-2 py-0.5 bg-brand-blue text-white rounded-full text-2xs font-bold">
           {tx('Kategorie', 'Category')} {kategorie}

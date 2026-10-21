@@ -61,7 +61,7 @@ export function KnowledgeView() {
               <h3 className="font-bold text-slate-900 text-sm">{section.title}</h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="grid gap-3 md:grid-cols-2">
               {section.content.map((item) => (
                 <div key={item.label} className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                   <p className="text-sm font-bold text-brand-blue mb-1">{item.label}</p>
@@ -129,7 +129,7 @@ function AmtslinkGruppe({ titel, icon: Icon, links }: {
         </div>
         <h3 className="font-bold text-slate-900 text-sm">{titel}</h3>
       </div>
-      <div className="space-y-3">
+      <div className="grid gap-3 md:grid-cols-2">
         {links.map((l) => (
           <a
             key={l.url}
@@ -254,7 +254,7 @@ export function InventoryView() {
           <p className="text-xs text-slate-500 mt-1">{tx('Propeller, Akku-Ersatz, gedruckte Teile – mit Bestand und Link.', 'Propellers, spare batteries, printed parts – with stock and link.')}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid gap-3 md:grid-cols-2">
           {teile.map(teil => (
             <div key={teil.id} className={cn('bg-white p-4 rounded-3xl border shadow-sm flex items-center gap-3', knapp(teil) ? 'border-amber-300' : 'border-slate-200')}>
               <div className="min-w-0 flex-1">

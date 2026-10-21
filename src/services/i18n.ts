@@ -56,12 +56,12 @@ export const TEXTE = {
   'view.profil': { de: 'Pilotenprofil', en: 'Pilot profile' },
   'view.einstellungen': { de: 'Einstellungen', en: 'Settings' },
   'view.roadmap': { de: 'Roadmap', en: 'Roadmap' },
-  'view.lbaWissen': { de: 'LBA Wissen', en: 'Regulatory Knowledge' },
+  'view.lbaWissen': { de: 'LBA-Wissen', en: 'Regulatory knowledge' },
   'view.ersatzteile': { de: 'Ersatzteile', en: 'Spare parts' },
-  'view.pilotenManagement': { de: 'Piloten-Management', en: 'Pilot Management' },
+  'view.pilotenManagement': { de: 'Piloten-Management', en: 'Pilot management' },
 
   // Flugplaner
-  'planer.titel': { de: 'Flugplaner', en: 'Flight Planner' },
+  'planer.titel': { de: 'Flugplaner', en: 'Flight planner' },
   'planer.hinweisKarte': { de: 'Auf die Karte tippen, um Wegpunkte zu setzen.', en: 'Tap the map to place waypoints.' },
   'planer.strecke': { de: 'Strecke', en: 'Distance' },
   'planer.flugzeit': { de: 'ca. Flugzeit', en: 'est. flight time' },
@@ -102,7 +102,7 @@ export const TEXTE = {
   'dialog.ok': { de: 'OK', en: 'OK' },
 
   // Wartung
-  'wartung.eintragHinzufuegen': { de: 'Eintrag Hinzufügen', en: 'Add Entry' },
+  'wartung.eintragHinzufuegen': { de: 'Eintrag hinzufügen', en: 'Add entry' },
 
   // Bedienhilfen (aria-labels)
   'a11y.behoerdenCheck': { de: 'Behörden-Check anzeigen', en: 'Show authority check' },

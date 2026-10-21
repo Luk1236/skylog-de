@@ -46,16 +46,16 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
       onClose={onClose}
       fuss={step === 'form' ? (
         <Knopf voll onClick={() => setStep('result')}>
-          <span>{tx('SORA 2.5 Risikobewertung Ausführen', 'Run SORA 2.5 risk assessment')}</span>
+          <span>{tx('SORA-2.5-Risikobewertung ausführen', 'Run SORA 2.5 risk assessment')}</span>
           <ChevronRight className="w-4 h-4" />
         </Knopf>
       ) : (
         <div className="flex flex-col sm:flex-row gap-2 w-full">
           <Knopf variante="sekundaer" className="flex-1" onClick={() => setStep('form')}>
-            {tx('Parameter Ändern', 'Change parameters')}
+            {tx('Parameter ändern', 'Change parameters')}
           </Knopf>
           <Knopf className="flex-1" icon={FileText} onClick={handleGeneratePdf}>
-            <span>{tx('SORA PDF Dossier Exportieren', 'Export SORA PDF dossier')}</span>
+            <span>{tx('SORA-Dossier als PDF exportieren', 'Export SORA dossier as PDF')}</span>
           </Knopf>
         </div>
       )}

@@ -47,7 +47,7 @@ export function SchrittAbschluss(p: {
           <ChecklistKarte liste={p.nachflug} titel={tx('Nachflug-Checkliste', 'Post-flight checklist')} />
 
           <div>
-            <label className={beschriftung} htmlFor="fa-akku-ende">{tx('Akku Ende %', 'Battery end %')}</label>
+            <label className={beschriftung} htmlFor="fa-akku-ende">{tx('Akku am Ende (%)', 'Battery at the end (%)')}</label>
             <div className="flex items-center gap-4">
               <input id="fa-akku-ende"
                 type="range"

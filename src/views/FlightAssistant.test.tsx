@@ -70,7 +70,7 @@ describe('Flug-Assistent: Flug speichern', () => {
     klick('Flugabschnitt beenden');
     klick('Flug abschließen');
 
-    fireEvent.change(screen.getByLabelText('Akku Ende %'), { target: { value: '35' } });
+    fireEvent.change(screen.getByLabelText('Akku am Ende (%)'), { target: { value: '35' } });
     fireEvent.change(screen.getByLabelText('Vorkommnisse / Anomalien'), { target: { value: 'Greifvogel gesichtet' } });
     klick('Flug im Logbuch speichern');
 

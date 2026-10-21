@@ -1,5 +1,5 @@
 import { useSprache } from '../lib/sprache';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useId } from 'react';
 import { X, ShieldCheck, AlertTriangle, ChevronDown, FileDigit, ExternalLink } from 'lucide-react';
 import QRCode from 'qrcode';
 import { cn } from '../lib/utils';
@@ -21,6 +21,7 @@ interface Props {
 export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose }: Props) {
   const { tx } = useSprache();
   useEbene(true, onClose);
+  const titelId = useId();
   const [drohnenId, setDrohnenId] = useState<string>(drohnen[0]?.id ?? '');
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
 
@@ -45,11 +46,11 @@ export function BehoerdenCheckDialog({ profile, drohnen, dokumente = [], onClose
   }, [check.qrInhalt]);
 
   return (
-    <div className="fixed inset-0 bg-slate-50 z-[60] flex flex-col text-slate-900 overflow-y-auto">
+    <div role="dialog" aria-modal="true" aria-labelledby={titelId} className="fixed inset-0 bg-slate-50 z-[60] flex flex-col text-slate-900 overflow-y-auto">
       <div className="flex items-center justify-between px-4 pt-safe pb-3 shrink-0 bg-white border-b border-slate-200">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-5 h-5 text-brand-green" />
-          <span className="font-black text-base text-slate-900">{tx('Behörden-Check', 'Authority check')}</span>
+          <h2 id={titelId} className="font-black text-base text-slate-900">{tx('Behörden-Check', 'Authority check')}</h2>
         </div>
         <button
           onClick={onClose}

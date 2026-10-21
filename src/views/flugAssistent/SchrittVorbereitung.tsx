@@ -80,13 +80,13 @@ export function SchrittVorbereitung(p: {
               </select>
             </div>
             <div>
-              <label className={beschriftung} htmlFor="fa-akku-start">{tx('Akku Start %', 'Battery start %')}</label>
+              <label className={beschriftung} htmlFor="fa-akku-start">{tx('Akku beim Start (%)', 'Battery at start (%)')}</label>
               <input id="fa-akku-start" type="number" className={eingabe} value={p.akkuStart} onChange={e => p.setAkkuStart(Number(e.target.value))} />
             </div>
           </div>
 
           <div>
-            <label className={beschriftung} htmlFor="fa-ort">{tx('Einsatzort Name', 'Location name')}</label>
+            <label className={beschriftung} htmlFor="fa-ort">{tx('Name des Einsatzorts', 'Location name')}</label>
             <div className="flex gap-2">
               <div className="relative flex-1">
                 <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

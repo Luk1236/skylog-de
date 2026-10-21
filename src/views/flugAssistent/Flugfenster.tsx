@@ -30,7 +30,8 @@ export function Flugfenster({ vorhersage, maxWind, sonnenuntergang }: {
           ? <>{tx('Beste Zeit:', 'Best time:')} <span className="font-bold text-brand-green">{beste.time}</span> ({beste.maxWindKmh} km/h)</>
           : <span className="font-bold text-brand-red">{tx('Keine geeignete Stunde in den nächsten 6 h', 'No suitable hour in the next 6 h')}</span>}
       </p>
-      <div className="flex gap-2 overflow-x-auto pb-1">
+      {/* Waagerecht scrollbar - auch per Tastatur (Pfeiltasten) erreichbar */}
+      <div className="flex gap-2 overflow-x-auto pb-1" tabIndex={0} role="region" aria-label={tx('Vorhersage der nächsten Stunden', 'Forecast for the next hours')}>
         {vorhersage.map((h, i) => (
           <div key={i} className={cn('flex flex-col items-center gap-1 min-w-[64px] rounded-xl p-2 border shrink-0', RAHMEN[fenster[i].bewertung])}>
             <span className="text-2xs font-bold text-brand-blue">{h.time}</span>

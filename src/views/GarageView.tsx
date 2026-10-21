@@ -199,7 +199,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
         <DrohnenFormular drohne={newDrone} setDrohne={setNewDrone} bearbeiten={!!editingDroneId} onSpeichern={() => void handleAdd()} />
       )}
 
-      <div className="space-y-3 mb-10">
+      <div className="grid gap-3 md:grid-cols-2 items-start mb-10">
         {drones.map(drone => (
           <DrohnenKarte
             key={drone.id}
@@ -245,7 +245,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
       {showAddBattery && (
         <div className="ansicht-blenden overflow-hidden mb-6">
           <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <Feld label={tx('Akku Nummer / Name', 'Battery number / name')} htmlFor="ak-name">
+            <Feld label={tx('Akku-Nummer / Name', 'Battery number / name')} htmlFor="ak-name">
               <input
                 id="ak-name"
                 type="text"
@@ -260,7 +260,7 @@ export function GarageView({ drones, flights, batteries, onUpdate }: { drones: D
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {batteries.map(battery => (
           <AkkuKarte
             key={battery.id}
