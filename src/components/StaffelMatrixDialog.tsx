@@ -72,7 +72,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
             <UserCheck className="w-4 h-4 shrink-0" />
             <span>{tx('Kommandant / Pilot', 'Commander / pilot')}</span>
           </div>
-          <p className="text-sm font-bold text-slate-900 truncate mt-1">{profile?.name || 'Fernpilot'}</p>
+          <p className="text-sm font-bold text-slate-900 truncate mt-1">{profile?.name || tx('Fernpilot', 'Remote pilot')}</p>
         </div>
       </div>
 
@@ -156,7 +156,7 @@ export function StaffelMatrixDialog({ drones, batteries, maintenance, profile, o
                   </div>
                   <div>
                     <span className="text-xs font-bold text-slate-500 block">{tx('Seriennummer', 'Serial number')}</span>
-                    <strong className="text-slate-900">{d.serialNumber ? 'Ja' : 'Nein'}</strong>
+                    <strong className="text-slate-900">{d.serialNumber ? tx('Ja', 'Yes') : tx('Nein', 'No')}</strong>
                   </div>
                 </div>
 

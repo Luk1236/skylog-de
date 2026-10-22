@@ -41,15 +41,15 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
     setPinInput('');
     setGesperrt(r.gesperrtSekunden);
     setErrorMsg(r.gesperrtSekunden > 0
-      ? 'Zu viele Fehlversuche. Bitte kurz warten.'
-      : 'Falscher PIN. Bitte erneut versuchen.');
+      ? tx('Zu viele Fehlversuche. Bitte kurz warten.', 'Too many attempts. Please wait a moment.')
+      : tx('Falscher PIN. Bitte erneut versuchen.', 'Wrong PIN. Please try again.'));
   };
 
   const speichereNeuePin = async (eingabe: string) => {
     setPruefe(true);
     await setPin(eingabe);
     setPruefe(false);
-    setSuccessMsg('PIN erfolgreich eingerichtet!');
+    setSuccessMsg(tx('PIN erfolgreich eingerichtet!', 'PIN set up successfully!'));
     setTimeout(() => {
       onClose?.();
     }, 1000);
@@ -73,7 +73,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
         if (next === pin) {
           void speichereNeuePin(next);
         } else {
-          setErrorMsg('PINs stimmen nicht überein. Erneut versuchen.');
+          setErrorMsg(tx('PINs stimmen nicht überein. Erneut versuchen.', 'The PINs do not match. Please try again.'));
           setPinInput('');
           setConfirmPin('');
           setStep('enter');
@@ -92,7 +92,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
 
   const handleDisablePin = () => {
     removePin();
-    setSuccessMsg('PIN-Schutz wurde deaktiviert.');
+    setSuccessMsg(tx('PIN-Schutz wurde deaktiviert.', 'PIN protection has been turned off.'));
     setTimeout(() => {
       onClose?.();
     }, 1000);
@@ -107,12 +107,12 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
     // damit die App dahinter nicht zu sehen ist.
     <div className={`fixed inset-0 z-[200] ${mode === 'unlock' ? 'bg-slate-100' : ''}`}>
       <Dialog
-        titel={mode === 'unlock' ? 'SkyLog DE Entsperren' : mode === 'setup' ? 'Bildschirmsperre einrichten' : 'Bildschirmsperre (PIN)'}
+        titel={mode === 'unlock' ? tx('SkyLog DE entsperren', 'Unlock SkyLog DE') : mode === 'setup' ? tx('Bildschirmsperre einrichten', 'Set up screen lock') : tx('Bildschirmsperre (PIN)', 'Screen lock (PIN)')}
         untertitel={gesperrt > 0
-          ? `Gesperrt – noch ${gesperrt} s`
+          ? tx(`Gesperrt – noch ${gesperrt} s`, `Locked – ${gesperrt} s left`)
           : pruefe
-            ? 'Wird geprüft …'
-            : mode === 'unlock' ? 'Gib deinen 4-stelligen PIN ein' : step === 'enter' ? 'Gib 4 Ziffern ein' : 'PIN zur Bestätigung wiederholen'}
+            ? tx('Wird geprüft …', 'Checking…')
+            : mode === 'unlock' ? tx('Gib deinen 4-stelligen PIN ein', 'Enter your 4-digit PIN') : step === 'enter' ? tx('Gib 4 Ziffern ein', 'Enter 4 digits') : tx('PIN zur Bestätigung wiederholen', 'Repeat the PIN to confirm')}
         icon={Lock}
         ton="blau"
         breite="sm"
@@ -144,11 +144,15 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
           </p>
         )}
 
-        {/* PIN Indicators */}
+        {/* PIN Indicators - für Screenreader zusätzlich als Text angesagt */}
         <div className="flex items-center justify-center gap-4 py-3">
+          <span className="sr-only" aria-live="polite">
+            {tx(`${currentVal.length} von 4 Ziffern eingegeben`, `${currentVal.length} of 4 digits entered`)}
+          </span>
           {[0, 1, 2, 3].map(i => (
             <div
               key={i}
+              aria-hidden="true"
               className={`w-4 h-4 rounded-full border-2 transition-all ${
                 i < currentVal.length
                   ? 'bg-brand-blue border-brand-blue scale-110'
@@ -164,6 +168,7 @@ export function PinLockDialog({ mode, onUnlocked, onClose }: Props) {
             <button
               key={btn}
               type="button"
+              aria-label={btn === 'C' ? tx('Eingabe löschen', 'Clear entry') : btn === '⌫' ? tx('Letzte Ziffer löschen', 'Delete last digit') : undefined}
               onClick={() => {
                 if (btn === 'C') {
                   setPinInput('');

@@ -87,7 +87,8 @@ describe('Kartenkacheln (OSM-Regeln)', () => {
   it('dunkelt im Dunkelmodus nur die Grundkarte ab (Software-Check R3-11)', async () => {
     const { GRUNDKARTE_KLASSE } = await import('./lib/kacheln');
     expect(lies('./index.css')).toMatch(new RegExp(`:root\\[data-theme="dark"\\] \\.${GRUNDKARTE_KLASSE} \\{\\s*filter:`));
-    expect(lies('./components/OfflineBasemap.tsx')).toContain('className: GRUNDKARTE_KLASSE');
+    // Die Offline-Karte hat einen echten dunklen Stil und braucht den Filter nicht.
+    expect(lies('./components/OfflineBasemap.tsx')).toContain("flavor: dunkel ? 'dark' : 'light'");
   });
 
   it('die Android-App meldet sich mit derselben Kennung wie die nativen Abrufe', async () => {

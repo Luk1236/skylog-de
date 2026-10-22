@@ -15,6 +15,10 @@ import {
 import { verschluessele, entschluessele, istVerschluesselt } from './backupCrypto';
 import { speichereDatei } from '../lib/dateiAusgabe';
 import { lokalesDatum } from '../lib/utils';
+import { markBackupDone } from './sicherungsStand';
+
+// Das Datum der letzten Sicherung liegt in einer eigenen kleinen Datei (siehe dort).
+export { getLastBackupAt } from './sicherungsStand';
 
 // Serialised backup file format. Documents store their binary as base64,
 // because Blobs cannot be represented directly in JSON.
@@ -109,27 +113,10 @@ export interface ImportResult {
   weitere: number;
 }
 
-// Wann zuletzt exportiert wurde. Bewusst in localStorage und NICHT in der
-// Sicherungsdatei: der Zeitstempel beschreibt dieses Gerät, nicht die Daten.
-// Läge er in der Datei, würde ein eingespieltes altes Backup die Erinnerung
-// zurückdrehen und man hielte sich fälschlich für gesichert.
-const LAST_BACKUP_KEY = 'skylog_last_backup_at';
-
 // Formatversion der Sicherungsdatei. Hochzählen, sobald sich die Struktur
 // so ändert, dass ältere App-Versionen sie nicht mehr korrekt lesen können.
 // 2: zusaetzlich Flugplaene, Standort-Favoriten, Kunden und Ersatzteile.
 export const BACKUP_VERSION = 2;
-
-export function getLastBackupAt(): number | null {
-  const raw = localStorage.getItem(LAST_BACKUP_KEY);
-  if (!raw) return null;
-  const parsed = Number(raw);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function markBackupDone(): void {
-  localStorage.setItem(LAST_BACKUP_KEY, String(Date.now()));
-}
 
 /** Entfernt Zugangsdaten aus dem Profil, bevor es in die Sicherungsdatei
  *  geschrieben wird. Die FAA-NOTAM-Credentials sind Geheimnisse: wer eine

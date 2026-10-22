@@ -30,7 +30,7 @@ function alsDataUrl(datei: File): Promise<string> {
 }
 
 export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props) {
-  const { tx } = useSprache();
+  const { tx, sprache } = useSprache();
   const [flight, setFlight] = useState<Flight>(initial);
   const [fehler, setFehler] = useState<string | null>(null);
   const [laeuft, setLaeuft] = useState(false);
@@ -58,7 +58,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
       let liste = media;
       for (const datei of dateien) {
         const pruefung = pruefeDatei(datei, liste);
-        if (!pruefung.ok) { setFehler(pruefung.fehler ?? 'Datei abgelehnt.'); break; }
+        if (!pruefung.ok) { setFehler(pruefung.fehler ?? tx('Datei abgelehnt.', 'File rejected.')); break; }
         liste = mediaHinzufuegen(liste, {
           id: crypto.randomUUID(),
           name: datei.name,
@@ -70,7 +70,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
       }
       if (liste !== media) await speichern(liste);
     } catch {
-      setFehler('Bild konnte nicht gelesen werden.');
+      setFehler(tx('Bild konnte nicht gelesen werden.', 'The image could not be read.'));
     } finally {
       setLaeuft(false);
     }
@@ -85,7 +85,7 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
     <>
       <Dialog
         titel={tx('Bilder zum Flug', 'Flight photos')}
-        untertitel={<>{flight.locationName || 'Flug'} · {new Date(flight.date).toLocaleDateString('de-DE')}</>}
+        untertitel={<>{flight.locationName || tx('Flug', 'Flight')} · {new Date(flight.date).toLocaleDateString(sprache === 'en' ? 'en-GB' : 'de-DE')}</>}
         icon={ImageIcon}
         breite="lg"
         onClose={onClose}
@@ -93,11 +93,11 @@ export function FlightMediaDialog({ flight: initial, onClose, onUpdate }: Props)
           <div className="w-full space-y-2">
             {/* Datei-Auswahl braucht ein <label> - Knopf-Optik über knopfKlassen. */}
             <label className={cn(knopfKlassen('primaer', 'md', true), laeuft && 'opacity-50')}>
-              <ImagePlus className="w-4 h-4" /> {laeuft ? 'Lese…' : 'Bilder hinzufügen'}
+              <ImagePlus className="w-4 h-4" /> {laeuft ? tx('Lese …', 'Reading…') : tx('Bilder hinzufügen', 'Add photos')}
               <input type="file" accept="image/*" multiple className="hidden" onChange={hinzufuegen} disabled={laeuft} />
             </label>
             <div className="flex justify-between text-xs text-slate-500">
-              <span>{media.length} {media.length === 1 ? 'Bild' : 'Bilder'}</span>
+              <span>{media.length} {media.length === 1 ? tx('Bild', 'photo') : tx('Bilder', 'photos')}</span>
               <span>{formatGroesse(belegt)} {tx('von', 'of')} {formatGroesse(MAX_FLUG_BYTES)}</span>
             </div>
           </div>

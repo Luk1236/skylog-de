@@ -10,16 +10,15 @@ import { useSprache } from '../lib/sprache';
 import { dbService, type Flight, type LocationFavorite, type GespeicherteKarte } from '../services/db';
 import { wetterText, type WeatherData } from '../services/weather';
 import { pruefeOfflineKarte, OFFLINE_KARTE_URL } from '../services/offlineBasemap';
-import { EuZoneLayer } from './EuZoneLayer';
-import { zonenInUmkreis, parseEd269, type Ed269Zone } from '../services/ed269';
-import { laenderFuerKoordinate, quelleFuer, istErfundeneErsatzzone } from '../services/euZones';
-import { regionenFuerStandort } from '../services/mapRegions';
-import { karteFuerStandort } from '../services/mapDownload';
+import type { Ed269Zone } from '../services/ed269';
 import { OfflineMapsDialog, EuZonesDialog, PreFlightSafetyDialog } from './lazyDialogs';
 
 // Offline-Grundkarte erst laden, wenn eine da ist: protomaps-leaflet und
 // pmtiles (~35 kB gzip) gehören nicht in den Erststart.
 const OfflineBasemap = lazy(() => import('./OfflineBasemap').then(m => ({ default: m.OfflineBasemap })));
+// Ebenso die EU-Zonen (Parser, Länderliste, Zeichnung): Sie kommen erst nach dem
+// ersten Bild dazu und nur, wenn für den Ort Zonen gespeichert sind.
+const EuZoneLayer = lazy(() => import('./EuZoneLayer').then(m => ({ default: m.EuZoneLayer })));
 
 // Die Startkarte: Grundkarte (online oder offline), DIPUL-Geozonen, importierte
 // EU-Zonen, eigene Flüge und Lieblingsorte. Aus App.tsx herausgelöst.
@@ -57,6 +56,9 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
   const [zeigeKarten, setZeigeKarten] = useState(false);
 
   const pruefeKarten = async () => {
+    const [{ regionenFuerStandort }, { karteFuerStandort }] = await Promise.all([
+      import('../services/mapRegions'), import('../services/mapDownload'),
+    ]);
     const codes = regionenFuerStandort(location[0], location[1]).map(r => r.code);
     const karte = await karteFuerStandort(codes);
     setGeladeneKarte(karte);
@@ -69,6 +71,9 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
   const [zeigePreFlightSafety, setZeigePreFlightSafety] = useState(false);
 
   const ladeEuZonen = async () => {
+    const [{ laenderFuerKoordinate, quelleFuer, istErfundeneErsatzzone }, { zonenInUmkreis, parseEd269 }] = await Promise.all([
+      import('../services/euZones'), import('../services/ed269'),
+    ]);
     // Frueher erfundene Ersatzzonen entfernen (blockieren sonst den echten Import).
     for (const e of await dbService.getEuZonen()) {
       if (istErfundeneErsatzzone(e)) await dbService.deleteEuZonen(e.land);
@@ -186,7 +191,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
 
         {/* Zonen fremder Laender (importiert). Liegen ueber der Grundkarte,
             genau wie das deutsche Overlay. */}
-        <EuZoneLayer zonen={euZonen} />
+        {euZonen.length > 0 && <Suspense fallback={null}><EuZoneLayer zonen={euZonen} /></Suspense>}
 
         <Marker position={location} icon={droneIcon} title={tx('Dein Standort', 'Your location')} alt={tx('Dein Standort', 'Your location')}>
           <Popup>{tx('Dein Standort', 'Your location')}</Popup>

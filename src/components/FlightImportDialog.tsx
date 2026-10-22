@@ -46,7 +46,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
     const fileList = e.target.files;
     if (!fileList || fileList.length === 0) return;
     const dateien: File[] = Array.from(fileList);
-    setDateiName(dateien.length === 1 ? dateien[0].name : `${dateien.length} Dateien`);
+    setDateiName(dateien.length === 1 ? dateien[0].name : tx(`${dateien.length} Dateien`, `${dateien.length} files`));
     setLeseFehler(null);
     try {
       // Jede Datei einzeln parsen (CSV/SRT gemischt möglich) und die Kandidaten
@@ -122,7 +122,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
       titel={tx('Flüge importieren', 'Import flights')}
       untertitel={tx('Aus Flugaufzeichnung (CSV oder DJI-SRT)', 'From a flight log (CSV or DJI SRT)')}
       icon={Upload}
-      breite="lg"
+      breite={vorschau ? 'xxl' : 'lg'}
       onClose={onClose}
       fuss={vorschau && vorschau.kandidaten.length > 0 ? (
         <>
@@ -135,7 +135,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
             onClick={importieren}
             disabled={ausgewaehlt.length === 0 || laeuft}
           >
-            {laeuft ? 'Importiere…' : ausgewaehlt.length + ' Flug/Flüge übernehmen'}
+            {laeuft ? tx('Importiere…', 'Importing…') : tx(`${ausgewaehlt.length} Flug/Flüge übernehmen`, `Import ${ausgewaehlt.length} flight(s)`)}
           </Knopf>
         </>
       ) : undefined}
@@ -167,113 +167,117 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
       )}
 
       {vorschau && (
-        <>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <FileDigit className="w-4 h-4" />
-            <span className="font-bold">{dateiName}</span>
-          </div>
-
-          {vorschau.fehler.length > 0 && (
-            <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-1">
-              {vorschau.fehler.map((f, i) => (
-                <p key={i} className="text-xs text-red-700 font-medium">{f}</p>
-              ))}
+        // Am Laptop zweispaltig: Datei, erkannte Spalten und Drohne links, Flüge rechts
+        <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <FileDigit className="w-4 h-4" />
+              <span className="font-bold">{dateiName}</span>
             </div>
-          )}
 
-          {Object.keys(vorschau.zuordnung).length > 0 && (
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
-              <Abschnitt titel={tx('Erkannte Spalten', 'Detected columns')} />
-              <div className="space-y-1">
-                {(Object.entries(vorschau.zuordnung) as [string, SpaltenTreffer][]).map(([feld, treffer]) => (
-                  <div key={feld} className="flex justify-between gap-2 text-xs">
-                    <span className="text-slate-500">{feld}</span>
-                    <span className="font-bold text-slate-700 truncate">
-                      {treffer.spalte}{treffer.einheit ? ' [' + treffer.einheit + ']' : ''}
-                    </span>
-                  </div>
+            {vorschau.fehler.length > 0 && (
+              <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-1">
+                {vorschau.fehler.map((f, i) => (
+                  <p key={i} className="text-xs text-red-700 font-medium">{f}</p>
                 ))}
               </div>
-              {vorschau.nichtZugeordnet.length > 0 && (
-                <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-200">
-                  {tx('Ignoriert:', 'Ignored:')} {vorschau.nichtZugeordnet.join(', ')}
-                </p>
-              )}
-            </div>
-          )}
+            )}
 
-          {vorschau.kandidaten.length > 0 && drohnen.length > 0 && (
-            <Feld label={tx('Drohne für nicht erkannte Zeilen', 'Drone for unrecognised rows')} htmlFor="import-ersatz-drohne">
-              <select
-                id="import-ersatz-drohne"
-                value={ersatzDrohne}
-                onChange={e => setErsatzDrohne(e.target.value)}
-                className={eingabe}
-              >
-                {drohnen.map(d => (
-                  <option key={d.id} value={d.id}>{d.name || d.model}</option>
-                ))}
-              </select>
-            </Feld>
-          )}
-
-          <div className="space-y-2">
-            {vorschau.kandidaten.map((k, i) => {
-              const aktiv = !abgewaehlt.has(i);
-              const drohne = drohnen.find(d => d.id === zuordnungen.get(i));
-              return (
-                <div
-                  key={i}
-                  className={cn(
-                    'p-3 rounded-2xl border transition-colors',
-                    aktiv ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 opacity-60'
-                  )}
-                >
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={aktiv}
-                      onChange={() => umschalten(i)}
-                      className="mt-0.5 w-4 h-4 shrink-0 accent-brand-blue"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline gap-2 flex-wrap">
-                        <span className="text-sm font-bold text-slate-900">
-                          {k.flug.date || 'kein Datum'}
-                        </span>
-                        {k.flug.startTime && (
-                          <span className="text-xs font-bold text-slate-500">{k.flug.startTime}</span>
-                        )}
-                        <span className="text-xs font-bold text-brand-blue">{k.flug.duration} Min</span>
-                      </div>
-                      <p className="text-xs text-slate-500 truncate">
-                        {k.flug.locationName || 'ohne Ort'} · {drohne ? (drohne.name || drohne.model) : 'keine Drohne'}
-                      </p>
-
-                      {k.dubletteVon && (
-                        <p className="text-xs text-amber-800 font-bold mt-1">
-                          {tx('Schon im Logbuch, standardmäßig übersprungen.', 'Already in the logbook, skipped by default.')}
-                        </p>
-                      )}
-                      {k.hinweise.map((h, j) => (
-                        <p key={j} className="text-2xs text-slate-500 mt-0.5">{h}</p>
-                      ))}
+            {Object.keys(vorschau.zuordnung).length > 0 && (
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <Abschnitt titel={tx('Erkannte Spalten', 'Detected columns')} />
+                <div className="space-y-1">
+                  {(Object.entries(vorschau.zuordnung) as [string, SpaltenTreffer][]).map(([feld, treffer]) => (
+                    <div key={feld} className="flex justify-between gap-2 text-xs">
+                      <span className="text-slate-500">{feld}</span>
+                      <span className="font-bold text-slate-700 truncate">
+                        {treffer.spalte}{treffer.einheit ? ' [' + treffer.einheit + ']' : ''}
+                      </span>
                     </div>
-                  </label>
+                  ))}
                 </div>
-              );
-            })}
-          </div>
+                {vorschau.nichtZugeordnet.length > 0 && (
+                  <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-200">
+                    {tx('Ignoriert:', 'Ignored:')} {vorschau.nichtZugeordnet.join(', ')}
+                  </p>
+                )}
+              </div>
+            )}
 
-          {nichtImportierbar.length > 0 && (
-            <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
-              <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-800">
-                {nichtImportierbar.length} {tx('ausgewählte Zeile(n) haben kein Datum oder keine Drohne und werden übersprungen.', 'selected row(s) have no date or drone and will be skipped.')}
-              </p>
+            {vorschau.kandidaten.length > 0 && drohnen.length > 0 && (
+              <Feld label={tx('Drohne für nicht erkannte Zeilen', 'Drone for unrecognised rows')} htmlFor="import-ersatz-drohne">
+                <select
+                  id="import-ersatz-drohne"
+                  value={ersatzDrohne}
+                  onChange={e => setErsatzDrohne(e.target.value)}
+                  className={eingabe}
+                >
+                  {drohnen.map(d => (
+                    <option key={d.id} value={d.id}>{d.name || d.model}</option>
+                  ))}
+                </select>
+              </Feld>
+            )}
+          </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              {vorschau.kandidaten.map((k, i) => {
+                const aktiv = !abgewaehlt.has(i);
+                const drohne = drohnen.find(d => d.id === zuordnungen.get(i));
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      'p-3 rounded-2xl border transition-colors',
+                      aktiv ? 'bg-white border-slate-200' : 'bg-slate-50 border-slate-100 opacity-60'
+                    )}
+                  >
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={aktiv}
+                        onChange={() => umschalten(i)}
+                        className="mt-0.5 w-4 h-4 shrink-0 accent-brand-blue"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline gap-2 flex-wrap">
+                          <span className="text-sm font-bold text-slate-900">
+                            {k.flug.date || tx('kein Datum', 'no date')}
+                          </span>
+                          {k.flug.startTime && (
+                            <span className="text-xs font-bold text-slate-500">{k.flug.startTime}</span>
+                          )}
+                          <span className="text-xs font-bold text-brand-blue">{k.flug.duration} min</span>
+                        </div>
+                        <p className="text-xs text-slate-500 truncate">
+                          {k.flug.locationName || tx('ohne Ort', 'no location')} · {drohne ? (drohne.name || drohne.model) : tx('keine Drohne', 'no drone')}
+                        </p>
+
+                        {k.dubletteVon && (
+                          <p className="text-xs text-amber-800 font-bold mt-1">
+                            {tx('Schon im Logbuch, standardmäßig übersprungen.', 'Already in the logbook, skipped by default.')}
+                          </p>
+                        )}
+                        {k.hinweise.map((h, j) => (
+                          <p key={j} className="text-2xs text-slate-500 mt-0.5">{h}</p>
+                        ))}
+                      </div>
+                    </label>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </>
+
+            {nichtImportierbar.length > 0 && (
+              <div className="flex items-start gap-2 p-4 bg-amber-50 border border-amber-100 rounded-2xl">
+                <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-amber-800">
+                  {nichtImportierbar.length} {tx('ausgewählte Zeile(n) haben kein Datum oder keine Drohne und werden übersprungen.', 'selected row(s) have no date or drone and will be skipped.')}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </Dialog>
   );

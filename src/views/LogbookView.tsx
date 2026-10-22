@@ -4,7 +4,7 @@ import { dbService, type Flight, type Drone, type Battery, type UserProfile, typ
 import { melde } from '../services/dialog';
 import { zeigeRueckgaengig } from '../services/rueckgaengig';
 import { blendeAus, sichtbareHinweise } from '../services/ausgeblendeteHinweise';
-import { getLastBackupAt } from '../services/backup';
+import { getLastBackupAt } from '../services/sicherungsStand';
 import { getSicherungsIntervall } from '../services/sicherungsErinnerung';
 import { getReminders } from '../services/reminders';
 import { cn, lokalesDatum } from '../lib/utils';

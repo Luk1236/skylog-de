@@ -76,7 +76,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
             {tx('Abbrechen', 'Cancel')}
           </Knopf>
           <Knopf onClick={handleSave} disabled={saving}>
-            {saving ? 'Speichere...' : 'Speichern'}
+            {saving ? tx('Speichere …', 'Saving…') : tx('Speichern', 'Save')}
           </Knopf>
         </>
       }
@@ -127,7 +127,7 @@ export function EidDialog({ profile, onSaveProfile, onClose }: Props) {
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs font-bold text-slate-500">{tx('Öffentliche e-ID für Plakette', 'Public e-ID for the label')}</span>
             <Knopf variante="sekundaer" groesse="sm" icon={copied ? Check : Copy} onClick={handleCopyPublicEID}>
-              <span>{copied ? 'Kopiert!' : 'Kopieren'}</span>
+              <span>{copied ? tx('Kopiert!', 'Copied!') : tx('Kopieren', 'Copy')}</span>
             </Knopf>
           </div>
           <p className="font-mono text-base font-bold text-brand-blue tracking-wider break-all">{publicPart}</p>

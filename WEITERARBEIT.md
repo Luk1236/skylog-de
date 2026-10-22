@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-22 (Runde 14: Feinschliff nach den Bildschirmfotos).
+Zuletzt aktualisiert: 2026-10-22 (Runde 15: Schwächen der Bereichsbewertung, zweiter Durchgang).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,12 +15,12 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **772 Unit-Tests** (71 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **786 Unit-Tests** (73 Dateien, davon
 Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis,
 Checklisten-Editor, Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
 Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen, Ebenen/Zurück, Tastatur-Fokus und Karten-Namensnennung. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
-51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~177 kB gzip, Logbuch beim ersten Öffnen +36 kB.
-Release v1.2.0 ist veröffentlicht; Runde 8 bis 13 sind in master.
+51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~170 kB gzip, Logbuch beim ersten Öffnen +36 kB.
+Release v1.2.0 ist veröffentlicht; Runde 8 bis 14 sind in master.
 
 Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde 11 (Branch
 `check4/dringende-befunde`) behebt die drei dringenden:
@@ -94,6 +94,27 @@ Runde 14 (Branch `check4/feinschliff`), Feinschliff nach Bildschirmfotos vom 22.
   Grundangaben links, Einstellungen bzw. Minderungen rechts.
 - **Tests:** Komponententests für SORA-Assistent (iGRC aus Table 1, M1(A)-Sperre, Ergebnis) und
   Kundenverwaltung (`src/components/dialoge.test.tsx`).
+
+Runde 15 (Branch `check5/schwaechen`), die „Schwäche“-Spalte der Bereichsbewertung, soweit im Code lösbar:
+- **Start:** Sicherungslogik, EU-Zonen (Parser, Länderliste, Zeichnung), Offline-Karten-Suche und
+  Benachrichtigungen werden erst nach dem ersten Bild nachgeladen (`sicherungsStand.ts` für das
+  Datum der letzten Sicherung). Erststart 176,9 → 170,2 kB gzip, Haupt-Chunk 348 → 327 KiB. Den Rest
+  machen React (198 KiB roh) und Leaflet aus. Lighthouse-A/B lief, war bei 50–60 % Rechnerlast aber
+  nicht aussagekräftig (Blockierzeit derselben Fassung 2,3–5,0 s) und wurde abgebrochen.
+- **Laptop:** auch Statistik und Import zweispaltig (Dialogbreite `xxl`).
+- **Design:** Die Offline-Karte nimmt im Dunkelmodus den echten dunklen Protomaps-Stil
+  (`useDunkelmodus`), Ortsnamen in der App-Sprache; nur die Online-Kacheln bleiben gefiltert (für
+  dunkle Online-Kacheln bräuchte es einen weiteren Anbieter – Entscheidung offen).
+- **Texte:** rund 30 Texte, die nur auf Deutsch dastanden, übersetzt (PIN-Sperre, Statistik, Import,
+  e-ID, EU-Zonen, Fotos, Flugspur, Offline-Karten, Staffelmatrix, Lieblingsorte – dort auch
+  „Favorit Hinzufügen“ → „Favorit hinzufügen“).
+- **Barrierefreiheit:** PIN-Tasten „C“/„⌫“ beschriftet, Eingabe-Fortschritt wird angesagt.
+- **Tests:** Komponententests für Statistik, Import, Ortswahl, Lieblingsorte, Datensicherung,
+  PIN-Sperre, Behörden-Check, Risiko-Einordnung und Mehr-Menü (`dialoge2/3.test.tsx`).
+- **Nicht im Code lösbar (braucht dich oder andere):** juristische Prüfung der Rechtstexte,
+  Screenreader-Test auf einem Gerät, Vercel-Deploy (KI-Check in der APK, Offline-Karten im Browser,
+  Lighthouse auf Vercel), Angaben in der Datenschutzerklärung (R3-02), Entscheidung zur
+  Android-Systemsicherung.
 
 Runde 10 (Branch `check3/schwaechen`), die Schwächen der Bereichsbewertung im Dashboard:
 - **Barrierefreiheit:** axe-Audit über 22 Ansichten/Dialoge – die letzten drei Verstöße behoben

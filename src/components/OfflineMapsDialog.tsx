@@ -101,7 +101,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
                   </>
                 ) : (
                   <Knopf groesse="sm" icon={Download} onClick={() => laden(region)} disabled={laeuft !== null} className="shrink-0">
-                    {amLaden ? 'Lädt…' : 'Laden'}
+                    {amLaden ? tx('Lädt …', 'Loading…') : tx('Laden', 'Load')}
                   </Knopf>
                 )}
               </div>
@@ -121,7 +121,7 @@ export function OfflineMapsDialog({ lat, lon, onClose, onGeaendert }: Props) {
                       ? `${fortschritt.prozent}% · ${formatBytes(fortschritt.geladen)}`
                       : fortschritt
                         ? `${formatBytes(fortschritt.geladen)} geladen`
-                        : 'Wird gestartet…'}
+                        : tx('Wird gestartet …', 'Starting…')}
                   </p>
                 </div>
               )}

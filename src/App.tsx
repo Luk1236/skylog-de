@@ -10,9 +10,8 @@ import {
 import { Dialog, Knopf } from './components/ui';
 import { dbService, type Drone, type Flight, type AppDocument, type Battery, type UserProfile } from './services/db';
 
-import { getLastBackupAt } from './services/backup';
+import { getLastBackupAt } from './services/sicherungsStand';
 import { getSicherungsIntervall } from './services/sicherungsErinnerung';
-import { planeBenachrichtigungen, synchronisiereBenachrichtigungen } from './services/benachrichtigungen';
 import { getReminders } from './services/reminders';
 import { sichtbareHinweise } from './services/ausgeblendeteHinweise';
 import { startOrt } from './services/startOrt';
@@ -252,11 +251,13 @@ export default function App() {
 
   // Android: Fristen als echte Benachrichtigungen planen (im Browser ohne Wirkung).
   // Erst nach dem Laden - sonst wuerden leere Listen alle geplanten Termine loeschen.
+  // Der Dienst wird erst hier nachgeladen - er gehört nicht in den Erststart.
   useEffect(() => {
     if (isLoading) return;
-    void synchronisiereBenachrichtigungen(
-      planeBenachrichtigungen(profile, drones, batteries, getLastBackupAt(), getSicherungsIntervall()),
-    );
+    void import('./services/benachrichtigungen').then(({ planeBenachrichtigungen, synchronisiereBenachrichtigungen }) =>
+      synchronisiereBenachrichtigungen(
+        planeBenachrichtigungen(profile, drones, batteries, getLastBackupAt(), getSicherungsIntervall()),
+      ));
   }, [isLoading, profile, drones, batteries]);
 
   if (isLoading) {

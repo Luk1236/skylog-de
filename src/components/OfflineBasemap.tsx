@@ -4,7 +4,8 @@ import { leafletLayer } from 'protomaps-leaflet';
 import { PMTiles, FileSource } from 'pmtiles';
 import type { Layer } from 'leaflet';
 import type { GespeicherteKarte } from '../services/db';
-import { GRUNDKARTE_KLASSE } from '../lib/kacheln';
+import { useDunkelmodus } from '../lib/useDunkelmodus';
+import { useSprache } from '../lib/sprache';
 
 /** Baut aus der gespeicherten Datei die PMTiles-Quelle für die Karte.
  *  FileSource erwartet ein File — ein Blob wird dafür umhüllt. */
@@ -28,6 +29,10 @@ export function alsPmtiles(karte: GespeicherteKarte): PMTiles {
 export function OfflineBasemap({ quelle }: { quelle: string | GespeicherteKarte }) {
   const map = useMap();
   const url = useMemo(() => (typeof quelle === 'string' ? quelle : alsPmtiles(quelle)), [quelle]);
+  // Echte dunkle Karte statt Farbfilter (die Online-Kacheln gibt es nur hell),
+  // Ortsnamen in der App-Sprache.
+  const dunkel = useDunkelmodus();
+  const { sprache } = useSprache();
 
   useEffect(() => {
     // protomaps-leaflet bringt eigene, lose Typen mit; fuer Leaflet ist das
@@ -37,11 +42,10 @@ export function OfflineBasemap({ quelle }: { quelle: string | GespeicherteKarte 
     // Flugverbotszonen-Ebene (WMS, Leaflet-Standard zIndex 1). Ohne die 0 malt
     // die Grundkarte die Zonen zu — sie werden geladen, sind aber unsichtbar.
     // Am 2026-07-24 im Browser reproduziert und nachgeprüft.
-    // className: Im Dunkelmodus dunkelt src/index.css die Grundkarte ab (wie online).
-    const ebene = leafletLayer({ url, flavor: 'light', lang: 'de', zIndex: 0, className: GRUNDKARTE_KLASSE }) as unknown as Layer;
+    const ebene = leafletLayer({ url, flavor: dunkel ? 'dark' : 'light', lang: sprache, zIndex: 0 }) as unknown as Layer;
     ebene.addTo(map);
     return () => { map.removeLayer(ebene); };
-  }, [map, url]);
+  }, [map, url, dunkel, sprache]);
 
   return null;
 }

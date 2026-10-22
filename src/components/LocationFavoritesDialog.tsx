@@ -177,7 +177,7 @@ export function LocationFavoritesDialog({
               {tx('Abbrechen', 'Cancel')}
             </Knopf>
             <Knopf type="submit" disabled={saving}>
-              {saving ? 'Speichert...' : 'Favorit Hinzufügen'}
+              {saving ? tx('Speichert …', 'Saving…') : tx('Favorit hinzufügen', 'Add favourite')}
             </Knopf>
           </div>
         </form>

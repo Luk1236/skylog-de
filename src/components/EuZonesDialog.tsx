@@ -107,7 +107,7 @@ export function EuZonesDialog({ onClose, onGeaendert }: Props) {
         // Datei-Auswahl braucht ein <label> - Knopf-Optik über knopfKlassen.
         <label className={cn(knopfKlassen('primaer', 'md', true), laeuft && 'opacity-50')}>
           <Upload className="w-4 h-4" />
-          {laeuft ? 'Wird gelesen…' : 'ED-269-Datei importieren'}
+          {laeuft ? tx('Wird gelesen …', 'Reading…') : tx('ED-269-Datei importieren', 'Import ED-269 file')}
           <input type="file" accept=".json,application/json" className="hidden" onChange={importieren} disabled={laeuft} />
         </label>
       }

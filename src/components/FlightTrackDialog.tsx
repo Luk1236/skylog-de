@@ -83,7 +83,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
       setTrack(neu);
       onUpdate();
     } catch {
-      setFehler('Datei konnte nicht gelesen werden.');
+      setFehler(tx('Datei konnte nicht gelesen werden.', 'The file could not be read.'));
     } finally {
       setLaeuft(false);
     }
@@ -107,7 +107,7 @@ export function FlightTrackDialog({ flight, onClose, onUpdate }: Props) {
           </p>
           {/* Datei-Auswahl braucht ein <label> - Knopf-Optik über knopfKlassen. */}
           <label className={cn(knopfKlassen('primaer', 'md', false), laeuft && 'opacity-50')}>
-            <Upload className="w-4 h-4" /> {laeuft ? 'Lese…' : 'Track-CSV laden'}
+            <Upload className="w-4 h-4" /> {laeuft ? tx('Lese …', 'Reading…') : tx('Track-CSV laden', 'Load track CSV')}
             <input type="file" accept=".csv,text/csv" className="hidden" onChange={importieren} disabled={laeuft} />
           </label>
           {fehler && (
