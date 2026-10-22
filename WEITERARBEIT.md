@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-22 (Runde 15: Schwächen der Bereichsbewertung, zweiter Durchgang).
+Zuletzt aktualisiert: 2026-10-22 (Release v1.3.0 vorbereitet, noch nicht getaggt).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -20,7 +20,10 @@ Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-
 Checklisten-Editor, Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
 Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen, Ebenen/Zurück, Tastatur-Fokus und Karten-Namensnennung. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
 51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~170 kB gzip, Logbuch beim ersten Öffnen +36 kB.
-Release v1.2.0 ist veröffentlicht; Runde 8 bis 14 sind in master.
+Release v1.2.0 ist veröffentlicht; Runde 8 bis 15 sind in master. **Release v1.3.0 ist vorbereitet**
+(Branch `release/v1.3.0`: Version 1.3.0, `CHANGELOG.md`, Release-Text aus dem Changelog) – getaggt wird erst
+nach dem APK-Test auf dem Handy: `git tag v1.3.0 && git push origin v1.3.0`. Vorher möglichst die Lücken in
+der Datenschutzerklärung füllen (R3-02); der Release-Lauf warnt, solange Platzhalter drinstehen.
 
 Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde 11 (Branch
 `check4/dringende-befunde`) behebt die drei dringenden:

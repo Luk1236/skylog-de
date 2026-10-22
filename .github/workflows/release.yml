@@ -43,6 +43,15 @@ jobs:
       - run: npm run check
       - run: npm test
 
+      # Gelb markierte Lücken in der Datenschutzerklärung (Name, Anschrift,
+      # Hosting) sollen vor einer Veröffentlichung ausgefüllt sein - als Warnung,
+      # nicht als Abbruch: die Entscheidung bleibt beim Herausgeber.
+      - name: Datenschutzerklärung auf Platzhalter prüfen
+        run: |
+          if grep -q 'class="ausfuellen"' public/datenschutz.html public/privacy.html; then
+            echo "::warning::Die Datenschutzerklärung enthält noch Platzhalter (Name, Anschrift, Hosting-Anbieter)."
+          fi
+
       - run: npm run build:app
         env:
           VITE_API_BASE: ${{ vars.SKYLOG_API_URL }}
@@ -72,17 +81,28 @@ jobs:
           ./gradlew assembleRelease --no-daemon
           cp app/build/outputs/apk/release/app-release.apk "$RUNNER_TEMP/skylog-de-${GITHUB_REF_NAME}.apk"
 
-      # Änderungsliste: alle Commit-Betreffs seit dem letzten Versions-Tag.
+      # Änderungsliste: der Abschnitt dieser Version aus CHANGELOG.md, sonst
+      # (z.B. wenn er fehlt) alle Commit-Betreffs seit dem letzten Versions-Tag.
       - name: GitHub-Release anlegen
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          ABSCHNITT=$(awk -v kopf="## [$VERSION]" '
+            index($0, kopf) == 1 { drin = 1; next }
+            drin && index($0, "## [") == 1 { exit }
+            drin { print }
+          ' CHANGELOG.md 2>/dev/null || true)
           VORHER=$(git describe --tags --abbrev=0 --match 'v*.*.*' "${GITHUB_REF_NAME}^" 2>/dev/null || true)
           if [ -n "$VORHER" ]; then BEREICH="$VORHER..$GITHUB_REF_NAME"; else BEREICH="$GITHUB_REF_NAME"; fi
           {
-            echo "## Änderungen"
-            echo
-            git log --no-merges --pretty='- %s' "$BEREICH"
+            if [ -n "$(printf '%s' "$ABSCHNITT" | tr -d '[:space:]')" ]; then
+              printf '%s\n' "$ABSCHNITT"
+            else
+              echo "## Änderungen"
+              echo
+              git log --no-merges --pretty='- %s' "$BEREICH"
+            fi
             echo
             echo "**Installation:** APK aufs Handy laden und öffnen. Updates lassen sich direkt über eine vorhandene SkyLog-App installieren."
           } > "$RUNNER_TEMP/notes.md"

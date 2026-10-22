@@ -46,10 +46,11 @@ Optional in `.env` (Vorlage: `.env.example`):
 Die App wird mit Capacitor gebaut, und zwar in GitHub Actions, nicht lokal:
 
 - **Jeder Push auf `master`** baut eine Test-APK (Actions → „Android APK bauen“ → Artefakt `skylog-apk`).
-- **Ein Versions-Tag** erzeugt ein Release mit signierter APK und Änderungsliste:
+- **Ein Versions-Tag** erzeugt ein Release mit signierter APK. Als Text der Release-Seite dient der
+  Abschnitt der Version aus [`CHANGELOG.md`](CHANGELOG.md) (fehlt er, die Commit-Liste seit dem letzten Tag):
   ```bash
-  git tag v1.1.0
-  git push origin v1.1.0
+  git tag v1.3.0
+  git push origin v1.3.0
   ```
 
 Alle APKs tragen denselben festen Schlüssel (GitHub-Secrets `SKYLOG_KEYSTORE_BASE64`, `SKYLOG_KEYSTORE_PASSWORD`, `SKYLOG_KEY_ALIAS`). Die Versionsnummer ist die Zahl der Commits. Dadurch lässt sich jede neuere APK über jede ältere installieren, ohne Datenverlust.
