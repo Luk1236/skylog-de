@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from 'react';
-import { MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
+import { AttributionControl, MapContainer, TileLayer, WMSTileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import { Info, Navigation, ShieldCheck, Wind, Thermometer, CloudRain, Route, DownloadCloud, Globe2 } from 'lucide-react';
 import { Capacitor } from '@capacitor/core';
 import L from 'leaflet';
@@ -127,12 +127,17 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
 
   return (
     <div className="w-full h-full relative">
-      <MapContainer 
-        center={location} 
-        zoom={13} 
+      <MapContainer
+        center={location}
+        zoom={13}
         className="w-full h-full"
         zoomControl={false}
+        attributionControl={false}
       >
+        {/* Namensnennung ohne „Leaflet“-Vorsatz: So passt sie am Handy in eine
+            Zeile und wird nicht von den Karten unten verdeckt (die OSM-Lizenz
+            verlangt, dass sie sichtbar ist). */}
+        <AttributionControl position="bottomright" prefix={false} />
         {/* Grundkarte: Liegt die mitgelieferte Offline-Karte vor (wird beim Bau
             erzeugt, siehe scripts/karte-extrahieren.mjs), wird sie benutzt —
             sonst wie bisher die Online-Kacheln. Kein Bruch, wenn die Datei

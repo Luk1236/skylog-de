@@ -7,7 +7,9 @@ const OSM_RECHTE = '&copy; <a href="https://www.openstreetmap.org/copyright">Ope
 
 /** Hauptkarte: HOT-Stil, betrieben von OpenStreetMap France (dort mit a/b/c-Subdomains). */
 export const HOT_KACHELN = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png';
-export const HOT_NAMENSNENNUNG = `${OSM_RECHTE}, tiles style by <a href="https://www.hotosm.org/">HOT</a>, hosted by <a href="https://www.openstreetmap.fr/">OSM France</a>`;
+/** Kurz gehalten, damit sie am Handy in eine Zeile passt (OSM-Richtlinie: „© OpenStreetMap“
+ *  mit Link auf die Lizenzseite genügt; Kartenstil und Server werden mitgenannt). */
+export const HOT_NAMENSNENNUNG = '<a href="https://www.openstreetmap.org/copyright">© OpenStreetMap</a> · <a href="https://www.hotosm.org/">HOT</a> · <a href="https://www.openstreetmap.fr/">OSM France</a>';
 
 /** Flugplaner und Flugspur: Standard-Kacheln der OpenStreetMap Foundation. Deren
  *  Regeln verlangen genau diese Adresse (ohne a/b/c) und die Namensnennung. */

@@ -159,7 +159,7 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
     <Dialog
       titel={t('planer.titel')}
       icon={Route}
-      breite="lg"
+      breite="xxl"
       onClose={onClose}
       schliesstBeiKlickDaneben={false}
       kopfAktionen={
@@ -204,234 +204,239 @@ export function FlightPlannerDialog({ startLat, startLon, locationFavorites = []
           ))}
         </div>
       ) : (
-        <>
-          {locationFavorites && locationFavorites.length > 0 && (
-            <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-blue pointer-events-none" />
-              <select
-                aria-label={tx('Startpunkt aus Favoriten wählen', 'Choose take-off point from favourites')}
-                className={cn(eingabe, 'pl-9 font-bold cursor-pointer')}
-                onChange={e => {
-                  const fav = locationFavorites.find(f => f.id === e.target.value);
-                  if (fav) {
-                    setWegpunkte(w => wegpunktHinzufuegen(w, { lat: fav.coordinates[0], lon: fav.coordinates[1] }));
-                    setName(fav.name);
-                  }
-                }}
-                defaultValue=""
-              >
-                <option value="" disabled>{tx('★ Startpunkt aus Favoriten wählen...', '★ Choose take-off point from favourites…')}</option>
-                {locationFavorites.map(fav => (
-                  <option key={fav.id} value={fav.id}>
-                    {fav.name} ({fav.locationName})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Modus: Route von Hand vs. Fläche kartieren */}
-          <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
-            <button onClick={() => setModus('route')}
-              className={cn('flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-colors',
-                modus === 'route' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
-              <Route className="w-3.5 h-3.5" /> {t('planer.modusRoute')}
-            </button>
-            <button onClick={() => setModus('flaeche')}
-              className={cn('flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-colors',
-                modus === 'flaeche' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
-              <Grid3x3 className="w-3.5 h-3.5" /> {t('planer.modusFlaeche')}
-            </button>
-          </div>
-
-          <p className="text-xs text-slate-500">
-            {modus === 'route' ? t('planer.hinweisKarte') : t('planer.hinweisFlaeche')}
-          </p>
-
-          {/* isolate: Leaflets eigene z-Werte bleiben innerhalb des Kartenrahmens */}
-          <div className="h-56 rounded-2xl overflow-hidden border border-slate-200 isolate">
-            <MapContainer center={[startLat, startLon]} zoom={14} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
-              <TileLayer url={OSM_KACHELN} attribution={OSM_NAMENSNENNUNG} className={GRUNDKARTE_KLASSE} />
-              <KlickFaenger onKlick={kartenTipp} />
-              {linie.length > 1 && <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3, dashArray: '6 4' }} />}
-              {wegpunkte.map((w, i) => (
-                <Marker key={i} position={[w.lat, w.lon]} icon={punktIcon(i + 1, i === wegpunkte.length - 1 && wegpunkte.length > 1)} />
-              ))}
-              {modus === 'flaeche' && ecken.map((e, i) => (
-                <Marker key={`ecke-${i}`} position={[e.lat, e.lon]} icon={eckIcon()} />
-              ))}
-              {modus === 'flaeche' && ecken.length === 2 && (
-                <Rectangle bounds={[[ecken[0].lat, ecken[0].lon], [ecken[1].lat, ecken[1].lon]]}
-                  pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
-              )}
-              {modus === 'flaeche' && ecken.length >= 3 && (
-                <Polygon positions={ecken.map(e => [e.lat, e.lon] as [number, number])}
-                  pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
-              )}
-            </MapContainer>
-          </div>
-
-          {modus === 'flaeche' && (
-            <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3">
-              <Regler label={t('planer.hoehe')} wert={hoehe} einheit="m" min={10} max={120} schritt={5} onChange={setHoehe} />
-              <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                <input type="checkbox" className="w-4 h-4 accent-brand-blue" checked={ausKamera} onChange={e => setAusKamera(e.target.checked)} />
-                {t('planer.ausKamera')}
-              </label>
-              {ausKamera ? (
-                <>
-                  <Regler label={t('planer.bildwinkel')} wert={bildwinkel} einheit="°" min={30} max={120} schritt={1} onChange={setBildwinkel} />
-                  <Regler label={t('planer.ueberlappung')} wert={ueberlappung} einheit="%" min={0} max={90} schritt={5} onChange={setUeberlappung} />
-                  <p className="text-xs text-slate-600 text-right">{t('planer.bahnabstand')}: <span className="font-mono font-bold text-slate-900">{effektiverAbstand} m</span></p>
-                </>
-              ) : (
-                <Regler label={t('planer.bahnabstand')} wert={bahnabstand} einheit="m" min={5} max={100} schritt={5} onChange={setBahnabstand} />
-              )}
-              <Regler label={t('planer.flugrichtung')} wert={richtungGrad} einheit="°" min={0} max={175} schritt={5} onChange={setRichtungGrad} />
-              <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
-                <button onClick={() => setRichtungGrad(90)}
-                  className={cn('py-2 rounded-lg text-xs font-bold transition-colors',
-                    richtungGrad === 90 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
-                  {t('planer.richtungOstWest')}
-                </button>
-                <button onClick={() => setRichtungGrad(0)}
-                  className={cn('py-2 rounded-lg text-xs font-bold transition-colors',
-                    richtungGrad === 0 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
-                  {t('planer.richtungNordSued')}
-                </button>
+        // Am Laptop zweispaltig: Karte links, Einstellungen und Wegpunkte rechts
+        <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+          <div className="space-y-4">
+            {locationFavorites && locationFavorites.length > 0 && (
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-blue pointer-events-none" />
+                <select
+                  aria-label={tx('Startpunkt aus Favoriten wählen', 'Choose take-off point from favourites')}
+                  className={cn(eingabe, 'pl-9 font-bold cursor-pointer')}
+                  onChange={e => {
+                    const fav = locationFavorites.find(f => f.id === e.target.value);
+                    if (fav) {
+                      setWegpunkte(w => wegpunktHinzufuegen(w, { lat: fav.coordinates[0], lon: fav.coordinates[1] }));
+                      setName(fav.name);
+                    }
+                  }}
+                  defaultValue=""
+                >
+                  <option value="" disabled>{tx('★ Startpunkt aus Favoriten wählen...', '★ Choose take-off point from favourites…')}</option>
+                  {locationFavorites.map(fav => (
+                    <option key={fav.id} value={fav.id}>
+                      {fav.name} ({fav.locationName})
+                    </option>
+                  ))}
+                </select>
               </div>
-              <Knopf voll icon={Grid3x3} onClick={rasterErzeugen} disabled={ecken.length < 2}>
-                {t('planer.rasterErzeugen')}
-              </Knopf>
-              <div className="flex items-center justify-between text-xs text-slate-600">
-                <span>{ecken.length} {t('planer.eckenGesetzt')}</span>
-                <span className="flex gap-1">
-                  <button onClick={() => setEcken(e => e.slice(0, -1))} disabled={ecken.length === 0}
-                    className="px-2 py-1.5 rounded-xl font-bold hover:bg-slate-100 disabled:opacity-40">{t('planer.eckeZurueck')}</button>
-                  <button onClick={() => setEcken([])} disabled={ecken.length === 0}
-                    className="px-2 py-1.5 rounded-xl font-bold text-brand-red hover:bg-red-50 disabled:opacity-40">{t('planer.eckenLoeschen')}</button>
-                </span>
-              </div>
-            </div>
-          )}
+            )}
 
-          {rasterBegrenzt && (
-            <p className="text-xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
-              <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {t('planer.rasterBegrenzt')}
+            {/* Modus: Route von Hand vs. Fläche kartieren */}
+            <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
+              <button onClick={() => setModus('route')}
+                className={cn('flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-colors',
+                  modus === 'route' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
+                <Route className="w-3.5 h-3.5" /> {t('planer.modusRoute')}
+              </button>
+              <button onClick={() => setModus('flaeche')}
+                className={cn('flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-bold transition-colors',
+                  modus === 'flaeche' ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
+                <Grid3x3 className="w-3.5 h-3.5" /> {t('planer.modusFlaeche')}
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500">
+              {modus === 'route' ? t('planer.hinweisKarte') : t('planer.hinweisFlaeche')}
             </p>
-          )}
 
-          <div className="grid grid-cols-3 gap-2">
-            <Kachel label={t('planer.strecke')} wert={formatStrecke(bewertung.streckeM)} />
-            <Kachel label={t('planer.flugzeit')} wert={formatZeit(bewertung.flugzeitS)} />
-            <Kachel label={t('planer.maxEntfernung')} wert={formatStrecke(bewertung.maxEntfernungM)} />
+            {/* isolate: Leaflets eigene z-Werte bleiben innerhalb des Kartenrahmens */}
+            <div className="h-56 lg:h-[26rem] rounded-2xl overflow-hidden border border-slate-200 isolate">
+              <MapContainer center={[startLat, startLon]} zoom={14} style={{ height: '100%', width: '100%' }} scrollWheelZoom={false}>
+                <TileLayer url={OSM_KACHELN} attribution={OSM_NAMENSNENNUNG} className={GRUNDKARTE_KLASSE} />
+                <KlickFaenger onKlick={kartenTipp} />
+                {linie.length > 1 && <Polyline positions={linie} pathOptions={{ color: '#1e3a8a', weight: 3, dashArray: '6 4' }} />}
+                {wegpunkte.map((w, i) => (
+                  <Marker key={i} position={[w.lat, w.lon]} icon={punktIcon(i + 1, i === wegpunkte.length - 1 && wegpunkte.length > 1)} />
+                ))}
+                {modus === 'flaeche' && ecken.map((e, i) => (
+                  <Marker key={`ecke-${i}`} position={[e.lat, e.lon]} icon={eckIcon()} />
+                ))}
+                {modus === 'flaeche' && ecken.length === 2 && (
+                  <Rectangle bounds={[[ecken[0].lat, ecken[0].lon], [ecken[1].lat, ecken[1].lon]]}
+                    pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
+                )}
+                {modus === 'flaeche' && ecken.length >= 3 && (
+                  <Polygon positions={ecken.map(e => [e.lat, e.lon] as [number, number])}
+                    pathOptions={{ color: '#059669', weight: 2, fillOpacity: 0.08 }} />
+                )}
+              </MapContainer>
+            </div>
           </div>
 
-          {bewertung.hinweise.length > 0 && (
-            <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 space-y-1">
-              {bewertung.hinweise.map((h, i) => (
-                <p key={i} className="text-xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
-                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {h}
-                </p>
-              ))}
-            </div>
-          )}
-
-          {wegpunkte.length > 0 && (
-            <div className="space-y-1.5">
-              <Abschnitt
-                titel={t('planer.wegpunkte')}
-                className="mb-0"
-                aktion={
-                  <button onClick={() => setWegpunkte([])} className="text-2xs font-bold text-slate-500 hover:text-brand-red">
-                    {t('planer.alleLoeschen')}
+          <div className="space-y-4">
+            {modus === 'flaeche' && (
+              <div className="rounded-2xl bg-white border border-slate-200 p-4 space-y-3">
+                <Regler label={t('planer.hoehe')} wert={hoehe} einheit="m" min={10} max={120} schritt={5} onChange={setHoehe} />
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-600">
+                  <input type="checkbox" className="w-4 h-4 accent-brand-blue" checked={ausKamera} onChange={e => setAusKamera(e.target.checked)} />
+                  {t('planer.ausKamera')}
+                </label>
+                {ausKamera ? (
+                  <>
+                    <Regler label={t('planer.bildwinkel')} wert={bildwinkel} einheit="°" min={30} max={120} schritt={1} onChange={setBildwinkel} />
+                    <Regler label={t('planer.ueberlappung')} wert={ueberlappung} einheit="%" min={0} max={90} schritt={5} onChange={setUeberlappung} />
+                    <p className="text-xs text-slate-600 text-right">{t('planer.bahnabstand')}: <span className="font-mono font-bold text-slate-900">{effektiverAbstand} m</span></p>
+                  </>
+                ) : (
+                  <Regler label={t('planer.bahnabstand')} wert={bahnabstand} einheit="m" min={5} max={100} schritt={5} onChange={setBahnabstand} />
+                )}
+                <Regler label={t('planer.flugrichtung')} wert={richtungGrad} einheit="°" min={0} max={175} schritt={5} onChange={setRichtungGrad} />
+                <div className="grid grid-cols-2 gap-1 bg-slate-100 rounded-xl p-1">
+                  <button onClick={() => setRichtungGrad(90)}
+                    className={cn('py-2 rounded-lg text-xs font-bold transition-colors',
+                      richtungGrad === 90 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
+                    {t('planer.richtungOstWest')}
                   </button>
-                }
-              />
-              {wegpunkte.map((w, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-slate-200 px-3 py-2 space-y-2">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-brand-blue shrink-0" />
-                    <span className="text-xs font-mono text-slate-600 flex-1 ml-1">
-                      {i + 1}. {w.lat.toFixed(5)}, {w.lon.toFixed(5)}
-                    </span>
-                    <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, -1))} disabled={i === 0}
-                      aria-label={t('a11y.nachOben')} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30">
-                      <ChevronUp className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, 1))} disabled={i === wegpunkte.length - 1}
-                      aria-label={t('a11y.nachUnten')} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30">
-                      <ChevronDown className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => setWegpunkte(v => wegpunktEntfernen(v, i))}
-                      aria-label={t('a11y.wegpunktEntfernen')} className="p-1.5 rounded-xl text-slate-400 hover:text-brand-red hover:bg-red-50">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  {/* Missions-Parameter je Wegpunkt */}
-                  <div className="grid grid-cols-3 gap-1.5">
-                    <label className={kleinesFeld}>
-                      <span className="text-2xs font-bold text-slate-500">H</span>
-                      <input type="number" inputMode="numeric" placeholder="m" aria-label={`Höhe Wegpunkt ${i + 1}`}
-                        value={w.alt ?? ''} onChange={e => aktualisiereWegpunkt(i, { alt: e.target.value ? Number(e.target.value) : undefined })}
-                        className="w-full min-w-0 bg-transparent text-xs font-mono text-slate-900 focus:outline-none" />
-                    </label>
-                    <label className={kleinesFeld}>
-                      <span className="text-2xs font-bold text-slate-500">km/h</span>
-                      <input type="number" inputMode="numeric" placeholder={tx('Tempo', 'Speed')} aria-label={tx(`Tempo Wegpunkt ${i + 1}`, `Speed waypoint ${i + 1}`)}
-                        value={w.speed ?? ''} onChange={e => aktualisiereWegpunkt(i, { speed: e.target.value ? Number(e.target.value) : undefined })}
-                        className="w-full min-w-0 bg-transparent text-xs font-mono text-slate-900 focus:outline-none" />
-                    </label>
-                    <select aria-label={tx(`Aktion Wegpunkt ${i + 1}`, `Action waypoint ${i + 1}`)}
-                      value={w.aktion ?? ''} onChange={e => aktualisiereWegpunkt(i, { aktion: (e.target.value || undefined) as WegpunktAktion | undefined })}
-                      className={cn(eingabe, 'px-2 py-1.5 text-xs font-bold text-slate-700')}>
-                      <option value="">—</option>
-                      <option value="foto">{tx('Foto', 'Photo')}</option>
-                      <option value="video-start">{tx('Video an', 'Video on')}</option>
-                      <option value="video-stop">{tx('Video aus', 'Video off')}</option>
-                      <option value="hover">{tx('Schweben', 'Hover')}</option>
-                    </select>
-                  </div>
-                  {w.aktion === 'hover' && (
-                    <label className="flex items-center gap-2 text-xs text-slate-600">
-                      {tx('Schwebedauer', 'Hover time')}
-                      <input type="number" inputMode="numeric" value={w.hoverSek ?? ''} placeholder={tx('Sek.', 'sec')}
-                        onChange={e => aktualisiereWegpunkt(i, { hoverSek: e.target.value ? Number(e.target.value) : undefined })}
-                        className={cn(eingabe, 'w-20 px-2 py-1 text-xs font-mono')} />
-                      {tx('Sek.', 'sec')}
-                    </label>
-                  )}
+                  <button onClick={() => setRichtungGrad(0)}
+                    className={cn('py-2 rounded-lg text-xs font-bold transition-colors',
+                      richtungGrad === 0 ? 'bg-white text-brand-blue shadow-sm' : 'text-slate-600')}>
+                    {t('planer.richtungNordSued')}
+                  </button>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {wegpunkte.length >= 2 && (
-            <div className="space-y-2">
-              <Abschnitt titel={t('planer.exportieren')} className="mb-0" />
-              {/* Fliegbare Mission: Litchi kann diese Datei importieren und abfliegen. */}
-              <Knopf voll icon={Download} onClick={() => exportieren('csv')}>
-                {tx('Mission für Litchi (fliegbar)', 'Mission for Litchi (flyable)')}
-              </Knopf>
-              <div className="grid grid-cols-2 gap-2">
-                <Knopf variante="sekundaer" icon={Download} onClick={() => exportieren('gpx')}>
-                  GPX
+                <Knopf voll icon={Grid3x3} onClick={rasterErzeugen} disabled={ecken.length < 2}>
+                  {t('planer.rasterErzeugen')}
                 </Knopf>
-                <Knopf variante="sekundaer" icon={Download} onClick={() => exportieren('kml')}>
-                  KML
-                </Knopf>
+                <div className="flex items-center justify-between text-xs text-slate-600">
+                  <span>{ecken.length} {t('planer.eckenGesetzt')}</span>
+                  <span className="flex gap-1">
+                    <button onClick={() => setEcken(e => e.slice(0, -1))} disabled={ecken.length === 0}
+                      className="px-2 py-1.5 rounded-xl font-bold hover:bg-slate-100 disabled:opacity-40">{t('planer.eckeZurueck')}</button>
+                    <button onClick={() => setEcken([])} disabled={ecken.length === 0}
+                      className="px-2 py-1.5 rounded-xl font-bold text-brand-red hover:bg-red-50 disabled:opacity-40">{t('planer.eckenLoeschen')}</button>
+                  </span>
+                </div>
               </div>
-              <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2 flex items-start gap-1.5 leading-relaxed">
-                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-                <span>{tx('Litchi-Datei in Litchi importieren,', 'Import the Litchi file into Litchi,')} <b>{tx('vor dem Start prüfen', 'check before take-off')}</b> {tx('(Höhen, Hindernisse, Luftraum) und nur in Sichtweite fliegen. SkyLog plant nur — es steuert die Drohne nicht.', '(altitudes, obstacles, airspace) and only fly within line of sight. SkyLog only plans — it does not control the drone.')}</span>
-              </p>
-            </div>
-          )}
+            )}
 
-          <p className="text-2xs text-slate-500 leading-relaxed">
-            {t('planer.fussnote')}
-          </p>
-        </>
+            {rasterBegrenzt && (
+              <p className="text-xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
+                <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {t('planer.rasterBegrenzt')}
+              </p>
+            )}
+
+            <div className="grid grid-cols-3 gap-2">
+              <Kachel label={t('planer.strecke')} wert={formatStrecke(bewertung.streckeM)} />
+              <Kachel label={t('planer.flugzeit')} wert={formatZeit(bewertung.flugzeitS)} />
+              <Kachel label={t('planer.maxEntfernung')} wert={formatStrecke(bewertung.maxEntfernungM)} />
+            </div>
+
+            {bewertung.hinweise.length > 0 && (
+              <div className="rounded-2xl bg-amber-50 border border-amber-100 p-3 space-y-1">
+                {bewertung.hinweise.map((h, i) => (
+                  <p key={i} className="text-xs text-amber-800 flex items-start gap-1.5 leading-relaxed">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {h}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {wegpunkte.length > 0 && (
+              <div className="space-y-1.5">
+                <Abschnitt
+                  titel={t('planer.wegpunkte')}
+                  className="mb-0"
+                  aktion={
+                    <button onClick={() => setWegpunkte([])} className="text-2xs font-bold text-slate-500 hover:text-brand-red">
+                      {t('planer.alleLoeschen')}
+                    </button>
+                  }
+                />
+                {wegpunkte.map((w, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-200 px-3 py-2 space-y-2">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-brand-blue shrink-0" />
+                      <span className="text-xs font-mono text-slate-600 flex-1 ml-1">
+                        {i + 1}. {w.lat.toFixed(5)}, {w.lon.toFixed(5)}
+                      </span>
+                      <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, -1))} disabled={i === 0}
+                        aria-label={t('a11y.nachOben')} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30">
+                        <ChevronUp className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setWegpunkte(v => wegpunktVerschieben(v, i, 1))} disabled={i === wegpunkte.length - 1}
+                        aria-label={t('a11y.nachUnten')} className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 disabled:opacity-30">
+                        <ChevronDown className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => setWegpunkte(v => wegpunktEntfernen(v, i))}
+                        aria-label={t('a11y.wegpunktEntfernen')} className="p-1.5 rounded-xl text-slate-400 hover:text-brand-red hover:bg-red-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                    {/* Missions-Parameter je Wegpunkt */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      <label className={kleinesFeld}>
+                        <span className="text-2xs font-bold text-slate-500">H</span>
+                        <input type="number" inputMode="numeric" placeholder="m" aria-label={`Höhe Wegpunkt ${i + 1}`}
+                          value={w.alt ?? ''} onChange={e => aktualisiereWegpunkt(i, { alt: e.target.value ? Number(e.target.value) : undefined })}
+                          className="w-full min-w-0 bg-transparent text-xs font-mono text-slate-900 focus:outline-none" />
+                      </label>
+                      <label className={kleinesFeld}>
+                        <span className="text-2xs font-bold text-slate-500">km/h</span>
+                        <input type="number" inputMode="numeric" placeholder={tx('Tempo', 'Speed')} aria-label={tx(`Tempo Wegpunkt ${i + 1}`, `Speed waypoint ${i + 1}`)}
+                          value={w.speed ?? ''} onChange={e => aktualisiereWegpunkt(i, { speed: e.target.value ? Number(e.target.value) : undefined })}
+                          className="w-full min-w-0 bg-transparent text-xs font-mono text-slate-900 focus:outline-none" />
+                      </label>
+                      <select aria-label={tx(`Aktion Wegpunkt ${i + 1}`, `Action waypoint ${i + 1}`)}
+                        value={w.aktion ?? ''} onChange={e => aktualisiereWegpunkt(i, { aktion: (e.target.value || undefined) as WegpunktAktion | undefined })}
+                        className={cn(eingabe, 'px-2 py-1.5 text-xs font-bold text-slate-700')}>
+                        <option value="">—</option>
+                        <option value="foto">{tx('Foto', 'Photo')}</option>
+                        <option value="video-start">{tx('Video an', 'Video on')}</option>
+                        <option value="video-stop">{tx('Video aus', 'Video off')}</option>
+                        <option value="hover">{tx('Schweben', 'Hover')}</option>
+                      </select>
+                    </div>
+                    {w.aktion === 'hover' && (
+                      <label className="flex items-center gap-2 text-xs text-slate-600">
+                        {tx('Schwebedauer', 'Hover time')}
+                        <input type="number" inputMode="numeric" value={w.hoverSek ?? ''} placeholder={tx('Sek.', 'sec')}
+                          onChange={e => aktualisiereWegpunkt(i, { hoverSek: e.target.value ? Number(e.target.value) : undefined })}
+                          className={cn(eingabe, 'w-20 px-2 py-1 text-xs font-mono')} />
+                        {tx('Sek.', 'sec')}
+                      </label>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {wegpunkte.length >= 2 && (
+              <div className="space-y-2">
+                <Abschnitt titel={t('planer.exportieren')} className="mb-0" />
+                {/* Fliegbare Mission: Litchi kann diese Datei importieren und abfliegen. */}
+                <Knopf voll icon={Download} onClick={() => exportieren('csv')}>
+                  {tx('Mission für Litchi (fliegbar)', 'Mission for Litchi (flyable)')}
+                </Knopf>
+                <div className="grid grid-cols-2 gap-2">
+                  <Knopf variante="sekundaer" icon={Download} onClick={() => exportieren('gpx')}>
+                    GPX
+                  </Knopf>
+                  <Knopf variante="sekundaer" icon={Download} onClick={() => exportieren('kml')}>
+                    KML
+                  </Knopf>
+                </div>
+                <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2 flex items-start gap-1.5 leading-relaxed">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+                  <span>{tx('Litchi-Datei in Litchi importieren,', 'Import the Litchi file into Litchi,')} <b>{tx('vor dem Start prüfen', 'check before take-off')}</b> {tx('(Höhen, Hindernisse, Luftraum) und nur in Sichtweite fliegen. SkyLog plant nur — es steuert die Drohne nicht.', '(altitudes, obstacles, airspace) and only fly within line of sight. SkyLog only plans — it does not control the drone.')}</span>
+                </p>
+              </div>
+            )}
+
+            <p className="text-2xs text-slate-500 leading-relaxed">
+              {t('planer.fussnote')}
+            </p>
+          </div>
+        </div>
       )}
     </Dialog>
   );

@@ -19,6 +19,8 @@ const BREITE = {
   md: 'sm:max-w-md',
   lg: 'sm:max-w-lg',
   xl: 'sm:max-w-2xl',
+  /** Große Arbeitsdialoge (Flugplaner, SORA): am Laptop zweispaltig. */
+  xxl: 'sm:max-w-2xl lg:max-w-5xl',
 } as const;
 
 interface Props {

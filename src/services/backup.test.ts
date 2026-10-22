@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
   importBackup, BACKUP_VERSION, ohneZugangsdaten, leseBackupText, PasswortNoetigFehler,
-  BeschaedigteSicherungFehler, findeSchaeden, type BackupData,
+  BeschaedigteSicherungFehler, findeSchaeden, beschreibeSicherung, leseSicherung, type BackupData,
 } from './backup';
 import { verschluessele, FalschesPasswortFehler } from './backupCrypto';
 import { dbService, type UserProfile } from './db';
@@ -47,6 +47,28 @@ describe('importBackup — Schutzwälle', () => {
     expect(fehler).toBeInstanceOf(BeschaedigteSicherungFehler);
     expect((fehler as Error).message).toMatch(/3 Einträge .*Flüge, Kunden: keine Liste.*nichts verändert/);
     expect((fehler as BeschaedigteSicherungFehler).textEn).toMatch(/3 entries .*flights, customers: not a list.*Nothing was changed/);
+    expect(einspielen).not.toHaveBeenCalled();
+    einspielen.mockRestore();
+  });
+});
+
+describe('Vorschau vor dem Ersetzen', () => {
+  it('zählt den Inhalt und nennt den Zeitraum der Flüge', () => {
+    const inhalt = beschreibeSicherung({
+      app: 'SkyLog DE', version: BACKUP_VERSION, exportedAt: '2026-10-20T08:00:00Z',
+      drones: [{ id: 'd1' }, { id: 'd2' }], flights: [{ id: 'f1', date: '2026-07-01' }, { id: 'f2', date: '2026-05-03' }, { id: 'f3', date: '2026-10-21' }],
+      batteries: [{ id: 'b1' }], maintenance: [], pilots: [], profile: { id: 'p' }, documents: [],
+      customers: [{ id: 'c1' }], spareParts: [{ id: 's1' }, { id: 's2' }],
+    } as unknown as BackupData);
+    expect(inhalt).toMatchObject({ drohnen: 2, fluege: 3, akkus: 1, weitere: 3, profil: true, von: '2026-05-03', bis: '2026-10-21', erstellt: '2026-10-20T08:00:00Z' });
+  });
+
+  it('leseSicherung prüft wie das Einspielen und verändert nichts', async () => {
+    const einspielen = vi.spyOn(dbService, 'importAllData');
+    await expect(leseSicherung(datei(JSON.stringify({ app: 'Fremd', drones: [] })))).rejects.toThrow(/keine SkyLog-DE-Sicherungsdatei/);
+    await expect(leseSicherung(datei(JSON.stringify({ app: 'SkyLog DE', version: 1, drones: [{}] })))).rejects.toBeInstanceOf(BeschaedigteSicherungFehler);
+    const heil = await leseSicherung(datei(JSON.stringify({ app: 'SkyLog DE', version: 1, drones: [{ id: 'd1' }] })));
+    expect(heil.drones).toHaveLength(1);
     expect(einspielen).not.toHaveBeenCalled();
     einspielen.mockRestore();
   });

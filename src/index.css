@@ -217,6 +217,15 @@
   filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
 }
 
+/* Namensnennung der Karte im Dunkelmodus: dunkler Grund statt weißem Streifen. */
+:root[data-theme="dark"] .leaflet-container .leaflet-control-attribution {
+  background: rgba(15, 23, 42, 0.85);
+  color: #cbd5e1;
+}
+:root[data-theme="dark"] .leaflet-container .leaflet-control-attribution a {
+  color: #93c5fd;
+}
+
 /* Seitenwechsel: kurze Einblendung (ersetzt die motion-Animation in App.tsx,
    damit die Bibliothek nicht mehr im Erststart geladen wird). Die Regel
    „Bewegung reduzieren" oben schaltet sie mit ab. */

@@ -6,7 +6,10 @@ import {
 import { Capacitor } from '@capacitor/core';
 import { dbService, type UserProfile } from '../services/db';
 import { melde, bestaetige } from '../services/dialog';
-import { BeschaedigteSicherungFehler, exportBackup, importBackup, PasswortNoetigFehler } from '../services/backup';
+import {
+  BeschaedigteSicherungFehler, beschreibeSicherung, exportBackup, importBackup, leseSicherung, PasswortNoetigFehler,
+  sichereVorDemErsetzen, type SicherungsInhalt,
+} from '../services/backup';
 import type { Theme } from '../services/theme';
 import type { Sprache } from '../services/i18n';
 import { APP_VERSION, plattform } from '../lib/appInfo';
@@ -52,16 +55,46 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
     e.target.value = '';
   };
 
+  const datum = (iso?: string) => iso
+    ? new Date(iso.length === 10 ? `${iso}T12:00:00` : iso).toLocaleDateString(sprache === 'en' ? 'en-GB' : 'de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : '';
+  const vorschauText = (i: SicherungsInhalt) => {
+    const zeitraum = i.von && i.bis ? (i.von === i.bis ? ` (${datum(i.von)})` : ` (${datum(i.von)} – ${datum(i.bis)})`) : '';
+    return tx(
+      `Die Sicherung${i.erstellt ? ` vom ${datum(i.erstellt)}` : ''} enthält ${i.fluege} Flüge${zeitraum}, ${i.drohnen} Drohnen, ${i.akkus} Akkus, ${i.wartungen} Wartungen, ${i.piloten} Piloten und ${i.dokumente} Dokumente${i.weitere ? ` sowie ${i.weitere} weitere Einträge` : ''}${i.profil ? '; dazu ein Profil' : ''}.
+
+Alles, was jetzt in der App gespeichert ist, wird dadurch ersetzt. Vorher legt die App automatisch eine Sicherheitskopie deiner aktuellen Daten als Datei an.`,
+      `The backup${i.erstellt ? ` from ${datum(i.erstellt)}` : ''} contains ${i.fluege} flights${zeitraum}, ${i.drohnen} drones, ${i.akkus} batteries, ${i.wartungen} maintenance records, ${i.piloten} pilots and ${i.dokumente} documents${i.weitere ? ` plus ${i.weitere} other entries` : ''}${i.profil ? ', and a profile' : ''}.
+
+Everything currently stored in the app will be replaced. Before that, the app automatically saves a safety copy of your current data as a file.`,
+    );
+  };
+
+  // Ersetzen: erst lesen und prüfen (auch verschlüsselte Dateien), dann zeigen,
+  // was in der Datei steckt, dann eine Sicherheitskopie der aktuellen Daten
+  // anlegen - erst danach wird die Datenbank ersetzt (Idee E19).
   const fuehreImportAus = async (modus: 'merge' | 'replace', passwort?: string, datei?: File) => {
     const file = datei ?? backupDatei;
     if (!file) return;
-    const warnung = tx(
-      'Alle aktuell gespeicherten Drohnen, Akkus, Flüge, Piloten, Wartungen und Dokumente werden gelöscht und durch den Inhalt der Datei ersetzt. Alles seit dieser Sicherung Erfasste geht verloren.',
-      'All drones, batteries, flights, pilots, maintenance records and documents currently stored are deleted and replaced by the file. Everything recorded since that backup is lost.',
-    );
-    if (!passwort && modus === 'replace' && !await bestaetige(warnung, { titel: tx('Wirklich ersetzen?', 'Really replace?'), gefaehrlich: true })) return;
     setBackupDatei(null);
     try {
+      let kopie: string | null = null;
+      if (modus === 'replace') {
+        const inhalt = beschreibeSicherung(await leseSicherung(file, passwort));
+        setPasswortFuer(null);
+        setImportPasswort('');
+        if (!await bestaetige(vorschauText(inhalt), { titel: tx('Wirklich ersetzen?', 'Really replace?'), gefaehrlich: true })) return;
+        try {
+          kopie = await sichereVorDemErsetzen();
+        } catch (err) {
+          console.error(err);
+          melde(tx(
+            'Die Sicherheitskopie deiner aktuellen Daten ließ sich nicht speichern. Es wurde nichts ersetzt.',
+            'The safety copy of your current data could not be saved. Nothing was replaced.',
+          ), tx('Sicherung nicht eingespielt', 'Backup not restored'));
+          return;
+        }
+      }
       const r = await importBackup(file, modus, passwort);
       setPasswortFuer(null);
       setImportPasswort('');
@@ -69,10 +102,16 @@ export function EinstellungenView({ profile, onUpdate, onOpenPinSetup, onOpenDat
         tx(
           `${r.drones} Drohnen\n${r.batteries} Akkus\n${r.flights} Flüge\n${r.pilots} Piloten\n${r.maintenance} Wartungen\n${r.documents} Dokumente\n` +
             (r.weitere ? `${r.weitere} Flugpläne, Favoriten, Kunden, Ersatzteile\n` : '') +
-            (r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei'),
+            (r.profile ? 'Profil übernommen' : 'Kein Profil in der Datei') +
+            (kopie ? `
+
+Deine vorherigen Daten liegen in der Datei ${kopie}.` : ''),
           `${r.drones} drones\n${r.batteries} batteries\n${r.flights} flights\n${r.pilots} pilots\n${r.maintenance} maintenance records\n${r.documents} documents\n` +
             (r.weitere ? `${r.weitere} flight plans, favourites, customers, spare parts\n` : '') +
-            (r.profile ? 'Profile restored' : 'No profile in the file'),
+            (r.profile ? 'Profile restored' : 'No profile in the file') +
+            (kopie ? `
+
+Your previous data is in the file ${kopie}.` : ''),
         ),
         tx('Sicherung geladen', 'Backup loaded'),
       );

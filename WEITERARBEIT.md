@@ -2,7 +2,7 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-21 (Runde 13: niedrige Befunde aus Software-Check 3).
+Zuletzt aktualisiert: 2026-10-22 (Runde 14: Feinschliff nach den Bildschirmfotos).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -15,12 +15,12 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **761 Unit-Tests** (69 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **772 Unit-Tests** (71 Dateien, davon
 Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis,
-Checklisten-Editor und Dialog-Fokus) · **76 Playwright-Tests** inkl. Kontrast-Wächter (WCAG AA 4,5 : 1),
-Handy-Abläufen, Ebenen/Zurück und Tastatur-Fokus. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
+Checklisten-Editor, Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
+Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen, Ebenen/Zurück, Tastatur-Fokus und Karten-Namensnennung. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
 51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~177 kB gzip, Logbuch beim ersten Öffnen +36 kB.
-Release v1.2.0 ist veröffentlicht; Runde 8 bis 12 sind in master.
+Release v1.2.0 ist veröffentlicht; Runde 8 bis 13 sind in master.
 
 Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde 11 (Branch
 `check4/dringende-befunde`) behebt die drei dringenden:
@@ -79,6 +79,21 @@ Runde 13 (Branch `check4/niedrige-befunde`), die niedrigen Befunde R3-10 bis R3-
   nachziehen (zwei Wochen Abstand zu neuen Versionen).
 - Offen aus Check 3: nur R3-02 (Name, Anschrift, E-Mail und Hosting-Anbieter in beiden Fassungen
   der Datenschutzerklärung eintragen; danach juristisch gegenlesen lassen).
+
+Runde 14 (Branch `check4/feinschliff`), Feinschliff nach Bildschirmfotos vom 22.10.:
+- **Karten-Namensnennung:** auf der Hauptkarte kurz („© OpenStreetMap · HOT · OSM France“) und ohne
+  „Leaflet“-Vorsatz – sie passt am Handy in eine Zeile und wird nicht mehr von den Karten unten
+  verdeckt (seit Runde 12 war die erste Zeile verdeckt); im Dunkelmodus dunkel hinterlegt.
+  Oberflächentest `e2e/karte.spec.ts` (hell und dunkel).
+- **Sicherheitskopie vor dem Ersetzen (Idee E19):** Beim Einspielen im Modus „Ersetzen“ liest die App
+  die Datei zuerst (auch verschlüsselt), zeigt Inhalt und Zeitraum und legt nach der Bestätigung
+  automatisch `skylog_vor_wiederherstellung_<Datum>.json` an. Scheitert die Kopie, wird nichts
+  ersetzt. `leseSicherung`, `beschreibeSicherung`, `sichereVorDemErsetzen` in `backup.ts`;
+  Komponententest `src/views/EinstellungenView.test.tsx`.
+- **Laptop:** Flugplaner und SORA-Assistent ab 1024 px zweispaltig (Dialogbreite `xxl`): Karte bzw.
+  Grundangaben links, Einstellungen bzw. Minderungen rechts.
+- **Tests:** Komponententests für SORA-Assistent (iGRC aus Table 1, M1(A)-Sperre, Ergebnis) und
+  Kundenverwaltung (`src/components/dialoge.test.tsx`).
 
 Runde 10 (Branch `check3/schwaechen`), die Schwächen der Bereichsbewertung im Dashboard:
 - **Barrierefreiheit:** axe-Audit über 22 Ansichten/Dialoge – die letzten drei Verstöße behoben

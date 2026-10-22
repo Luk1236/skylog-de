@@ -72,7 +72,7 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
       untertitel={tx('Erstellung behördengerechter Betriebsanträge (Spezifische Kategorie)', 'Preparing operation applications for the authority (Specific category)')}
       icon={Shield}
       ton="blau"
-      breite="xl"
+      breite="xxl"
       onClose={onClose}
       fuss={step === 'form' ? (
         <Knopf voll onClick={() => setStep('result')}>
@@ -91,143 +91,146 @@ export function SoraWizardDialog({ drones, profile, onClose }: Props) {
       )}
     >
       {step === 'form' ? (
-        <div className="space-y-4">
-          <Feld label={tx('Bezeichnung des Flugvorhabens / ConOps Title', 'Operation name / ConOps title')} htmlFor={`${id}-titel`}>
-            <input
-              id={`${id}-titel`}
-              type="text"
-              className={eingabe}
-              value={input.operationTitle}
-              onChange={e => setInput({ ...input, operationTitle: e.target.value })}
-            />
-          </Feld>
+        // Am Laptop zweispaltig: Grundangaben links, Minderungen rechts
+        <div className="space-y-4 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-6 lg:items-start">
+          <div className="space-y-4">
+            <Feld label={tx('Bezeichnung des Flugvorhabens / ConOps Title', 'Operation name / ConOps title')} htmlFor={`${id}-titel`}>
+              <input
+                id={`${id}-titel`}
+                type="text"
+                className={eingabe}
+                value={input.operationTitle}
+                onChange={e => setInput({ ...input, operationTitle: e.target.value })}
+              />
+            </Feld>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Feld label={tx('Eingesetzte Drohne', 'Drone used')} htmlFor={`${id}-drohne`}>
-              <select
-                id={`${id}-drohne`}
-                className={`${eingabe} cursor-pointer`}
-                value={selectedDroneId}
-                onChange={e => {
-                  setSelectedDroneId(e.target.value);
-                  const mtom = mtomAusDrohne(drones.find(dr => dr.id === e.target.value));
-                  if (mtom !== null) setInput(prev => ({ ...prev, droneMtomKg: mtom }));
-                }}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Feld label={tx('Eingesetzte Drohne', 'Drone used')} htmlFor={`${id}-drohne`}>
+                <select
+                  id={`${id}-drohne`}
+                  className={`${eingabe} cursor-pointer`}
+                  value={selectedDroneId}
+                  onChange={e => {
+                    setSelectedDroneId(e.target.value);
+                    const mtom = mtomAusDrohne(drones.find(dr => dr.id === e.target.value));
+                    if (mtom !== null) setInput(prev => ({ ...prev, droneMtomKg: mtom }));
+                  }}
+                >
+                  {drones.map(d => (
+                    <option key={d.id} value={d.id}>
+                      {d.model} ({d.weight ? `${d.weight}g` : 'MTOM k.A.'})
+                    </option>
+                  ))}
+                </select>
+              </Feld>
+
+              <Feld label={tx('MTOM Abflugmasse (kg)', 'MTOM take-off mass (kg)')} htmlFor={`${id}-mtom`}>
+                <input
+                  id={`${id}-mtom`}
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  className={eingabe}
+                  value={input.droneMtomKg}
+                  onChange={e => setInput({ ...input, droneMtomKg: parseFloat(e.target.value) || 1.0 })}
+                />
+              </Feld>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Feld
+                label={tx('Größte charakteristische Abmessung (m)', 'Max. characteristic dimension (m)')}
+                htmlFor={`${id}-abmessung`}
+                hinweis={tx('Multikopter: Diagonale von Blattspitze zu Blattspitze; Flächenflugzeug: Spannweite', 'Multirotor: diagonal from blade tip to blade tip; fixed-wing: wingspan')}
               >
-                {drones.map(d => (
-                  <option key={d.id} value={d.id}>
-                    {d.model} ({d.weight ? `${d.weight}g` : 'MTOM k.A.'})
-                  </option>
+                <input
+                  id={`${id}-abmessung`}
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  className={eingabe}
+                  value={input.abmessungM}
+                  onChange={e => setInput({ ...input, abmessungM: parseFloat(e.target.value) || 1 })}
+                />
+              </Feld>
+
+              <Feld
+                label={tx('Höchstgeschwindigkeit (m/s)', 'Maximum speed (m/s)')}
+                htmlFor={`${id}-geschwindigkeit`}
+                hinweis={tx('Höchste mögliche Geschwindigkeit laut Hersteller, nicht die geplante', 'Highest possible speed per manufacturer, not the planned one')}
+              >
+                <input
+                  id={`${id}-geschwindigkeit`}
+                  type="number"
+                  step="0.5"
+                  min="0.5"
+                  className={eingabe}
+                  value={input.geschwindigkeitMs}
+                  onChange={e => setInput({ ...input, geschwindigkeitMs: parseFloat(e.target.value) || 25 })}
+                />
+              </Feld>
+            </div>
+
+            <Feld
+              label={tx('Höchste Bevölkerungsdichte im Einsatzgebiet inkl. Puffer', 'Highest population density in the operational area incl. buffer')}
+              htmlFor={`${id}-bevoelkerung`}
+            >
+              <select
+                id={`${id}-bevoelkerung`}
+                className={`${eingabe} cursor-pointer`}
+                value={input.bevoelkerung}
+                onChange={e => setInput({ ...input, bevoelkerung: e.target.value as Bevoelkerung })}
+              >
+                {BEVOELKERUNG_STUFEN.map(b => (
+                  <option key={b} value={b}>{bevoelkerungText(b, sprache)}</option>
                 ))}
               </select>
             </Feld>
 
-            <Feld label={tx('MTOM Abflugmasse (kg)', 'MTOM take-off mass (kg)')} htmlFor={`${id}-mtom`}>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-700" aria-live="polite">
+              <p>
+                <strong className="text-slate-900">{tx('Boden-Risikowert (iGRC)', 'Ground risk class (iGRC)')}: </strong>
+                {result.initialGrc ?? tx('nicht bestimmbar', 'not determinable')}
+              </p>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{tx('Quelle', 'Source')}: {igrcQuelle(result.igrc, sprache)}</p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Feld label={tx('Luftraumklasse (Airspace)', 'Airspace class')} htmlFor={`${id}-luftraum`}>
+                <select
+                  id={`${id}-luftraum`}
+                  className={`${eingabe} cursor-pointer`}
+                  value={input.airspace}
+                  onChange={e => setInput({ ...input, airspace: e.target.value as SoraInput['airspace'] })}
+                >
+                  <option value="uncontrolled">{tx('Unkontrollierter Luftraum (G / E)', 'Uncontrolled airspace (G / E)')}</option>
+                  <option value="controlled">{tx('Kontrollierter Luftraum (CTR / C / D)', 'Controlled airspace (CTR / C / D)')}</option>
+                  <option value="airport">{tx('Flughafennahbereich / CTR', 'Airport vicinity / CTR')}</option>
+                  <option value="prohibited">{tx('Sperrgebiet / ED-R', 'Restricted area / ED-R')}</option>
+                </select>
+              </Feld>
+
+              <Feld label={tx('Max. Flughöhe (m AGL)', 'Max. altitude (m AGL)')} htmlFor={`${id}-hoehe`}>
+                <input
+                  id={`${id}-hoehe`}
+                  type="number"
+                  className={eingabe}
+                  value={input.maxAltitudeM}
+                  onChange={e => setInput({ ...input, maxAltitudeM: parseInt(e.target.value) || 120 })}
+                />
+              </Feld>
+            </div>
+
+            <label className="flex items-center gap-3 cursor-pointer text-sm text-slate-700">
               <input
-                id={`${id}-mtom`}
-                type="number"
-                step="0.01"
-                min="0.01"
-                className={eingabe}
-                value={input.droneMtomKg}
-                onChange={e => setInput({ ...input, droneMtomKg: parseFloat(e.target.value) || 1.0 })}
+                type="checkbox"
+                className="w-5 h-5 rounded accent-brand-blue cursor-pointer shrink-0"
+                checked={input.ueberStadt}
+                onChange={e => setInput({ ...input, ueberStadt: e.target.checked })}
               />
-            </Feld>
+              <span>{tx('Flug über städtischem Gebiet (für das Luftrisiko)', 'Flight over an urban area (for the air risk)')}</span>
+            </label>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Feld
-              label={tx('Größte charakteristische Abmessung (m)', 'Max. characteristic dimension (m)')}
-              htmlFor={`${id}-abmessung`}
-              hinweis={tx('Multikopter: Diagonale von Blattspitze zu Blattspitze; Flächenflugzeug: Spannweite', 'Multirotor: diagonal from blade tip to blade tip; fixed-wing: wingspan')}
-            >
-              <input
-                id={`${id}-abmessung`}
-                type="number"
-                step="0.01"
-                min="0.01"
-                className={eingabe}
-                value={input.abmessungM}
-                onChange={e => setInput({ ...input, abmessungM: parseFloat(e.target.value) || 1 })}
-              />
-            </Feld>
-
-            <Feld
-              label={tx('Höchstgeschwindigkeit (m/s)', 'Maximum speed (m/s)')}
-              htmlFor={`${id}-geschwindigkeit`}
-              hinweis={tx('Höchste mögliche Geschwindigkeit laut Hersteller, nicht die geplante', 'Highest possible speed per manufacturer, not the planned one')}
-            >
-              <input
-                id={`${id}-geschwindigkeit`}
-                type="number"
-                step="0.5"
-                min="0.5"
-                className={eingabe}
-                value={input.geschwindigkeitMs}
-                onChange={e => setInput({ ...input, geschwindigkeitMs: parseFloat(e.target.value) || 25 })}
-              />
-            </Feld>
-          </div>
-
-          <Feld
-            label={tx('Höchste Bevölkerungsdichte im Einsatzgebiet inkl. Puffer', 'Highest population density in the operational area incl. buffer')}
-            htmlFor={`${id}-bevoelkerung`}
-          >
-            <select
-              id={`${id}-bevoelkerung`}
-              className={`${eingabe} cursor-pointer`}
-              value={input.bevoelkerung}
-              onChange={e => setInput({ ...input, bevoelkerung: e.target.value as Bevoelkerung })}
-            >
-              {BEVOELKERUNG_STUFEN.map(b => (
-                <option key={b} value={b}>{bevoelkerungText(b, sprache)}</option>
-              ))}
-            </select>
-          </Feld>
-
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm text-slate-700" aria-live="polite">
-            <p>
-              <strong className="text-slate-900">{tx('Boden-Risikowert (iGRC)', 'Ground risk class (iGRC)')}: </strong>
-              {result.initialGrc ?? tx('nicht bestimmbar', 'not determinable')}
-            </p>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{tx('Quelle', 'Source')}: {igrcQuelle(result.igrc, sprache)}</p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Feld label={tx('Luftraumklasse (Airspace)', 'Airspace class')} htmlFor={`${id}-luftraum`}>
-              <select
-                id={`${id}-luftraum`}
-                className={`${eingabe} cursor-pointer`}
-                value={input.airspace}
-                onChange={e => setInput({ ...input, airspace: e.target.value as SoraInput['airspace'] })}
-              >
-                <option value="uncontrolled">{tx('Unkontrollierter Luftraum (G / E)', 'Uncontrolled airspace (G / E)')}</option>
-                <option value="controlled">{tx('Kontrollierter Luftraum (CTR / C / D)', 'Controlled airspace (CTR / C / D)')}</option>
-                <option value="airport">{tx('Flughafennahbereich / CTR', 'Airport vicinity / CTR')}</option>
-                <option value="prohibited">{tx('Sperrgebiet / ED-R', 'Restricted area / ED-R')}</option>
-              </select>
-            </Feld>
-
-            <Feld label={tx('Max. Flughöhe (m AGL)', 'Max. altitude (m AGL)')} htmlFor={`${id}-hoehe`}>
-              <input
-                id={`${id}-hoehe`}
-                type="number"
-                className={eingabe}
-                value={input.maxAltitudeM}
-                onChange={e => setInput({ ...input, maxAltitudeM: parseInt(e.target.value) || 120 })}
-              />
-            </Feld>
-          </div>
-
-          <label className="flex items-center gap-3 cursor-pointer text-sm text-slate-700">
-            <input
-              type="checkbox"
-              className="w-5 h-5 rounded accent-brand-blue cursor-pointer shrink-0"
-              checked={input.ueberStadt}
-              onChange={e => setInput({ ...input, ueberStadt: e.target.checked })}
-            />
-            <span>{tx('Flug über städtischem Gebiet (für das Luftrisiko)', 'Flight over an urban area (for the air risk)')}</span>
-          </label>
 
           {/* Minderungen nach SORA 2.5, Step #3 */}
           <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3 text-sm text-slate-700">

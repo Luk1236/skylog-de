@@ -233,14 +233,60 @@ export async function leseBackupText(text: string, passwort?: string): Promise<B
   return roh as BackupData;
 }
 
-// Reads a backup file and merges its contents back into the DB (put by id).
-export async function importBackup(
-  file: File,
-  modus: 'merge' | 'replace' = 'merge',
-  passwort?: string,
-): Promise<ImportResult> {
+/** Liest eine Sicherungsdatei und prüft sie, ohne etwas zu verändern - für die
+ *  Vorschau vor dem Ersetzen. Wirft dieselben Fehler wie importBackup. */
+export async function leseSicherung(file: File, passwort?: string): Promise<BackupData> {
   const data = await leseBackupText(await file.text(), passwort);
+  pruefeSicherung(data);
+  return data;
+}
 
+/** Überblick über eine Sicherung für die Rückfrage vor dem Ersetzen. */
+export interface SicherungsInhalt {
+  drohnen: number;
+  fluege: number;
+  akkus: number;
+  wartungen: number;
+  piloten: number;
+  dokumente: number;
+  /** Flugpläne, Lieblingsorte, Kunden und Ersatzteile zusammen. */
+  weitere: number;
+  profil: boolean;
+  /** Ältester und neuester Flug (YYYY-MM-DD), wenn es Flüge gibt. */
+  von?: string;
+  bis?: string;
+  /** Wann die Sicherung erstellt wurde (ISO), wenn die Datei es sagt. */
+  erstellt?: string;
+}
+
+export function beschreibeSicherung(data: BackupData): SicherungsInhalt {
+  const daten = (data.flights ?? []).map(f => f.date).filter((d): d is string => typeof d === 'string' && d !== '').sort();
+  return {
+    drohnen: data.drones?.length ?? 0,
+    fluege: data.flights?.length ?? 0,
+    akkus: data.batteries?.length ?? 0,
+    wartungen: data.maintenance?.length ?? 0,
+    piloten: data.pilots?.length ?? 0,
+    dokumente: data.documents?.length ?? 0,
+    weitere: (data.flightPlans?.length ?? 0) + (data.locationFavorites?.length ?? 0)
+      + (data.customers?.length ?? 0) + (data.spareParts?.length ?? 0),
+    profil: !!data.profile,
+    von: daten[0],
+    bis: daten[daten.length - 1],
+    erstellt: typeof data.exportedAt === 'string' ? data.exportedAt : undefined,
+  };
+}
+
+/** Sicherheitskopie der aktuellen Daten, bevor eine Sicherung sie ersetzt (Idee E19):
+ *  ein Fehlgriff beim Einspielen kostet dann nichts. Gibt den Dateinamen zurück. */
+export async function sichereVorDemErsetzen(): Promise<string> {
+  const { text } = await erstelleBackupText();
+  const dateiname = `skylog_vor_wiederherstellung_${lokalesDatum()}.json`;
+  await speichereDatei(dateiname, text);
+  return dateiname;
+}
+
+function pruefeSicherung(data: BackupData): void {
   if (data.app !== 'SkyLog DE' || !Array.isArray(data.drones)) {
     throw new Error('Das ist keine SkyLog-DE-Sicherungsdatei.');
   }
@@ -255,9 +301,19 @@ export async function importBackup(
     );
   }
 
-  // Erst prüfen, dann schreiben: Beim Ersetzen wird die Datenbank geleert.
   const schaeden = findeSchaeden(data);
   if (schaeden.length) throw new BeschaedigteSicherungFehler(schaeden);
+}
+
+// Reads a backup file and merges its contents back into the DB (put by id).
+export async function importBackup(
+  file: File,
+  modus: 'merge' | 'replace' = 'merge',
+  passwort?: string,
+): Promise<ImportResult> {
+  const data = await leseBackupText(await file.text(), passwort);
+  // Erst prüfen, dann schreiben: Beim Ersetzen wird die Datenbank geleert.
+  pruefeSicherung(data);
 
   const documents: AppDocument[] = (data.documents ?? []).map((d) => ({
     id: d.id,
