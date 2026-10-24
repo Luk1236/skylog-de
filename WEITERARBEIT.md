@@ -29,7 +29,7 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Echte IndexedDB-Tests aus `n14` übernommen** (`db.test.ts`, `db.transaktion.test.ts`,
   Dev-Abhängigkeit `fake-indexeddb`). Dabei den Bugfix mitgenommen: `saveFlight` läuft jetzt in
   einer Transaktion und zählt den Akku-Zyklus nicht erneut, wenn ein bestehender Flug nur um
-  Fotos oder die Flugspur ergänzt wird. 830 Tests in 75 Dateien, alle grün.
+  Fotos oder die Flugspur ergänzt wird. 837 Tests in 76 Dateien, alle grün.
 - **N16 entschieden:** Die App-Daten sind von der Google-Kontosicherung ausgenommen
   (`dataExtractionRules` für Android 12+, `fullBackupContent` für ältere Versionen); der lokale
   Gerätewechsel bleibt erlaubt. Datenschutzerklärung DE/EN angepasst, Wächter in
@@ -39,18 +39,24 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
   einstelligen Monaten, Millisekunden im Zeitstempel sowie `altitude`/`Hb`/`Hs`. Fehlt in der
   Datei ein Datum, übernimmt der Import das Datum der Datei und weist im Hinweis darauf hin.
   19 Tests in `djiSrt.test.ts`.
-- **Oberfläche und CSP lokal verifiziert:** 78 Playwright-Tests grün (20 s); die
+- **Oberfläche und CSP lokal verifiziert:** 79 Playwright-Tests grün (20 s); die
   Produktionsauslieferung über `npm start` mit CSP lief ohne Konsolen- oder CSP-Fehler.
   Der Vercel-spezifische Gegencheck bleibt offen, bis dort deployt ist.
 - **Datenschutz-Verantwortlicher eingetragen:** Lukas Bootz, Offenburg, Deutschland,
   Lukas.bootz@gmx.de; Hosting: Vercel Inc., USA (beim Deploy bestätigen). Keine gelben
   Platzhalter mehr; die juristische Prüfung bleibt offen.
+- **Weitere Verbesserungen (24.10.):** Server-Bundle liegt in `dist-server/` und wird nicht mehr
+  öffentlich ausgeliefert; `npm start` liefert auch ohne `NODE_ENV` die Produktionsfassung inkl.
+  CSP, Vite wird nur im Dev-Modus geladen. PIN sperrt nach einer Minute im Hintergrund.
+  Importmeldungen sind zweisprachig, SRT-Spuren werden auf höchstens 2.000 Punkte ausgedünnt,
+  Flüge unter einer Minute als 1 Minute gespeichert. CSP-Bilder nur von Karten-/WMS-Hosts.
+  E2E-Test für den gemeinsamen CSV-/SRT-Import; Lizenz ergänzt, `metadata.json` entfernt.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **830 Unit-Tests** (75 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **837 Unit-Tests** (76 Dateien, davon
 echte IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie Komponententests für
 Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis, Checklisten-Editor,
-Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
+Dialog-Fokus, Einspielen, SORA und Kunden) · **79 Playwright-Tests** inkl.
 Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen, Ebenen/Zurück, Tastatur-Fokus und Karten-Namensnennung. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
 51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~170 kB gzip, Logbuch beim ersten Öffnen +36 kB.
 Release v1.2.0 ist veröffentlicht; Runde 8 bis 15 sind in master. **Release v1.3.0 ist vorbereitet**
@@ -248,8 +254,8 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
   öffnet direkt das Formular. Karte startet ohne GPS am letzten Flugort (`startOrt.ts`).
 - **Profil/Einstellungen getrennt:** neue Ansicht `EinstellungenView` (Darstellung, PIN,
   Datensicherung, NOTAM eingeklappt, Kalender, Beispieldaten, Über die App).
-- **Version** kommt aus dem Git-Tag (`__APP_VERSION__` in vite.config.ts), Plattform über
-  Capacitor (`lib/appInfo.ts`); package.json 1.1.0; Android-Debug-APK heißt `x.y.z-buildN`.
+- **Version** kommt aus `package.json` (`__APP_VERSION__` in vite.config.ts), im Release aus dem
+  Git-Tag; Plattform über Capacitor (`lib/appInfo.ts`); Android-Debug-APK heißt `x.y.z-buildN`.
 - **Sicherheit:** 112-Knopf und Koordinaten im Notfall-Leitfaden, Verbotszonen genauer
   (Wohngrundstücke, 100-m-Abstände) mit Link auf § 21h LuftVO und dipul.
 - **Texte:** durchgehend „du", deutsche Begriffe statt „Safety Hub/Setup/Review/Score",
@@ -297,6 +303,7 @@ npm run dev      # tsx server.ts, Port 3000
 npm test         # vitest
 npm run check    # typecheck + lint
 npm run e2e      # Playwright (baut vorher die App)
+npm run build && npm start   # gebaute Fassung inkl. CSP auf Port 3000
 npm run sync:android   # build + cap sync android (für APK)
 ```
 

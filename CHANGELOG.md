@@ -29,6 +29,9 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - **Vorflug-Checkliste:** nur noch eine anpassbare Liste, die den Start freigibt.
 - **Standort** wird erst nach einer kurzen Erklärung abgefragt; die installierte Web-App fordert
   dauerhaften Speicher an.
+- **PIN-Sperre:** Nach einer Minute im Hintergrund sperrt sich die App wieder.
+- **Import:** Meldungen und Hinweise erscheinen auch auf Englisch; kurze Flüge werden als 1 Minute
+  gespeichert, sehr große SRT-Flugspuren werden für Diagramme ausgedünnt.
 - **Texte:** alle Dialoge vollständig zweisprachig, Groß- und Kleinschreibung korrigiert.
 
 ### Behoben
@@ -54,11 +57,16 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - App-Daten sind von der Google-Kontosicherung ausgenommen; beim Gerätewechsel kann Android sie
   weiterhin lokal übertragen.
 - Sicherheits-Header und Content-Security-Policy für die Web-Version, Herkunftsprüfung am KI-Endpunkt.
+- Die Content-Security-Policy erlaubt Bilder nur noch von den Karten- und WMS-Hosts.
 - Die App meldet sich bei den OpenStreetMap-Diensten mit eigener Kennung.
 
 ### Technik
-- Deutlich mehr Tests: 830 Unit- und 78 Oberflächentests, alle grün – darunter echte
-  IndexedDB-Tests für Migration, Transaktionen und Zurückrollen.
+- Deutlich mehr Tests: 837 Unit- und 79 Oberflächentests, alle grün – darunter echte
+  IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie ein gemeinsamer
+  CSV-/SRT-Importtest im Browser.
+- `npm start` liefert jetzt die gebaute Fassung inklusive Sicherheits-Headern; das Server-Bundle
+  liegt außerhalb des öffentlich ausgelieferten `dist/`.
+- Die Versionsanzeige nutzt schon vor dem Tag die kommende `package.json`-Version.
 - Große Dateien aufgeteilt, Großschrift und Fettdruck vereinheitlicht.
 
 ## [1.2.0] – 2026-10-20
