@@ -50,6 +50,7 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 
 ### Datenschutz und Sicherheit
 - Datenschutzerklärung um Rechtsgrundlagen, Drittländer, Speicherdauer und deine Rechte ergänzt.
+- Verantwortlicher und Hosting-Anbieter in der Datenschutzerklärung eingetragen.
 - App-Daten sind von der Google-Kontosicherung ausgenommen; beim Gerätewechsel kann Android sie
   weiterhin lokal übertragen.
 - Sicherheits-Header und Content-Security-Policy für die Web-Version, Herkunftsprüfung am KI-Endpunkt.

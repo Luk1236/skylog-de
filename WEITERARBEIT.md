@@ -42,6 +42,9 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Oberfläche und CSP lokal verifiziert:** 78 Playwright-Tests grün (20 s); die
   Produktionsauslieferung über `npm start` mit CSP lief ohne Konsolen- oder CSP-Fehler.
   Der Vercel-spezifische Gegencheck bleibt offen, bis dort deployt ist.
+- **Datenschutz-Verantwortlicher eingetragen:** Lukas Bootz, Offenburg, Deutschland,
+  Lukas.bootz@gmx.de; Hosting: Vercel Inc., USA (beim Deploy bestätigen). Keine gelben
+  Platzhalter mehr; die juristische Prüfung bleibt offen.
 
 ## Stand 2026-10-21
 Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **830 Unit-Tests** (75 Dateien, davon
@@ -72,9 +75,10 @@ Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde
 - **R3-02 Datenschutzerklärung:** Rechtsgrundlagen, Drittländer, Speicherdauer, Rechte samt
   Beschwerderecht, OpenStreetMap France als Kachel-Quelle der Hauptkarte; die falsche Aussage
   „keine personenbezogenen Daten auf externe Server“ ist richtiggestellt. Wächter in
-  `src/konfiguration.test.ts`. **Braucht dich:** Name, Anschrift und E-Mail des Verantwortlichen
-  sowie der Hosting-Anbieter des SkyLog-Servers (im Text gelb markiert); danach juristisch
-  gegenlesen lassen (u. a. Grundlage für das Vereinigte Königreich/OSM Foundation).
+  `src/konfiguration.test.ts`. **Eingetragen am 2026-10-24:** Lukas Bootz, Offenburg, Deutschland,
+  Lukas.bootz@gmx.de; Hosting: Vercel Inc., USA. Offen bleibt die juristische Prüfung (u. a.
+  Grundlage für das Vereinigte Königreich/OSM Foundation). Eine vollständige Postanschrift
+  (Straße, PLZ) ist für eine belastbare Datenschutzerklärung empfehlenswert.
 
 Runde 12 (Branch `check4/mittlere-befunde`), die mittleren Befunde R3-04 bis R3-09:
 - **R3-04 Datum:** `lokalesDatum()` in `src/lib/utils.ts` (Ortszeit statt UTC) an allen 11 Stellen,
@@ -268,8 +272,9 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
   `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK.
 - ~~**Projekt aus OneDrive verschieben**~~ – erledigt am 2026-10-24; es liegt jetzt unter
   `C:\Users\lukas\Projekte\SkyLog`.
-- **Datenschutzerklärung und Rechtstexte gegenlesen lassen** (`public/datenschutz.html`,
-  Verbotszonen in `SafetyView.tsx`) – vor einer öffentlichen Verteilung.
+- **Datenschutzerklärung und Rechtstexte juristisch gegenlesen lassen** (`public/datenschutz.html`,
+  Verbotszonen in `SafetyView.tsx`) – vor einer öffentlichen Verteilung. Die Kontaktdaten sind
+  eingetragen; eine vollständige Postanschrift (Straße, PLZ) wäre für die Rechtssicherheit besser.
 - ~~**DJI-SRT-Import mit echter Datei gegenprüfen**~~ – erledigt am 2026-10-24 mit zehn echten
   Dateien; die unterstützten Formate stehen im Nachtrag oben.
 - **Neues Release** (z. B. `v1.3.0`) nach dem Merge von Runde 9.
