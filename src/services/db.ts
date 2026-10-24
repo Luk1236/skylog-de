@@ -426,16 +426,22 @@ export const dbService = {
   },
   async saveFlight(flight: Flight): Promise<void> {
     const db = await getDB();
-    await db.put(FLIGHTS_STORE, flight);
-    
-    // Increment battery cycles if used
-    if (flight.batteryId) {
-      const battery = await db.get(BATTERIES_STORE, flight.batteryId);
+    const tx = db.transaction([FLIGHTS_STORE, BATTERIES_STORE], 'readwrite');
+    const fluege = tx.objectStore(FLIGHTS_STORE);
+    const akkus = tx.objectStore(BATTERIES_STORE);
+    // Akku-Zyklus nur zählen, wenn der Akku an diesem Flug neu ist. Bilder und
+    // Flugaufzeichnung werden ebenfalls über saveFlight an einen bestehenden
+    // Flug gehängt – das ist kein weiterer Ladezyklus.
+    const vorher: Flight | undefined = await fluege.get(flight.id);
+    await fluege.put(flight);
+    if (flight.batteryId && vorher?.batteryId !== flight.batteryId) {
+      const battery: Battery | undefined = await akkus.get(flight.batteryId);
       if (battery) {
         battery.cycles = (battery.cycles || 0) + 1;
-        await db.put(BATTERIES_STORE, battery);
+        await akkus.put(battery);
       }
     }
+    await tx.done;
   },
   async deleteFlight(id: string): Promise<void> {
     const db = await getDB();

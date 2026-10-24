@@ -35,6 +35,8 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - Eine beschädigte Sicherung konnte beim Ersetzen alle Daten löschen – jetzt wird sie vorher geprüft,
   und bei einem Fehler bleibt alles, wie es war.
 - Flüge, Wartungen und Dateinamen zwischen 0 und 2 Uhr bekamen das Datum vom Vortag.
+- Wurde ein bestehender Flug erneut gespeichert (z. B. um Fotos oder die Flugspur zu ergänzen),
+  zählte die App den Akku-Zyklus ein zweites Mal.
 - Die Namensnennung „© OpenStreetMap“ fehlte im Flugplaner und war auf der Hauptkarte teilweise
   verdeckt.
 
@@ -49,7 +51,8 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - Die App meldet sich bei den OpenStreetMap-Diensten mit eigener Kennung.
 
 ### Technik
-- Deutlich mehr Tests: 786 Unit- und 78 Oberflächentests, alle grün.
+- Deutlich mehr Tests: 823 Unit- und 78 Oberflächentests, alle grün – darunter echte
+  IndexedDB-Tests für Migration, Transaktionen und Zurückrollen.
 - Große Dateien aufgeteilt, Großschrift und Fettdruck vereinheitlicht.
 
 ## [1.2.0] – 2026-10-20

@@ -20,18 +20,22 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
   Der alte OneDrive-Ordner ist entfernt und liegt im OneDrive-Papierkorb. Damit sind die
   `UNKNOWN: read`-Fehler und die extrem langsamen Builds/ESLint-Läufe weg.
 - `node_modules` auf diesem PC (x64) neu installiert; `npm audit fix` hat drei Hinweise
-  (1 hoch, 1 mittel, 1 niedrig) behoben – jetzt **0 Schwachstellen**. `package-lock.json`
-  ist dadurch geändert (noch nicht committet).
-- Am neuen Ort verifiziert: `npm run check` sauber (TypeScript + ESLint), **786 Unit-Tests
-  grün** (73 Dateien), `npm run build:app` erfolgreich. Der Build lief zuvor in OneDrive
-  nach über 10 Minuten in einen Fehler, jetzt in unter einer Sekunde.
-- Der Worktree `../skylog-n14` ist wieder verknüpft (Pfade angepasst); dort fehlt noch
-  `npm ci`, falls an den IndexedDB-Tests weitergearbeitet wird.
+  (1 hoch, 1 mittel, 1 niedrig) behoben – jetzt **0 Schwachstellen**.
+- Am neuen Ort verifiziert: `npm run check` sauber (TypeScript + ESLint), `npm run build:app`
+  erfolgreich. Der Build lief zuvor in OneDrive nach über 10 Minuten in einen Fehler, jetzt in
+  unter einer Sekunde.
+- Der Worktree `../skylog-n14` ist wieder verknüpft (Pfade angepasst); die Tests sind inzwischen
+  übernommen, der Worktree wird nicht mehr gebraucht.
+- **Echte IndexedDB-Tests aus `n14` übernommen** (`db.test.ts`, `db.transaktion.test.ts`,
+  Dev-Abhängigkeit `fake-indexeddb`). Dabei den Bugfix mitgenommen: `saveFlight` läuft jetzt in
+  einer Transaktion und zählt den Akku-Zyklus nicht erneut, wenn ein bestehender Flug nur um
+  Fotos oder die Flugspur ergänzt wird. 823 Tests in 75 Dateien, alle grün.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **786 Unit-Tests** (73 Dateien, davon
-Komponententests für Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis,
-Checklisten-Editor, Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **823 Unit-Tests** (75 Dateien, davon
+echte IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie Komponententests für
+Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis, Checklisten-Editor,
+Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
 Kontrast-Wächter (WCAG AA 4,5 : 1), Handy-Abläufen, Ebenen/Zurück, Tastatur-Fokus und Karten-Namensnennung. Abdeckung: Fachlogik 81 %, Ansichten 48 %, gesamt
 51 %. axe: 0 Verstöße in 22 Ansichten. Erststart ~170 kB gzip, Logbuch beim ersten Öffnen +36 kB.
 Release v1.2.0 ist veröffentlicht; Runde 8 bis 15 sind in master. **Release v1.3.0 ist vorbereitet**
@@ -46,8 +50,8 @@ Software-Check 3 (Dashboard, 21.10.) fand 13 neue Befunde R3-01 … R3-13. Runde
   Zusätzlich prüft `importBackup` die Sicherung vorab (jeder Eintrag braucht eine ID, jede Liste
   muss eine Liste sein) und meldet „Es wurde nichts verändert“ auf Deutsch und Englisch.
   Test mit nachgebauter Transaktion (`db.import.test.ts`, schlägt ohne den Fix fehl). Die echten
-  IndexedDB-Tests mit fake-indexeddb liegen weiter auf `check2/n14-testabdeckung` (neue
-  Dev-Abhängigkeit – nur mit deinem OK übernehmen).
+  IndexedDB-Tests mit fake-indexeddb sind am 2026-10-24 aus `check2/n14-testabdeckung` übernommen
+  (`db.test.ts`, `db.transaktion.test.ts`).
 - **R3-03 Fokus in Dialogen:** `src/lib/useDialogFokus.ts` (Fokus beim Öffnen in die Ebene, Tab
   bleibt drin, beim Schließen zurück auf den Auslöser). Gilt für den gemeinsamen `Dialog` (26
   Dialoge), die Rückfragen (jetzt mit zugänglichem Namen, Fokus auf „Abbrechen“), Behörden-Check,
@@ -77,7 +81,8 @@ Runde 12 (Branch `check4/mittlere-befunde`), die mittleren Befunde R3-04 bis R3-
   Zeitgrenze.
 - **R3-09 Logbuch:** Wochen-Diagramm in CSS statt recharts – beim ersten Öffnen 36 statt 138 kB gzip.
 - Die alten Branches `check2/lokales-datum`, `check2/sora-igrc` und `check2/n19-aufteilen` sind damit
-  überholt. Auf `check2/n14-testabdeckung` liegen nur noch echte IndexedDB-Tests (fake-indexeddb).
+  überholt. Die echten IndexedDB-Tests von `check2/n14-testabdeckung` sind inzwischen übernommen;
+  der Branch kann entfallen.
 
 Runde 13 (Branch `check4/niedrige-befunde`), die niedrigen Befunde R3-10 bis R3-13:
 - **R3-10:** Datenschutzerklärung auf Englisch (`public/privacy.html`, Link je nach App-Sprache,
