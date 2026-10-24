@@ -1,6 +1,5 @@
 import express from "express";
 import path from "path";
-import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import { createDefaultRateLimiter, handleSafetyCheck, herkunftErlaubt } from "./api/_lib/safetyCheck";
 import { ASSET_CACHE, SICHERHEITS_HEADER } from "./api/_lib/sicherheitsHeader";
@@ -15,11 +14,16 @@ async function startServer() {
   // Hoster wie Render/Railway geben den Port vor; lokal bleibt es 3000.
   const PORT = Number(process.env.PORT) || 3000;
 
+  // `npm start` (node dist-server/server.cjs) soll auch ohne gesetztes
+  // NODE_ENV die gebaute Fassung ausliefern. `npm run dev` (tsx server.ts)
+  // bleibt der Entwicklungsserver.
+  const istProduktion = process.env.NODE_ENV === "production" || /server\.cjs$/.test(process.argv[1] ?? "");
+
   app.use(express.json({ limit: "10kb" }));
 
   // Sicherheits-Header wie in vercel.json - nur im Produktionsbetrieb: Der
   // Vite-Entwicklungsserver braucht Inline-Skripte (React Refresh).
-  if (process.env.NODE_ENV === "production") {
+  if (istProduktion) {
     app.use((_req, res, next) => {
       for (const [name, wert] of Object.entries(SICHERHEITS_HEADER)) res.setHeader(name, wert);
       next();
@@ -53,8 +57,10 @@ async function startServer() {
     sende(res, await karte(req.params.datei, req.headers.range ? String(req.headers.range) : undefined));
   });
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+  // Vite nur im Entwicklungsbetrieb laden: So läuft die gebaute Fassung auch
+  // mit `npm ci --omit=dev` (Vite ist eine Dev-Abhängigkeit).
+  if (!istProduktion) {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",

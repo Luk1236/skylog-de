@@ -1,6 +1,7 @@
 node_modules/
 build/
 dist/
+dist-server/
 coverage/
 
 # Offline-Karten: werden beim Bau erzeugt (scripts/karten-bauen.ts) und als

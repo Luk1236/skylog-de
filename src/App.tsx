@@ -17,6 +17,7 @@ import { sichtbareHinweise } from './services/ausgeblendeteHinweise';
 import { startOrt } from './services/startOrt';
 import { schliesseOberste } from './services/ebenen';
 import { dauerhaftAnfordern } from './services/speicherSchutz';
+import { sollSperren } from './services/autoSperre';
 import { istInstallierteWebApp } from './lib/appInfo';
 
 import { ladeTheme, toggleTheme, type Theme } from './services/theme';
@@ -130,6 +131,19 @@ export default function App() {
       void nativ?.then(h => h.remove());
     };
   }, []);
+
+  // PIN-Schutz: Der Kaltstart ist bereits über isAppLocked gesperrt. Kommt die
+  // App nach einer Minute im Hintergrund zurück, wird sie erneut gesperrt.
+  const hintergrundSeit = useRef<number | null>(null);
+  useEffect(() => {
+    if (!isPinEnabled()) return;
+    if (!imVordergrund) {
+      if (hintergrundSeit.current === null) hintergrundSeit.current = Date.now();
+      return;
+    }
+    if (sollSperren(hintergrundSeit.current)) setIsAppLocked(true);
+    hintergrundSeit.current = null;
+  }, [imVordergrund]);
 
   // Standort nur verfolgen, wo er gebraucht wird: auf der Karte und in der
   // Sicherheitsansicht (Notfall-Koordinaten), im Vordergrund und nach Zustimmung.

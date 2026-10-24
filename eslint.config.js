@@ -18,7 +18,7 @@ const ICON_GLOBAL_FALLE = ['Lock', 'History', 'Range', 'Selection', 'Location'].
 }));
 
 export default tseslint.config(
-  { ignores: ['dist', 'dev-dist', 'node_modules', 'android', 'public', 'scripts', '*.config.*', 'api'] },
+  { ignores: ['dist', 'dist-server', 'dev-dist', 'node_modules', 'android', 'public', 'scripts', '*.config.*', 'api'] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
