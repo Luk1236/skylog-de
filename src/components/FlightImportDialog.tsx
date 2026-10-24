@@ -22,6 +22,24 @@ interface Props {
   onImported: (anzahl: number) => void;
 }
 
+/** Anzeigenamen der erkannten Spalten, deutsch und englisch. */
+function feldLabel(feld: string): [string, string] {
+  const labels: Record<string, [string, string]> = {
+    datum: ['Datum', 'Date'],
+    startzeit: ['Startzeit', 'Start time'],
+    dauer: ['Dauer', 'Duration'],
+    breite: ['Breite', 'Latitude'],
+    laenge: ['Länge', 'Longitude'],
+    ort: ['Ort', 'Location'],
+    maxHoehe: ['Max. Höhe', 'Max. altitude'],
+    distanz: ['Distanz', 'Distance'],
+    akkuStart: ['Akku Start', 'Battery start'],
+    akkuEnde: ['Akku Ende', 'Battery end'],
+    modell: ['Modell', 'Model'],
+  };
+  return labels[feld] ?? [feld, feld];
+}
+
 export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImported }: Props) {
   const { tx } = useSprache();
   const [dateiName, setDateiName] = useState<string | null>(null);
@@ -195,7 +213,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
                 <div className="space-y-1">
                   {(Object.entries(vorschau.zuordnung) as [string, SpaltenTreffer][]).map(([feld, treffer]) => (
                     <div key={feld} className="flex justify-between gap-2 text-xs">
-                      <span className="text-slate-500">{feld}</span>
+                      <span className="text-slate-500">{tx(...feldLabel(feld))}</span>
                       <span className="font-bold text-slate-700 truncate">
                         {treffer.spalte}{treffer.einheit ? ' [' + treffer.einheit + ']' : ''}
                       </span>
