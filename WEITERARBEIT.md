@@ -29,7 +29,7 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Echte IndexedDB-Tests aus `n14` übernommen** (`db.test.ts`, `db.transaktion.test.ts`,
   Dev-Abhängigkeit `fake-indexeddb`). Dabei den Bugfix mitgenommen: `saveFlight` läuft jetzt in
   einer Transaktion und zählt den Akku-Zyklus nicht erneut, wenn ein bestehender Flug nur um
-  Fotos oder die Flugspur ergänzt wird. 837 Tests in 76 Dateien, alle grün.
+  Fotos oder die Flugspur ergänzt wird. 841 Tests in 77 Dateien, alle grün.
 - **N16 entschieden:** Die App-Daten sind von der Google-Kontosicherung ausgenommen
   (`dataExtractionRules` für Android 12+, `fullBackupContent` für ältere Versionen); der lokale
   Gerätewechsel bleibt erlaubt. Datenschutzerklärung DE/EN angepasst, Wächter in
@@ -54,9 +54,13 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Signatur und Passwort getrennt:** Der Schlüssel liegt unter
   `SkyLog-Sicherung\android-signatur`, das Passwort unter
   `C:\Users\lukas\Projekte\SkyLog-Zugangsdaten`. Beide `LIESMICH.md` verweisen aufeinander.
+- **Karten-/Cache-Fix:** Service-Worker-Updates übernehmen sofort und laden einmal neu; HTML und
+  `sw.js` werden mit `no-cache` ausgeliefert, Assets bleiben lang im Cache. Ungültige Koordinaten
+  ([0,0] aus einem Import ohne Position) werden ignoriert: kein Null-Island-Marker, die Karte
+  bleibt beim Standardort. 841 Tests in 77 Dateien.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **837 Unit-Tests** (76 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **841 Unit-Tests** (77 Dateien, davon
 echte IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie Komponententests für
 Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis, Checklisten-Editor,
 Dialog-Fokus, Einspielen, SORA und Kunden) · **79 Playwright-Tests** inkl.

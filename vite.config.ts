@@ -45,12 +45,18 @@ export default defineConfig(() => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        // Registrierung nicht render-blockierend einbinden (Lighthouse:
-        // registerSW.js hielt den ersten Bildaufbau auf).
-        injectRegister: 'script-defer',
+        // Registrierung und Update-Handling stehen in src/main.tsx: Ein neuer
+        // Service Worker übernimmt sofort und lädt die Seite einmal neu, damit
+        // HTML, CSS und JS nicht aus verschiedenen Builds stammen.
+        injectRegister: null,
         includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'datenschutz.html', 'privacy.html'],
         manifest: false, // we use our own public/manifest.json
         workbox: {
+          // Neue Fassung sofort übernehmen; main.tsx lädt bei controllerchange
+          // die Seite neu. Sonst bleibt nach einem Update die alte HTML/CSS-
+          // Kombination aktiv.
+          skipWaiting: true,
+          clientsClaim: true,
           globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
           runtimeCaching: [
             {

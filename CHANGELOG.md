@@ -43,6 +43,10 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - Der DJI-SRT-Import erkannte echte Dateien von Mavic Air 2, Mavic Pro, Phantom 4 und Matrice 300
   nicht (u. a. „longtitude“, Punkte im Datum, `altitude`/`Hb`/`Hs`). Diese Formate werden jetzt
   gelesen; fehlt in der Datei ein Datum, übernimmt der Import das Datum der Datei und weist darauf hin.
+- Nach einem Update konnte eine alte HTML/CSS-Kombination hängen bleiben (leere Seite, Karte im
+  alten Zustand). Service-Worker-Updates übernehmen jetzt sofort und laden einmal neu; HTML und
+  `sw.js` werden nicht mehr lange gecacht. Ungültige Koordinaten ([0,0]) ziehen die Karte nicht
+  mehr auf Null Island.
 - Die Namensnennung „© OpenStreetMap“ fehlte im Flugplaner und war auf der Hauptkarte teilweise
   verdeckt.
 
@@ -61,7 +65,7 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - Die App meldet sich bei den OpenStreetMap-Diensten mit eigener Kennung.
 
 ### Technik
-- Deutlich mehr Tests: 837 Unit- und 79 Oberflächentests, alle grün – darunter echte
+- Deutlich mehr Tests: 841 Unit- und 79 Oberflächentests, alle grün – darunter echte
   IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie ein gemeinsamer
   CSV-/SRT-Importtest im Browser.
 - `npm start` liefert jetzt die gebaute Fassung inklusive Sicherheits-Headern; das Server-Bundle

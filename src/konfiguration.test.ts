@@ -135,6 +135,12 @@ describe('vercel.json', () => {
     expect(fuer('/assets/(.*)')['Cache-Control']).toBe(ASSET_CACHE);
   });
 
+  it('hält HTML und Service Worker vom Langzeit-Cache fern', () => {
+    for (const quelle of ['/', '/index.html', '/sw.js', '/registerSW.js']) {
+      expect(fuer(quelle)['Cache-Control']).toBe('no-cache');
+    }
+  });
+
   it('erlaubt Skripte nur von der eigenen Seite', () => {
     expect(SICHERHEITS_HEADER['Content-Security-Policy']).toMatch(/script-src 'self'(;|$)/);
   });

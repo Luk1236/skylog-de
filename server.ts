@@ -70,12 +70,19 @@ async function startServer() {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath, {
       // Vite-Dateien tragen einen Hash im Namen: dürfen ein Jahr im Cache bleiben.
+      // HTML und Service Worker dagegen immer revalidieren, sonst bleibt nach
+      // einem Update eine alte HTML/CSS-Kombination hängen.
       setHeaders: (res, datei) => {
-        if (datei.includes(`${path.sep}assets${path.sep}`)) res.setHeader("Cache-Control", ASSET_CACHE);
+        if (datei.includes(`${path.sep}assets${path.sep}`)) {
+          res.setHeader("Cache-Control", ASSET_CACHE);
+        } else if (['index.html', 'sw.js', 'registerSW.js'].includes(path.basename(datei))) {
+          res.setHeader("Cache-Control", "no-cache");
+        }
       },
     }));
     // Express 5: Platzhalter muessen benannt sein ('*' allein ist ungueltig).
     app.get('/{*pfad}', (req, res) => {
+      res.setHeader("Cache-Control", "no-cache");
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

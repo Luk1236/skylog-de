@@ -5,6 +5,7 @@ import { Capacitor } from '@capacitor/core';
 import L from 'leaflet';
 
 import { cn } from '../lib/utils';
+import { istGueltigerOrt } from '../services/geo';
 import { GRUNDKARTE_KLASSE, HOT_KACHELN, HOT_NAMENSNENNUNG } from '../lib/kacheln';
 import { useSprache } from '../lib/sprache';
 import { dbService, type Flight, type LocationFavorite, type GespeicherteKarte } from '../services/db';
@@ -48,6 +49,9 @@ const favoriteLocationIcon = markerMitFlaeche(
 
 export function DroneMap({ location, onLocate, isLocating, weather, flights, locationFavorites = [], onPlaner }: { location: [number, number], onLocate: () => void, isLocating: boolean, weather: WeatherData | null, flights: Flight[], locationFavorites?: LocationFavorite[], onPlaner: () => void }) {
   const { t, tx, sprache } = useSprache();
+  // Ungültige Koordinaten (z. B. [0,0] aus einem Import ohne Position) dürfen
+  // die Karte nicht auf Null Island ziehen. Dann beim Standardort bleiben.
+  const kartenOrt: [number, number] = istGueltigerOrt(location) ? location : [52.52, 13.40];
   const [infoPoint, setInfoPoint] = useState<[number, number] | null>(null);
   // Grundkarte waehlen. Reihenfolge: heruntergeladene Region (beste, weil
   // offline und vom Nutzer bewusst geholt) > mitgelieferte Datei > online.
@@ -133,7 +137,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
   return (
     <div className="w-full h-full relative">
       <MapContainer
-        center={location}
+        center={kartenOrt}
         zoom={13}
         className="w-full h-full"
         zoomControl={false}
@@ -193,12 +197,14 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
             genau wie das deutsche Overlay. */}
         {euZonen.length > 0 && <Suspense fallback={null}><EuZoneLayer zonen={euZonen} /></Suspense>}
 
-        <Marker position={location} icon={droneIcon} title={tx('Dein Standort', 'Your location')} alt={tx('Dein Standort', 'Your location')}>
-          <Popup>{tx('Dein Standort', 'Your location')}</Popup>
-        </Marker>
+        {istGueltigerOrt(location) && (
+          <Marker position={location} icon={droneIcon} title={tx('Dein Standort', 'Your location')} alt={tx('Dein Standort', 'Your location')}>
+            <Popup>{tx('Dein Standort', 'Your location')}</Popup>
+          </Marker>
+        )}
 
         {/* Past flight locations */}
-        {flights.filter(f => f.coordinates).slice(0, 30).map(f => (
+        {flights.filter(f => istGueltigerOrt(f.coordinates)).slice(0, 30).map(f => (
           <Marker key={f.id} position={f.coordinates} icon={flightHistoryIcon} title={`${tx('Flug', 'Flight')}: ${f.locationName || tx('Unbekannter Ort', 'Unknown place')}`} alt={f.locationName || tx('Flugort', 'Flight location')}>
             <Popup>
               <div className="p-1 text-xs min-w-[140px]">
@@ -211,7 +217,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
         ))}
 
         {/* Saved Favorite Locations */}
-        {locationFavorites.map(fav => (
+        {locationFavorites.filter(fav => istGueltigerOrt(fav.coordinates)).map(fav => (
           <Marker key={fav.id} position={fav.coordinates} icon={favoriteLocationIcon} title={`${tx('Lieblingsort', 'Favourite')}: ${fav.name}`} alt={fav.name}>
             <Popup>
               <div className="p-1 text-xs min-w-[150px]">
@@ -227,7 +233,7 @@ export function DroneMap({ location, onLocate, isLocating, weather, flights, loc
         ))}
 
         <MapEvents />
-        <Recenter center={location} />
+        <Recenter center={kartenOrt} />
 
         {infoPoint && (
           <Popup position={infoPoint} eventHandlers={{ remove: () => setInfoPoint(null) }}>
