@@ -15,7 +15,7 @@
 //   alt  … GPS (7.98,48.12,14) BAROMETER: 50.10   (GPS-Reihenfolge: LON,LAT,Sat)
 
 import type { Flight, TrackPoint } from './db';
-import { istDublette, type ImportVorschau, type ImportKandidat } from './flightImport';
+import { istDublette, type ImportVorschau, type ImportKandidat, type ImportText } from './flightImport';
 import { distanzMeter } from './flightTrack';
 
 export interface SrtProbe {
@@ -129,12 +129,22 @@ export function parseSrtProben(text: string): SrtProbe[] {
  *  Start in Sekunden; Geschwindigkeit aus dem Abstand aufeinanderfolgender
  *  Punkte berechnet (SRT liefert sie nicht direkt). So kann die Analyse-Ansicht
  *  Höhen- und Speed-Kurve zeichnen. */
+/** Höchstens so viele Punkte in der gespeicherten Flugspur. Eine 10-Minuten-
+ *  Aufnahme mit 60 fps hätte sonst ~36.000 Punkte; die Diagramme brauchen
+ *  nicht mehr als ein paar hundert. */
+export const MAX_TRACK_PUNKTE = 2000;
+
 export function probenZuTrack(proben: SrtProbe[]): TrackPoint[] {
   if (proben.length === 0) return [];
-  return proben.map((p, i) => {
+
+  // Gleichmäßig ausdünnen, ersten und letzten Punkt immer behalten.
+  const schritt = Math.max(1, Math.ceil(proben.length / MAX_TRACK_PUNKTE));
+  const ausgewaehlt = proben.filter((_, i) => i % schritt === 0 || i === proben.length - 1);
+
+  return ausgewaehlt.map((p, i) => {
     let speed: number | undefined;
     if (i > 0) {
-      const vor = proben[i - 1];
+      const vor = ausgewaehlt[i - 1];
       const dtSek = (p.relativMs - vor.relativMs) / 1000;
       if (dtSek > 0) {
         const meter = distanzMeter(vor.lat, vor.lon, p.lat, p.lon);
@@ -205,7 +215,10 @@ export function baueVorschauAusSrt(
   if (proben.length === 0) {
     return {
       zuordnung: {}, nichtZugeordnet: [], kandidaten: [],
-      fehler: ['Keine Telemetrie mit Position gefunden. Ist das eine DJI-SRT-Datei mit GPS-Daten?'],
+      fehler: [{
+        de: 'Keine Telemetrie mit Position gefunden. Ist das eine DJI-SRT-Datei mit GPS-Daten?',
+        en: 'No telemetry with position found. Is this a DJI SRT file with GPS data?',
+      }],
     };
   }
 
@@ -213,25 +226,43 @@ export function baueVorschauAusSrt(
   if (!z) {
     return {
       zuordnung: {}, nichtZugeordnet: [], kandidaten: [],
-      fehler: ['Die SRT-Datei enthält kein Datum. Bitte den Flug von Hand eintragen.'],
+      fehler: [{
+        de: 'Die SRT-Datei enthält kein Datum. Bitte den Flug von Hand eintragen.',
+        en: 'The SRT file contains no date. Please enter the flight manually.',
+      }],
     };
   }
 
-  const hinweise: string[] = [];
+  const hinweise: ImportText[] = [];
   if (proben[0].zeitMs === undefined) {
-    hinweise.push('Kein Datum in der SRT-Datei – Datum und Uhrzeit aus der Datei übernommen, bitte prüfen.');
+    hinweise.push({
+      de: 'Kein Datum in der SRT-Datei – Datum und Uhrzeit aus der Datei übernommen, bitte prüfen.',
+      en: 'No date in the SRT file – date and time taken from the file, please check.',
+    });
   }
   if (z.dauerSekunden === 0) {
-    hinweise.push('Flugdauer aus den Zeitstempeln nicht bestimmbar — bitte prüfen.');
+    hinweise.push({
+      de: 'Flugdauer aus den Zeitstempeln nicht bestimmbar — bitte prüfen.',
+      en: 'Flight duration cannot be determined from the timestamps — please check.',
+    });
+  } else if (z.dauerSekunden < 60) {
+    hinweise.push({
+      de: 'Dauer unter einer Minute – als 1 Minute gespeichert.',
+      en: 'Duration under one minute – stored as 1 minute.',
+    });
   }
   if (z.maxHoeheM === undefined) {
-    hinweise.push('Keine Höhendaten in der Datei.');
+    hinweise.push({
+      de: 'Keine Höhendaten in der Datei.',
+      en: 'No altitude data in the file.',
+    });
   }
 
   const flug: Partial<Flight> = {
     date: z.datum,
     startTime: z.startzeit,
-    duration: Math.round(z.dauerSekunden / 60),
+    // Kurze Flüge würden sonst als 0 Minuten erscheinen.
+    duration: z.dauerSekunden > 0 ? Math.max(1, Math.round(z.dauerSekunden / 60)) : 0,
     coordinates: z.start,
   };
 

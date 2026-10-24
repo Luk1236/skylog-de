@@ -196,12 +196,20 @@ describe('Gesamtvorschau', () => {
   it('bricht mit klarer Meldung ab, wenn die Dauer-Spalte fehlt', () => {
     const ohneDauer = 'Date,Latitude\n2026-07-19,49.87';
     const v = baueVorschau(ohneDauer);
-    expect(v.fehler.join(' ')).toMatch(/Flugdauer/);
+    expect(v.fehler.map(f => f.de).join(' ')).toMatch(/Flugdauer/);
+    expect(v.fehler.map(f => f.en).join(' ')).toMatch(/duration/i);
     expect(v.kandidaten).toHaveLength(0);
   });
 
   it('meldet eine leere Datei, statt zu stolpern', () => {
-    expect(baueVorschau('').fehler.join(' ')).toMatch(/keine auswertbaren Zeilen/);
+    const v = baueVorschau('');
+    expect(v.fehler.map(f => f.de).join(' ')).toMatch(/keine auswertbaren Zeilen/);
+    expect(v.fehler[0].en).toMatch(/no usable rows/i);
+  });
+
+  it('rundet kurze Flüge auf mindestens eine Minute', () => {
+    const v = baueVorschau('Date,Duration\n2026-07-19,00:00:20');
+    expect(v.kandidaten[0].flug.duration).toBe(1);
   });
 });
 

@@ -8,6 +8,7 @@ import {
   passendeDrohne,
   zuFlug,
   type ImportVorschau,
+  type ImportText,
   type SpaltenTreffer,
 } from '../services/flightImport';
 import { baueVorschauAusSrt, istSrt } from '../services/djiSrt';
@@ -25,7 +26,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
   const { tx } = useSprache();
   const [dateiName, setDateiName] = useState<string | null>(null);
   const [vorschau, setVorschau] = useState<ImportVorschau | null>(null);
-  const [leseFehler, setLeseFehler] = useState<string | null>(null);
+  const [leseFehler, setLeseFehler] = useState<ImportText | null>(null);
   const [abgewaehlt, setAbgewaehlt] = useState<Set<number>>(new Set());
   const [ersatzDrohne, setErsatzDrohne] = useState<string>(drohnen[0]?.id ?? '');
   const [laeuft, setLaeuft] = useState(false);
@@ -62,7 +63,9 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
 
       const kandidaten = teile.flatMap(t => t.v.kandidaten);
       const fehler = teile.flatMap(t =>
-        t.v.fehler.map(f => (dateien.length > 1 ? `${t.name}: ${f}` : f)));
+        t.v.fehler.map(f => (dateien.length > 1
+          ? { de: `${t.name}: ${f.de}`, en: `${t.name}: ${f.en}` }
+          : f)));
       const ersteMitSpalten = teile.find(t => Object.keys(t.v.zuordnung).length > 0)?.v;
 
       const v: ImportVorschau = {
@@ -77,7 +80,10 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
       setAbgewaehlt(new Set(kandidaten.map((k, i) => (k.dubletteVon ? i : -1)).filter(i => i >= 0)));
     } catch {
       setVorschau(null);
-      setLeseFehler('Mindestens eine Datei konnte nicht gelesen werden.');
+      setLeseFehler({
+        de: 'Mindestens eine Datei konnte nicht gelesen werden.',
+        en: 'At least one file could not be read.',
+      });
     }
   };
 
@@ -162,7 +168,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
       {leseFehler && (
         <div className="flex items-start gap-2 p-4 bg-red-50 border border-red-100 rounded-2xl">
           <AlertTriangle className="w-4 h-4 text-brand-red shrink-0 mt-0.5" />
-          <p className="text-xs text-red-700">{leseFehler}</p>
+          <p className="text-xs text-red-700">{tx(leseFehler.de, leseFehler.en)}</p>
         </div>
       )}
 
@@ -178,7 +184,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
             {vorschau.fehler.length > 0 && (
               <div className="p-4 bg-red-50 border border-red-100 rounded-2xl space-y-1">
                 {vorschau.fehler.map((f, i) => (
-                  <p key={i} className="text-xs text-red-700 font-medium">{f}</p>
+                  <p key={i} className="text-xs text-red-700 font-medium">{tx(f.de, f.en)}</p>
                 ))}
               </div>
             )}
@@ -259,7 +265,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
                           </p>
                         )}
                         {k.hinweise.map((h, j) => (
-                          <p key={j} className="text-2xs text-slate-500 mt-0.5">{h}</p>
+                          <p key={j} className="text-2xs text-slate-500 mt-0.5">{tx(h.de, h.en)}</p>
                         ))}
                       </div>
                     </label>

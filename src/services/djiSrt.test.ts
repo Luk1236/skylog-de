@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSrtProben, fasseSrtZusammen, baueVorschauAusSrt, istSrt, probenZuTrack } from './djiSrt';
+import { parseSrtProben, fasseSrtZusammen, baueVorschauAusSrt, istSrt, probenZuTrack, type SrtProbe } from './djiSrt';
 
 // Neue DJI-Variante: benannte Felder [latitude]/[longitude]/[rel_alt].
 const SRT_NEU = `1
@@ -195,7 +195,8 @@ F/3.2, SS 160, ISO 100, EV 0, GPS (8.2090, 47.4692, 18), D 45.68m, H 45.60m, H.S
     expect(k.maxHoeheM).toBe(46);
     expect(k.track).toHaveLength(2);
     expect(k.track![1].t).toBe(2);
-    expect(k.hinweise[0]).toContain('Kein Datum');
+    expect(k.hinweise[0].de).toContain('Kein Datum');
+    expect(k.hinweise[0].en).toContain('No date');
   });
 
   it('meldet ein fehlendes Datum klar, wenn kein Datei-Zeitstempel vorliegt', () => {
@@ -204,7 +205,8 @@ F/3.2, SS 160, ISO 100, EV 0, GPS (8.2090, 47.4692, 18), D 45.68m, H 45.60m, H.S
 GPS (8.2090, 47.4692, 18), H 45.60m`;
     const v = baueVorschauAusSrt(srt);
     expect(v.kandidaten).toHaveLength(0);
-    expect(v.fehler.join(' ')).toContain('kein Datum');
+    expect(v.fehler.map(f => f.de).join(' ')).toContain('kein Datum');
+    expect(v.fehler.map(f => f.en).join(' ')).toContain('no date');
   });
 
   it('liest die Mavic-2-Variante mit "longtitude" und ohne SRT-Zeitcode', () => {
@@ -240,5 +242,34 @@ GPS(149.0251,-20.2533,16) Hb:2.0 Hs:2.0`;
     const z = fasseSrtZusammen(proben)!;
     expect(z.datum).toBe('2017-08-05');
     expect(z.startzeit).toBe('14:11');
+  });
+
+  it('speichert Flüge unter einer Minute als 1 Minute und weist darauf hin', () => {
+    const srt = `1
+00:00:00,000 --> 00:00:01,000
+2023-05-01 10:15:30.000
+[latitude: 48.1] [longitude: 7.9] [rel_alt: 0]
+
+2
+00:00:20,000 --> 00:00:21,000
+2023-05-01 10:15:50.000
+[latitude: 48.1] [longitude: 7.9] [rel_alt: 20]`;
+    const v = baueVorschauAusSrt(srt);
+    const k = v.kandidaten[0];
+    expect(k.flug.duration).toBe(1);
+    expect(k.hinweise.some(h => h.de.includes('unter einer Minute'))).toBe(true);
+    expect(k.hinweise.some(h => h.en.includes('under one minute'))).toBe(true);
+  });
+
+  it('dünnt sehr große Flugspuren auf höchstens 2000 Punkte aus', () => {
+    const proben: SrtProbe[] = Array.from({ length: 5000 }, (_, i) => ({
+      relativMs: i * 100,
+      lat: 48 + i * 0.000001,
+      lon: 7,
+    }));
+    const track = probenZuTrack(proben);
+    expect(track.length).toBeLessThanOrEqual(2000);
+    expect(track[0].t).toBe(0);
+    expect(track[track.length - 1].t).toBe(499.9);
   });
 });

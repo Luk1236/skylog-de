@@ -53,10 +53,16 @@ export interface SpaltenTreffer {
   einheit?: string;
 }
 
+/** Zweisprachiger Text aus einem Fachmodul. Die Oberfläche wählt die Sprache. */
+export interface ImportText {
+  de: string;
+  en: string;
+}
+
 export interface ImportKandidat {
   zeile: number;
   flug: Partial<Flight>;
-  hinweise: string[];
+  hinweise: ImportText[];
   /** id eines bereits vorhandenen Fluges, falls dies eine Dublette ist. */
   dubletteVon?: string;
   /** Rohtext der Modellspalte, für die Drohnen-Zuordnung. */
@@ -73,7 +79,7 @@ export interface ImportVorschau {
   zuordnung: Partial<Record<Feld, SpaltenTreffer>>;
   nichtZugeordnet: string[];
   kandidaten: ImportKandidat[];
-  fehler: string[];
+  fehler: ImportText[];
 }
 
 // ---------------------------------------------------------------------------
@@ -386,19 +392,28 @@ export function baueVorschau(csvText: string, vorhandeneFluege: Flight[] = []): 
   if (zeilen.length < 2) {
     return {
       zuordnung: {}, nichtZugeordnet: [], kandidaten: [],
-      fehler: ['Die Datei enthält keine auswertbaren Zeilen (Kopfzeile plus mindestens ein Flug erwartet).'],
+      fehler: [{
+        de: 'Die Datei enthält keine auswertbaren Zeilen (Kopfzeile plus mindestens ein Flug erwartet).',
+        en: 'The file contains no usable rows (a header plus at least one flight is expected).',
+      }],
     };
   }
 
   const [kopf, ...daten] = zeilen;
   const { zuordnung, nichtZugeordnet } = ordneSpaltenZu(kopf);
-  const fehler: string[] = [];
+  const fehler: ImportText[] = [];
 
   if (!zuordnung.datum && !zuordnung.startzeit) {
-    fehler.push('Keine Datumsspalte erkannt — ohne Datum lässt sich kein Flug anlegen.');
+    fehler.push({
+      de: 'Keine Datumsspalte erkannt — ohne Datum lässt sich kein Flug anlegen.',
+      en: 'No date column detected — a flight cannot be created without a date.',
+    });
   }
   if (!zuordnung.dauer) {
-    fehler.push('Keine Spalte für die Flugdauer erkannt.');
+    fehler.push({
+      de: 'Keine Spalte für die Flugdauer erkannt.',
+      en: 'No column for the flight duration detected.',
+    });
   }
   if (fehler.length > 0) {
     return { zuordnung, nichtZugeordnet, kandidaten: [], fehler };
@@ -408,22 +423,35 @@ export function baueVorschau(csvText: string, vorhandeneFluege: Flight[] = []): 
     zuordnung[feld] ? (zeile[zuordnung[feld]!.index] ?? '').trim() : '';
 
   const kandidaten: ImportKandidat[] = daten.map((zeile, i) => {
-    const hinweise: string[] = [];
+    const hinweise: ImportText[] = [];
 
     const datumRoh = hole(zeile, 'datum') || hole(zeile, 'startzeit');
     const { datum, zeit, mehrdeutig } = leseDatum(datumRoh);
     if (mehrdeutig) {
-      hinweise.push(`Datum "${datumRoh}" ist mehrdeutig (Tag/Monat). Als Monat/Tag gelesen — bitte prüfen.`);
+      hinweise.push({
+        de: `Datum "${datumRoh}" ist mehrdeutig (Tag/Monat). Als Monat/Tag gelesen — bitte prüfen.`,
+        en: `Date "${datumRoh}" is ambiguous (day/month). Read as month/day — please check.`,
+      });
     }
-    if (!datum) hinweise.push(`Datum aus "${datumRoh}" nicht lesbar.`);
+    if (!datum) {
+      hinweise.push({
+        de: `Datum aus "${datumRoh}" nicht lesbar.`,
+        en: `Date "${datumRoh}" could not be read.`,
+      });
+    }
 
     const dauerSek = leseDauer(hole(zeile, 'dauer'), zuordnung.dauer?.einheit);
-    if (dauerSek === null) hinweise.push('Flugdauer nicht lesbar.');
+    if (dauerSek === null) {
+      hinweise.push({ de: 'Flugdauer nicht lesbar.', en: 'Flight duration could not be read.' });
+    }
 
     const breite = leseZahl(hole(zeile, 'breite'));
     const laenge = leseZahl(hole(zeile, 'laenge'));
     if ((breite === null) !== (laenge === null)) {
-      hinweise.push('Nur eine der beiden Koordinaten gefunden — Position wird verworfen.');
+      hinweise.push({
+        de: 'Nur eine der beiden Koordinaten gefunden — Position wird verworfen.',
+        en: 'Only one of the two coordinates found — position discarded.',
+      });
     }
 
     const hoeheRoh = leseZahl(hole(zeile, 'maxHoehe'));
@@ -432,7 +460,8 @@ export function baueVorschau(csvText: string, vorhandeneFluege: Flight[] = []): 
     const flug: Partial<Flight> = {
       date: datum ?? '',
       startTime: zeit ?? '',
-      duration: dauerSek !== null ? Math.round(dauerSek / 60) : 0,
+      // Kurze Flüge (unter 30 s) würden sonst als 0 Minuten erscheinen.
+      duration: dauerSek !== null && dauerSek > 0 ? Math.max(1, Math.round(dauerSek / 60)) : 0,
       locationName: hole(zeile, 'ort') || undefined,
       coordinates:
         breite !== null && laenge !== null ? [breite, laenge] : undefined,
