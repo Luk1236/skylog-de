@@ -29,14 +29,22 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Echte IndexedDB-Tests aus `n14` übernommen** (`db.test.ts`, `db.transaktion.test.ts`,
   Dev-Abhängigkeit `fake-indexeddb`). Dabei den Bugfix mitgenommen: `saveFlight` läuft jetzt in
   einer Transaktion und zählt den Akku-Zyklus nicht erneut, wenn ein bestehender Flug nur um
-  Fotos oder die Flugspur ergänzt wird. 824 Tests in 75 Dateien, alle grün.
+  Fotos oder die Flugspur ergänzt wird. 830 Tests in 75 Dateien, alle grün.
 - **N16 entschieden:** Die App-Daten sind von der Google-Kontosicherung ausgenommen
   (`dataExtractionRules` für Android 12+, `fullBackupContent` für ältere Versionen); der lokale
   Gerätewechsel bleibt erlaubt. Datenschutzerklärung DE/EN angepasst, Wächter in
   `src/konfiguration.test.ts`.
+- **DJI-SRT-Import mit echten Dateien geprüft** (Mavic Air 2, Mavic Pro, Phantom 4, Matrice 300,
+  Mavic Mini): Der Parser liest jetzt auch „longtitude“, Datumsangaben mit Punkten und
+  einstelligen Monaten, Millisekunden im Zeitstempel sowie `altitude`/`Hb`/`Hs`. Fehlt in der
+  Datei ein Datum, übernimmt der Import das Datum der Datei und weist im Hinweis darauf hin.
+  19 Tests in `djiSrt.test.ts`.
+- **Oberfläche und CSP lokal verifiziert:** 78 Playwright-Tests grün (20 s); die
+  Produktionsauslieferung über `npm start` mit CSP lief ohne Konsolen- oder CSP-Fehler.
+  Der Vercel-spezifische Gegencheck bleibt offen, bis dort deployt ist.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **824 Unit-Tests** (75 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **830 Unit-Tests** (75 Dateien, davon
 echte IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie Komponententests für
 Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis, Checklisten-Editor,
 Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
@@ -262,7 +270,8 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
   `C:\Users\lukas\Projekte\SkyLog`.
 - **Datenschutzerklärung und Rechtstexte gegenlesen lassen** (`public/datenschutz.html`,
   Verbotszonen in `SafetyView.tsx`) – vor einer öffentlichen Verteilung.
-- **DJI-SRT-Import mit echter Datei gegenprüfen** (`djiSrt.ts`).
+- ~~**DJI-SRT-Import mit echter Datei gegenprüfen**~~ – erledigt am 2026-10-24 mit zehn echten
+  Dateien; die unterstützten Formate stehen im Nachtrag oben.
 - **Neues Release** (z. B. `v1.3.0`) nach dem Merge von Runde 9.
 
 ## Technik-Stack

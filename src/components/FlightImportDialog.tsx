@@ -55,7 +55,7 @@ export function FlightImportDialog({ drohnen, vorhandeneFluege, onClose, onImpor
       const teile = await Promise.all(dateien.map(async d => {
         const text = await d.text();
         const v = istSrt(d.name, text)
-          ? baueVorschauAusSrt(text, vorhandeneFluege)
+          ? baueVorschauAusSrt(text, vorhandeneFluege, d.lastModified)
           : baueVorschau(text, vorhandeneFluege);
         return { name: d.name, v };
       }));

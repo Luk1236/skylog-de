@@ -126,3 +126,119 @@ describe('istSrt', () => {
     expect(istSrt('flug.csv', 'date,duration\n2023-01-01,120')).toBe(false);
   });
 });
+
+// Formate aus echten DJI-Dateien (Mavic Air 2, Mavic Pro, Phantom 4 Pro).
+describe('echte DJI-SRT-Varianten', () => {
+  it('liest die Mavic-Air-2-Variante mit [altitude] und Millisekunden im Zeitstempel', () => {
+    const srt = `1
+00:00:00,000 --> 00:00:00,016
+<font size="36">SrtCnt : 1, DiffTime : 16ms
+2022-05-01 15:01:58,531,716
+[iso : 100] [latitude: 41.420684] [longitude: 2.162162] [altitude: 27.300000] </font>
+
+2
+00:00:00,500 --> 00:00:00,516
+<font size="36">SrtCnt : 2, DiffTime : 16ms
+2022-05-01 15:01:59,031,716
+[iso : 100] [latitude: 41.420685] [longitude: 2.162162] [altitude: 28.600000] </font>`;
+
+    const proben = parseSrtProben(srt);
+    expect(proben).toHaveLength(2);
+    expect(proben[0].altM).toBeCloseTo(27.3, 3);
+    expect(proben[1].altM).toBeCloseTo(28.6, 3);
+    expect(proben[1].zeitMs! - proben[0].zeitMs!).toBe(500);
+
+    const z = fasseSrtZusammen(proben)!;
+    expect(z.datum).toBe('2022-05-01');
+    expect(z.startzeit).toBe('15:01');
+    expect(z.dauerSekunden).toBe(1);
+  });
+
+  it('liest die alte Variante mit Punkten im Datum und GPS(…)', () => {
+    const srt = `1
+00:00:01,000 --> 00:00:02,000
+HOME(149.0251,-20.2532) 2017.08.05 14:11:51
+GPS(149.0251,-20.2533,16) BAROMETER:1.9
+
+2
+00:00:02,000 --> 00:00:03,000
+HOME(149.0251,-20.2532) 2017.08.05 14:11:52
+GPS(149.0251,-20.2533,16) BAROMETER:2.0`;
+
+    const proben = parseSrtProben(srt);
+    expect(proben).toHaveLength(2);
+    expect(proben[0].lat).toBeCloseTo(-20.2533, 4);
+    expect(proben[0].lon).toBeCloseTo(149.0251, 4);
+    expect(proben[0].relativMs).toBe(0);
+
+    const z = fasseSrtZusammen(proben)!;
+    expect(z.datum).toBe('2017-08-05');
+    expect(z.startzeit).toBe('14:11');
+    expect(z.dauerSekunden).toBe(1);
+  });
+
+  it('liest die Phantom-4-Variante ohne Datum mit H …m und Datei-Zeitstempel', () => {
+    const srt = `1
+00:00:00,000 --> 00:00:01,000
+F/3.2, SS 160, ISO 100, EV 0, GPS (8.2090, 47.4692, 18), D 49.21m, H 45.60m, H.S 0.00m/s, V.S 0.00m/s
+
+2
+00:00:02,000 --> 00:00:03,000
+F/3.2, SS 160, ISO 100, EV 0, GPS (8.2090, 47.4692, 18), D 45.68m, H 45.60m, H.S 2.62m/s, V.S 0.00m/s`;
+
+    const fallback = new Date(2024, 0, 2, 3, 4).getTime();
+    const v = baueVorschauAusSrt(srt, [], fallback);
+    expect(v.fehler).toHaveLength(0);
+    const k = v.kandidaten[0];
+    expect(k.flug.date).toBe('2024-01-02');
+    expect(k.flug.startTime).toBe('03:04');
+    expect(k.maxHoeheM).toBe(46);
+    expect(k.track).toHaveLength(2);
+    expect(k.track![1].t).toBe(2);
+    expect(k.hinweise[0]).toContain('Kein Datum');
+  });
+
+  it('meldet ein fehlendes Datum klar, wenn kein Datei-Zeitstempel vorliegt', () => {
+    const srt = `1
+00:00:00,000 --> 00:00:01,000
+GPS (8.2090, 47.4692, 18), H 45.60m`;
+    const v = baueVorschauAusSrt(srt);
+    expect(v.kandidaten).toHaveLength(0);
+    expect(v.fehler.join(' ')).toContain('kein Datum');
+  });
+
+  it('liest die Mavic-2-Variante mit "longtitude" und ohne SRT-Zeitcode', () => {
+    const srt = `1
+2017.08.05 14:11:51,393,525,393,525
+[latitude : -20.2533] [longtitude : 149.0251] [iso : 100] [shutter : 1/60.0]
+
+2
+2017.08.05 14:11:52,393,525
+[latitude : -20.2534] [longtitude : 149.0252] [iso : 100] [shutter : 1/60.0]`;
+    const proben = parseSrtProben(srt);
+    expect(proben).toHaveLength(2);
+    expect(proben[0].lat).toBeCloseTo(-20.2533, 4);
+    expect(proben[0].lon).toBeCloseTo(149.0251, 4);
+    const z = fasseSrtZusammen(proben)!;
+    expect(z.datum).toBe('2017-08-05');
+    expect(z.dauerSekunden).toBe(1);
+  });
+
+  it('liest die alte Phantom-Variante mit einstelligem Datum und Hb/Hs', () => {
+    const srt = `1
+00:00:01,000 --> 00:00:02,000
+HOME(149.0251,-20.2532) 2017.8.5 14:11:51
+GPS(149.0251,-20.2533,16) Hb:1.9 Hs:1.9
+
+2
+00:00:02,000 --> 00:00:03,000
+HOME(149.0251,-20.2532) 2017.8.5 14:11:52
+GPS(149.0251,-20.2533,16) Hb:2.0 Hs:2.0`;
+    const proben = parseSrtProben(srt);
+    expect(proben).toHaveLength(2);
+    expect(proben[0].altM).toBeCloseTo(1.9, 3);
+    const z = fasseSrtZusammen(proben)!;
+    expect(z.datum).toBe('2017-08-05');
+    expect(z.startzeit).toBe('14:11');
+  });
+});

@@ -19,8 +19,10 @@ import { istDublette, type ImportVorschau, type ImportKandidat } from './flightI
 import { distanzMeter } from './flightTrack';
 
 export interface SrtProbe {
-  /** Zeit in ms seit Epoche (lokale Uhrzeit der Drohne). */
-  zeitMs: number;
+  /** Zeit in ms seit Epoche (lokale Uhrzeit der Drohne), falls die Datei ein Datum enthält. */
+  zeitMs?: number;
+  /** Zeit seit dem ersten Block in ms, aus dem SRT-Zeitcode. */
+  relativMs: number;
   lat: number;
   lon: number;
   /** Höhe über Start in Metern, falls vorhanden. */
@@ -29,21 +31,34 @@ export interface SrtProbe {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
-/** Zeitstempel wie "2023-05-01 10:15:30.123" oder "2020-01-01 10:00:00,000,000".
- *  Als lokale Wanduhrzeit interpretiert — DJI schreibt die Zeit ohne Zone. */
+/** Zeitstempel wie "2023-05-01 10:15:30.123", "2020-01-01 10:00:00,000,000"
+ *  oder "2017.08.05 14:11:51". Als lokale Wanduhrzeit interpretiert — DJI
+ *  schreibt die Zeit ohne Zone. */
 function leseZeitstempel(text: string): number | null {
-  const m = text.match(/(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2}):(\d{2})/);
+  const m = text.match(/(\d{4})[-.](\d{1,2})[-.](\d{1,2})[ T](\d{2}):(\d{2}):(\d{2})(?:[.,](\d{1,6}))?/);
   if (!m) return null;
-  const [, y, mo, d, h, mi, s] = m.map(Number);
-  const t = new Date(y, mo - 1, d, h, mi, s).getTime();
+  const [, y, mo, d, h, mi, s, bruch] = m;
+  const ms = bruch ? Number(bruch.padEnd(3, '0').slice(0, 3)) : 0;
+  const t = new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s), ms).getTime();
   return Number.isFinite(t) ? t : null;
+}
+
+/** Startzeit eines SRT-Blocks in ms seit Beginn des Videos. Der Zeitcode ist
+ *  die verlässlichste Zeitachse: Er löst auch dann auf, wenn der absolute
+ *  Zeitstempel nur Sekunden enthält oder ganz fehlt (Phantom 4). */
+function leseTimecode(block: string): number | null {
+  const m = block.match(/(\d{2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->/);
+  if (!m) return null;
+  const [, h, mi, s, ms] = m;
+  return ((Number(h) * 60 + Number(mi)) * 60 + Number(s)) * 1000 + Number(ms);
 }
 
 /** Position aus einem SRT-Block ziehen. Deckt beide Varianten ab. */
 function lesePosition(block: string): { lat: number; lon: number } | null {
-  // Neue Variante: einzeln benannte Felder.
+  // Neue Variante: einzeln benannte Felder. Manche DJI-Modelle schreiben
+  // "longtitude" (mit t) – das ist in echten Dateien verbreitet.
   const lat = block.match(/latitude\s*:?\s*(-?\d+(?:\.\d+)?)/i);
-  const lon = block.match(/longitude\s*:?\s*(-?\d+(?:\.\d+)?)/i);
+  const lon = block.match(/long(?:i|ti)tude\s*:?\s*(-?\d+(?:\.\d+)?)/i);
   if (lat && lon) {
     return { lat: Number(lat[1]), lon: Number(lon[1]) };
   }
@@ -55,12 +70,22 @@ function lesePosition(block: string): { lat: number; lon: number } | null {
   return null;
 }
 
-/** Höhe über Start aus einem SRT-Block. rel_alt (neu) bzw. BAROMETER (alt). */
+/** Höhe über Start aus einem SRT-Block. rel_alt (neu), altitude (Mavic Air 2),
+ *  BAROMETER (alt) bzw. H …m (Phantom 4). */
 function leseHoehe(block: string): number | undefined {
   const rel = block.match(/rel_alt\s*:?\s*(-?\d+(?:\.\d+)?)/i);
   if (rel) return Number(rel[1]);
+  const alt = block.match(/\baltitude\s*:?\s*(-?\d+(?:\.\d+)?)/i);
+  if (alt) return Number(alt[1]);
   const baro = block.match(/BAROMETER\s*:?\s*(-?\d+(?:\.\d+)?)/i);
   if (baro) return Number(baro[1]);
+  // Phantom/Matrice: Hb (barometrisch) bzw. Hs (Ultraschall).
+  const hb = block.match(/\bHb\s*:?\s*(-?\d+(?:\.\d+)?)/i);
+  if (hb) return Number(hb[1]);
+  const hs = block.match(/\bHs\s*:?\s*(-?\d+(?:\.\d+)?)/i);
+  if (hs) return Number(hs[1]);
+  const h = block.match(/\bH\s+(-?\d+(?:\.\d+)?)\s*m\b/i);
+  if (h) return Number(h[1]);
   return undefined;
 }
 
@@ -70,17 +95,34 @@ function leseHoehe(block: string): number | undefined {
 export function parseSrtProben(text: string): SrtProbe[] {
   const sauber = text.replace(/^\uFEFF/, '');
   const bloecke = sauber.split(/\r?\n\s*\r?\n/);
-  const proben: SrtProbe[] = [];
+  const roh: { zeitMs?: number; timecode: number | null; lat: number; lon: number; altM?: number }[] = [];
 
   for (const block of bloecke) {
     const pos = lesePosition(block);
     if (!pos) continue;
-    const zeitMs = leseZeitstempel(block);
-    if (zeitMs === null) continue;
-    proben.push({ zeitMs, lat: pos.lat, lon: pos.lon, altM: leseHoehe(block) });
+    const zeitMs = leseZeitstempel(block) ?? undefined;
+    const timecode = leseTimecode(block);
+    if (zeitMs === undefined && timecode === null) continue;
+    roh.push({ zeitMs, timecode, lat: pos.lat, lon: pos.lon, altM: leseHoehe(block) });
   }
 
-  return proben.sort((a, b) => a.zeitMs - b.zeitMs);
+  const ersteAbsolut = roh.find(p => p.zeitMs !== undefined)?.zeitMs;
+  const proben: SrtProbe[] = roh.map(p => ({
+    zeitMs: p.zeitMs,
+    relativMs: p.timecode ?? (p.zeitMs !== undefined && ersteAbsolut !== undefined ? p.zeitMs - ersteAbsolut : 0),
+    lat: p.lat,
+    lon: p.lon,
+    altM: p.altM,
+  }));
+
+  proben.sort((a, b) => a.relativMs - b.relativMs || (a.zeitMs ?? 0) - (b.zeitMs ?? 0));
+
+  // Auf den ersten Block normieren: Der Track beginnt bei 0, auch wenn die
+  // SRT-Datei mit 00:00:01 beginnt (z. B. Phantom-4-Dateien).
+  const start = proben[0]?.relativMs ?? 0;
+  for (const p of proben) p.relativMs -= start;
+
+  return proben;
 }
 
 /** Proben in eine Flugaufzeichnung (TrackPoint[]) wandeln. Zeit relativ zum
@@ -89,19 +131,19 @@ export function parseSrtProben(text: string): SrtProbe[] {
  *  Höhen- und Speed-Kurve zeichnen. */
 export function probenZuTrack(proben: SrtProbe[]): TrackPoint[] {
   if (proben.length === 0) return [];
-  const start = proben[0].zeitMs;
   return proben.map((p, i) => {
     let speed: number | undefined;
     if (i > 0) {
       const vor = proben[i - 1];
-      const dtSek = (p.zeitMs - vor.zeitMs) / 1000;
+      const dtSek = (p.relativMs - vor.relativMs) / 1000;
       if (dtSek > 0) {
         const meter = distanzMeter(vor.lat, vor.lon, p.lat, p.lon);
         speed = Math.round((meter / dtSek) * 3.6 * 10) / 10; // m/s -> km/h
       }
     }
     return {
-      t: Math.round((p.zeitMs - start) / 1000),
+      // 0,1-s-Auflösung: reicht für die Diagramme und hält kurze Clips lesbar.
+      t: Math.round(p.relativMs / 100) / 10,
       lat: p.lat,
       lon: p.lon,
       alt: p.altM,
@@ -120,13 +162,17 @@ export interface SrtZusammenfassung {
   anzahlProben: number;
 }
 
-/** Die Proben zu einem Flug verdichten. null, wenn keine Position vorlag. */
-export function fasseSrtZusammen(proben: SrtProbe[]): SrtZusammenfassung | null {
+/** Die Proben zu einem Flug verdichten. null, wenn keine Position oder kein
+ *  Datum vorlag. Ohne Datum in der Datei dient fallbackZeitMs (Datei-Zeitstempel
+ *  aus dem Import-Dialog) als Bezug. */
+export function fasseSrtZusammen(proben: SrtProbe[], fallbackZeitMs?: number): SrtZusammenfassung | null {
   if (proben.length === 0) return null;
 
   const erste = proben[0];
   const letzte = proben[proben.length - 1];
-  const d = new Date(erste.zeitMs);
+  const basis = erste.zeitMs ?? fallbackZeitMs;
+  if (basis === undefined) return null;
+  const d = new Date(basis);
 
   let maxDistanzM = 0;
   let maxHoeheM: number | undefined;
@@ -138,7 +184,7 @@ export function fasseSrtZusammen(proben: SrtProbe[]): SrtZusammenfassung | null 
   return {
     datum: `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`,
     startzeit: `${pad(d.getHours())}:${pad(d.getMinutes())}`,
-    dauerSekunden: Math.max(0, Math.round((letzte.zeitMs - erste.zeitMs) / 1000)),
+    dauerSekunden: Math.max(0, Math.round((letzte.relativMs - erste.relativMs) / 1000)),
     start: [erste.lat, erste.lon],
     maxHoeheM: maxHoeheM !== undefined ? Math.round(maxHoeheM) : undefined,
     maxDistanzM: Math.round(maxDistanzM),
@@ -152,18 +198,29 @@ export function fasseSrtZusammen(proben: SrtProbe[]): SrtZusammenfassung | null 
 export function baueVorschauAusSrt(
   srtText: string,
   vorhandeneFluege: Flight[] = [],
+  fallbackZeitMs?: number,
 ): ImportVorschau {
   const proben = parseSrtProben(srtText);
-  const z = fasseSrtZusammen(proben);
 
-  if (!z) {
+  if (proben.length === 0) {
     return {
       zuordnung: {}, nichtZugeordnet: [], kandidaten: [],
       fehler: ['Keine Telemetrie mit Position gefunden. Ist das eine DJI-SRT-Datei mit GPS-Daten?'],
     };
   }
 
+  const z = fasseSrtZusammen(proben, fallbackZeitMs);
+  if (!z) {
+    return {
+      zuordnung: {}, nichtZugeordnet: [], kandidaten: [],
+      fehler: ['Die SRT-Datei enthält kein Datum. Bitte den Flug von Hand eintragen.'],
+    };
+  }
+
   const hinweise: string[] = [];
+  if (proben[0].zeitMs === undefined) {
+    hinweise.push('Kein Datum in der SRT-Datei – Datum und Uhrzeit aus der Datei übernommen, bitte prüfen.');
+  }
   if (z.dauerSekunden === 0) {
     hinweise.push('Flugdauer aus den Zeitstempeln nicht bestimmbar — bitte prüfen.');
   }

@@ -37,6 +37,9 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - Flüge, Wartungen und Dateinamen zwischen 0 und 2 Uhr bekamen das Datum vom Vortag.
 - Wurde ein bestehender Flug erneut gespeichert (z. B. um Fotos oder die Flugspur zu ergänzen),
   zählte die App den Akku-Zyklus ein zweites Mal.
+- Der DJI-SRT-Import erkannte echte Dateien von Mavic Air 2, Mavic Pro, Phantom 4 und Matrice 300
+  nicht (u. a. „longtitude“, Punkte im Datum, `altitude`/`Hb`/`Hs`). Diese Formate werden jetzt
+  gelesen; fehlt in der Datei ein Datum, übernimmt der Import das Datum der Datei und weist darauf hin.
 - Die Namensnennung „© OpenStreetMap“ fehlte im Flugplaner und war auf der Hauptkarte teilweise
   verdeckt.
 
@@ -53,7 +56,7 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 - Die App meldet sich bei den OpenStreetMap-Diensten mit eigener Kennung.
 
 ### Technik
-- Deutlich mehr Tests: 824 Unit- und 78 Oberflächentests, alle grün – darunter echte
+- Deutlich mehr Tests: 830 Unit- und 78 Oberflächentests, alle grün – darunter echte
   IndexedDB-Tests für Migration, Transaktionen und Zurückrollen.
 - Große Dateien aufgeteilt, Großschrift und Fettdruck vereinheitlicht.
 
