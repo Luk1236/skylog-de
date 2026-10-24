@@ -138,4 +138,11 @@ describe('vercel.json', () => {
   it('erlaubt Skripte nur von der eigenen Seite', () => {
     expect(SICHERHEITS_HEADER['Content-Security-Policy']).toMatch(/script-src 'self'(;|$)/);
   });
+
+  it('erlaubt Bilder nur von den Karten- und WMS-Hosts', () => {
+    const csp = SICHERHEITS_HEADER['Content-Security-Policy'];
+    expect(csp).toContain("img-src 'self' data: blob: https://*.tile.openstreetmap.fr https://tile.openstreetmap.org https://uas-betrieb.de");
+    // Kein pauschales https: mehr für Bilder.
+    expect(csp).not.toMatch(/img-src[^;]*\shttps:(\s|;)/);
+  });
 });

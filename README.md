@@ -28,7 +28,8 @@ npm run dev          # Express + Vite auf http://localhost:3000
 npm test             # Unit-Tests (Vitest)
 npm run e2e          # Oberflächentests im Browser (Playwright), inkl. Kontrast-Wächter
 npm run check        # Typecheck (TypeScript strict) + ESLint
-npm run build        # Web-App + Server-Bundle nach dist/
+npm run build        # Web-App nach dist/, Server-Bundle nach dist-server/
+npm start            # gebaute Fassung auf http://localhost:3000
 ```
 
 Für die Oberflächentests einmalig `npx playwright install chromium` ausführen.
@@ -86,3 +87,7 @@ Notizen für die Weiterarbeit stehen in [WEITERARBEIT.md](WEITERARBEIT.md).
 ## Datenschutz
 
 Flugdaten verlassen das Gerät nicht. Nur auf ausdrücklichen Wunsch gehen Anfragen an externe Dienste: Wetter, NOTAM, Zonenquellen, Kartendateien und – nur für den KI-Check – Koordinaten und Ortsname an Google Gemini. Details: `public/datenschutz.html`.
+
+## Lizenz
+
+Copyright (c) 2026 Lukas Bootz. Alle Rechte vorbehalten. Details in [LICENSE](LICENSE).

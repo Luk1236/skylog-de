@@ -8,15 +8,15 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
 /** Version für die Anzeige in der App: im Release-Workflow aus dem Tag
- *  (SKYLOG_VERSION_NAME), sonst letzter Versions-Tag plus Commit-Zahl
- *  (= versionCode der APK), notfalls die Version aus package.json. */
+ *  (SKYLOG_VERSION_NAME), sonst die Version aus package.json plus Commit-Zahl
+ *  (= versionCode der APK). So zeigt ein Test-Build vor dem Tag bereits die
+ *  kommende Version (z. B. 1.3.0) statt der letzten veröffentlichten. */
 function appVersion(): string {
   if (process.env.SKYLOG_VERSION_NAME) return process.env.SKYLOG_VERSION_NAME;
   const paket = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')).version as string;
   try {
-    const tag = execSync("git describe --tags --match 'v*.*.*' --abbrev=0", { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim().replace(/^v/, '');
     const build = execSync('git rev-list --count HEAD', { stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
-    return `${tag} (Build ${build})`;
+    return `${paket} (Build ${build})`;
   } catch {
     return paket;
   }

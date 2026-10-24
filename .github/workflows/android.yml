@@ -79,9 +79,10 @@ jobs:
           # Test-APKs und Releases gleich - so laesst sich jede neuere APK ueber
           # jede aeltere installieren (Android verlangt einen steigenden versionCode).
           echo "SKYLOG_VERSION_CODE=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
-          # versionName = letzter Versions-Tag plus Build-Nummer, z. B. 1.1.0-build312
-          TAG=$(git describe --tags --match 'v*.*.*' --abbrev=0 2>/dev/null || echo v0.0.0)
-          echo "SKYLOG_VERSION_NAME=${TAG#v}-build$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
+          # versionName = Version aus package.json plus Build-Nummer, z. B. 1.3.0-build312.
+          # So heißt auch eine Test-APK vor dem Tag schon wie die kommende Version.
+          VERSION=$(node -p "require('./package.json').version")
+          echo "SKYLOG_VERSION_NAME=${VERSION}-build$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
 
       - name: Debug-APK bauen
         working-directory: android

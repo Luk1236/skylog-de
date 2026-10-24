@@ -4,8 +4,8 @@
 //
 // Content-Security-Policy: Skripte nur von der eigenen Seite. Abrufe (fetch,
 // auch im Service Worker) nur zu den Diensten, die die App wirklich nutzt.
-// Bilder von jedem HTTPS-Host (Kartenkacheln, WMS-Zonen) sowie data:/blob:
-// für Fotos. 'unsafe-inline' nur bei Styles - Leaflet und React setzen
+// Bilder nur von den Karten-/WMS-Hosts sowie data:/blob: für Fotos und
+// QR-Codes. 'unsafe-inline' nur bei Styles - Leaflet und React setzen
 // Inline-Styles. Neue Dienste müssen hier UND in vercel.json ergänzt werden.
 
 const ABRUFE = [
@@ -19,11 +19,20 @@ const ABRUFE = [
   'https://tile.openstreetmap.org', // Flugplaner/Flugspur (OSMF: ohne a/b/c)
 ];
 
+const BILDER = [
+  "'self'",
+  'data:',
+  'blob:',
+  'https://*.tile.openstreetmap.fr', // Hauptkarte (HOT-Stil)
+  'https://tile.openstreetmap.org', // Flugplaner/Flugspur
+  'https://uas-betrieb.de', // DIPUL-WMS-Kacheln
+];
+
 export const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "script-src 'self'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  `img-src ${BILDER.join(' ')}`,
   "font-src 'self' data:",
   `connect-src ${ABRUFE.join(' ')}`,
   "worker-src 'self' blob:",
