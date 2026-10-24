@@ -2,7 +2,8 @@
 
 **Für einen neuen Chat: diese Datei zuerst lesen.** Der alte
 `../SkyLog-Sicherung/WIEDERAUFBAU-Fahrplan.md` ist erledigt und nur noch Historie.
-Zuletzt aktualisiert: 2026-10-22 (Release v1.3.0 vorbereitet, noch nicht getaggt).
+Zuletzt aktualisiert: 2026-10-24 (Projekt aus OneDrive verschoben, Abhängigkeiten geprüft;
+Release v1.3.0 weiterhin vorbereitet, noch nicht getaggt).
 
 ## Worum es geht
 Drohnen-Flugbuch-App („die Handy-App für die Drohne"). Ursprüngliches Ziel war, die
@@ -13,6 +14,19 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Repo:** GitHub `Luk1236/skylog-de` · Hauptbranch `master` · Releases per Tag `v*.*.*`
 - **APK vom 22.05.2026 gesichert:** `../SkyLog-Sicherung/skylog-handy-2026-05-22.apk`
 - `../skylog-handy` ist der alte Prototyp (Repo `Luk1236/Flug`) – überholt.
+
+## Nachtrag 2026-10-24
+- Das Projekt liegt jetzt unter **`C:\Users\lukas\Projekte\SkyLog`** (nicht mehr in OneDrive).
+  Der alte OneDrive-Ordner ist entfernt und liegt im OneDrive-Papierkorb. Damit sind die
+  `UNKNOWN: read`-Fehler und die extrem langsamen Builds/ESLint-Läufe weg.
+- `node_modules` auf diesem PC (x64) neu installiert; `npm audit fix` hat drei Hinweise
+  (1 hoch, 1 mittel, 1 niedrig) behoben – jetzt **0 Schwachstellen**. `package-lock.json`
+  ist dadurch geändert (noch nicht committet).
+- Am neuen Ort verifiziert: `npm run check` sauber (TypeScript + ESLint), **786 Unit-Tests
+  grün** (73 Dateien), `npm run build:app` erfolgreich. Der Build lief zuvor in OneDrive
+  nach über 10 Minuten in einen Fehler, jetzt in unter einer Sekunde.
+- Der Worktree `../skylog-n14` ist wieder verknüpft (Pfade angepasst); dort fehlt noch
+  `npm ci`, falls an den IndexedDB-Tests weitergearbeitet wird.
 
 ## Stand 2026-10-21
 Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **786 Unit-Tests** (73 Dateien, davon
@@ -234,8 +248,8 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
 - **Nach dem Vercel-Deploy:** einmal die Browser-Konsole auf CSP-Meldungen prüfen.
 - **Vercel-Deployment** einrichten (GEMINI_API_KEY dort setzen), dann Repo-Variable
   `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK.
-- **Projekt aus OneDrive verschieben** (Ort bestimmst du) – OneDrive stellt gelöschte Dateien
-  wieder her und lässt Builds gelegentlich mit `UNKNOWN: read` scheitern.
+- ~~**Projekt aus OneDrive verschieben**~~ – erledigt am 2026-10-24; es liegt jetzt unter
+  `C:\Users\lukas\Projekte\SkyLog`.
 - **Datenschutzerklärung und Rechtstexte gegenlesen lassen** (`public/datenschutz.html`,
   Verbotszonen in `SafetyView.tsx`) – vor einer öffentlichen Verteilung.
 - **DJI-SRT-Import mit echter Datei gegenprüfen** (`djiSrt.ts`).
