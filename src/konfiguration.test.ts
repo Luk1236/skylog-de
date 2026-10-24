@@ -17,6 +17,21 @@ describe('Android-Manifest', () => {
   it('verlangt kein GPS als Pflicht-Hardware', () => {
     expect(manifest).toMatch(/android\.hardware\.location\.gps"\s+android:required="false"/);
   });
+
+  it('nimmt die App-Daten von der Google-Kontosicherung aus, erlaubt aber den Gerätewechsel (N16)', () => {
+    expect(manifest).toContain('android:dataExtractionRules="@xml/data_extraction_rules"');
+    expect(manifest).toContain('android:fullBackupContent="@xml/backup_rules"');
+    const regeln = lies('../android/app/src/main/res/xml/data_extraction_rules.xml');
+    const alt = lies('../android/app/src/main/res/xml/backup_rules.xml');
+    for (const datei of [regeln, alt]) {
+      expect(datei).toMatch(/<exclude domain="root" path="\."/);
+      expect(datei).toMatch(/<exclude domain="database" path="\."/);
+    }
+    // Kein device-transfer-Ausschluss: Der lokale Gerätewechsel bleibt erlaubt.
+    expect(regeln).not.toContain('<device-transfer');
+    expect(lies('../public/datenschutz.html')).toContain('nicht in die Google-Kontosicherung');
+    expect(lies('../public/privacy.html')).toContain('does not include the app data in your Google account backup');
+  });
 });
 
 describe('index.html', () => {

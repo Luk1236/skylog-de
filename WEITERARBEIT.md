@@ -29,10 +29,14 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
 - **Echte IndexedDB-Tests aus `n14` übernommen** (`db.test.ts`, `db.transaktion.test.ts`,
   Dev-Abhängigkeit `fake-indexeddb`). Dabei den Bugfix mitgenommen: `saveFlight` läuft jetzt in
   einer Transaktion und zählt den Akku-Zyklus nicht erneut, wenn ein bestehender Flug nur um
-  Fotos oder die Flugspur ergänzt wird. 823 Tests in 75 Dateien, alle grün.
+  Fotos oder die Flugspur ergänzt wird. 824 Tests in 75 Dateien, alle grün.
+- **N16 entschieden:** Die App-Daten sind von der Google-Kontosicherung ausgenommen
+  (`dataExtractionRules` für Android 12+, `fullBackupContent` für ältere Versionen); der lokale
+  Gerätewechsel bleibt erlaubt. Datenschutzerklärung DE/EN angepasst, Wächter in
+  `src/konfiguration.test.ts`.
 
 ## Stand 2026-10-21
-Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **823 Unit-Tests** (75 Dateien, davon
+Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **824 Unit-Tests** (75 Dateien, davon
 echte IndexedDB-Tests für Migration, Transaktionen und Zurückrollen sowie Komponententests für
 Assistent, Logbuch, Flotte, Wartung, Sicherheit, Standort-Hinweis, Checklisten-Editor,
 Dialog-Fokus, Einspielen, SORA und Kunden) · **78 Playwright-Tests** inkl.
@@ -245,11 +249,12 @@ Runde 6 (Branch `design/einheitliches-design`): alle 30 Befunde des Software-Che
   Manifest ohne „LBA-konform", Theme-Farbe = Markenblau, PDFs im Markenblau.
 
 ## Noch offen (braucht dich)
-- **SORA-Boden-Risiko (iGRC)** ist weiter vereinfacht (Masse + Umgebung statt SORA-2.5-Tabelle
-  mit Spannweite, Geschwindigkeit, Bevölkerungsdichte; M1/M2 pauschal −1). Der Dialog sagt das
-  jetzt. Ob die volle Tabelle kommt, ist eine Produktentscheidung.
-- **N16 Android-Sicherung:** bewusst entscheiden, ob `dataExtractionRules` die App-Daten von der
-  Google-Sicherung ausnehmen sollen.
+- ~~**SORA-Boden-Risiko (iGRC)**~~ – erledigt: Die volle SORA-2.5-Tabelle (Abmessung,
+  Geschwindigkeit, Bevölkerungsdichte) und die Minderungen M1(A)/M1(B)/M1(C)/M2 sind in
+  `src/services/sora25.ts` umgesetzt und werden im Dialog abgefragt.
+- ~~**N16 Android-Sicherung**~~ – entschieden am 2026-10-24: Die App-Daten sind von der
+  Google-Kontosicherung ausgenommen (`dataExtractionRules`/`fullBackupContent`), der lokale
+  Gerätewechsel bleibt erlaubt.
 - **Nach dem Vercel-Deploy:** einmal die Browser-Konsole auf CSP-Meldungen prüfen.
 - **Vercel-Deployment** einrichten (GEMINI_API_KEY dort setzen), dann Repo-Variable
   `SKYLOG_API_URL` auf die Adresse setzen → KI-Check auch in der APK.

@@ -47,11 +47,13 @@ beim Release automatisch als Text auf der GitHub-Release-Seite (siehe `.github/w
 
 ### Datenschutz und Sicherheit
 - Datenschutzerklärung um Rechtsgrundlagen, Drittländer, Speicherdauer und deine Rechte ergänzt.
+- App-Daten sind von der Google-Kontosicherung ausgenommen; beim Gerätewechsel kann Android sie
+  weiterhin lokal übertragen.
 - Sicherheits-Header und Content-Security-Policy für die Web-Version, Herkunftsprüfung am KI-Endpunkt.
 - Die App meldet sich bei den OpenStreetMap-Diensten mit eigener Kennung.
 
 ### Technik
-- Deutlich mehr Tests: 823 Unit- und 78 Oberflächentests, alle grün – darunter echte
+- Deutlich mehr Tests: 824 Unit- und 78 Oberflächentests, alle grün – darunter echte
   IndexedDB-Tests für Migration, Transaktionen und Zurückrollen.
 - Große Dateien aufgeteilt, Großschrift und Fettdruck vereinheitlicht.
 
