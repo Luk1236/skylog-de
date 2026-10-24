@@ -51,6 +51,9 @@ Das ist erreicht und inzwischen deutlich übertroffen. Weitergearbeitet wird **h
   Importmeldungen sind zweisprachig, SRT-Spuren werden auf höchstens 2.000 Punkte ausgedünnt,
   Flüge unter einer Minute als 1 Minute gespeichert. CSP-Bilder nur von Karten-/WMS-Hosts.
   E2E-Test für den gemeinsamen CSV-/SRT-Import; Lizenz ergänzt, `metadata.json` entfernt.
+- **Signatur und Passwort getrennt:** Der Schlüssel liegt unter
+  `SkyLog-Sicherung\android-signatur`, das Passwort unter
+  `C:\Users\lukas\Projekte\SkyLog-Zugangsdaten`. Beide `LIESMICH.md` verweisen aufeinander.
 
 ## Stand 2026-10-21
 Verifiziert: `tsc` (strict) sauber · ESLint 0 Warnungen · **837 Unit-Tests** (76 Dateien, davon
